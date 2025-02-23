@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+ {% block content %}
+ <link href="{% static 'css/user_profile.css' %}" rel="stylesheet" />
+ <div class="user-container ">
+    <nav class="navbar">
+        <ul>
+            <li><a style="border-bottom: 2px solid #00332ebd ;" href="#">My Profile</a></li>
+            <li><a href="#">Inbox</a></li>
+            <li><a href="#">Saved Items</a></li>
+            <li><a href="#">Settings & Options</a></li>
+        </ul>
+    </nav>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-left">
+                {% if user.customer and user.customer.image %}
+                <img
+                  src="{{ user.customer.image.url }}"
+                  alt="User Icon"
+                  class="rounded-circle me-2"
+                  width="50"
+                  height="50"
+                />
+                {% else %}
+                <img
+                  src="{% static 'images/default-profile.png' %}"
+                  alt="Default User"
+                  class="rounded-circle me-2"
+                  width="50"
+                  height="50"
+                />
+                {% endif %}
+                <div class="profile-info">
+                    <h2 class="username">{{ user.username }}</h2>
+                    <div class="follow-stats">
+                       <a style="color: cornflowerblue;" href=""><span class="follow-count"><strong>{{ followers|length }}</strong> Followers</span></a>
+                       <a style="color: cornflowerblue;" href=""><span class="follow-count"><strong>{{ following|length }}</strong> Following</span></a>
+                    </div>
+
+                    <div class="action-buttons">
+
+                        <button class="btn"><i class="fa-solid fa-envelope"></i></button>
+
+                    </div>
+                </div>
+            </div>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <i class="fa-solid fa-star"></i>
+                    <span class="stat-value">12</span>
+                    <span class="stat-label">Reputation Points</span>
+                </div>
+                <div class="stat-box">
+                    <i class="fa-solid fa-home"></i>
+                    <span class="stat-value">{{ view_count }}</span>
+                    <span class="stat-label">Profile Views</span>
+                </div>
+                <div class="stat-box">
+                    <i class="fa-solid fa-eye"></i>
+                    <span class="stat-value">{{ total_views }}</span>
+                    <span class="stat-label">Deal Views</span>
+                </div>
+                <div class="stat-box">
+                    <i class="fa-solid fa-tag"></i>
+                    <span class="stat-value">{{ deal_count }}</span>
+                    <span class="stat-label">Deals Posted</span>
+                </div>
+                <div class="stat-box">
+                    <i class="fa-solid fa-comment"></i>
+                    <span class="stat-value">30</span>
+                    <span class="stat-label">Comments Posted</span>
+                </div>
+                <div class="stat-box">
+                    <i class="fa-solid fa-thumbs-up"></i>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Votes Given</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <hr>
+    <div class="best-deal">
+        <h3> Best Deal Posted <a href="#" style="font-size: 14px;">See All Deal Posts</a></h3>
+        <div class="deal-container">
+            <div class="deal-info">
+            </div>
+            <div class="New-deal">
+
+                <div class="Newdeal-container">
+                    <div class="deal-info">
+
+                        <div class="post-deal">
+                            <p>🔥 Got an amazing deal ?<br> Don’t keep it to yourself and Share it to help others
+                                save
+                                big!</p>
+                            <a href="PostDeal.html"><button class="deal-btn">POST YOUR FIRST DEAL</button> </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+        </div>
+
+
+    </div>
+
+
+</div> 
+
+    <div class="Asidebar">
+        <a href="#" class="active">Activity</a>
+        <a href="#">Contributions</a>
+        <a href="#">Frontpage</a>
+        <a href="#">Deals</a>
+        <a href="#">Coupons</a>
+        <a href="#">Freebies</a>
+        <a href="#">Contests</a>
+        <a href="#">Posts</a>
+        <a href="#">Threads</a>
+        <h3>Reputation</h3>
+    </div>
+
+    <div class="New-Activity-container">
+
+        <div class="header">
+            <h2>Activity</h2>
+            <div class="tabs">
+                <a href="#" class="tab active">All Activity</a>
+                <a href="#" class="tab">Reputation Points</a>
+                <a href="#" class="tab">Replies</a>
+                <a href="#" class="tab">Votes</a>
+                <a href="#" class="tab">New Threads</a>
+            </div>
+        </div>
+        <div class="activity-item ">
+            
+
+            <div>
+                <p class="note">
+                    It looks like there's no activity here yet! <br>  
+                     Start exploring, posting deals, 
+                    or engaging with others to bring your profile to life." </p>
+            </div>
+        </div>
+      
+
+    </div>
+{%endblock%}

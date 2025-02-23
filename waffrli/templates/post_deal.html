@@ -1,0 +1,129 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="postcontainer">
+    <header>
+      <h1 class="flex" 
+      style="background-color: rgb(122, 168, 206); 
+      box-shadow: 8px 3px 33px 42px rgba(13, 56, 167, 6.788);
+      border-radius: 50rem;
+      padding: 1rem;
+      margin: 1rem;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 500;
+      text-align: center;">
+
+      Share a Deal </h1>
+
+    </header>
+
+    <form class="form-section" enctype="multipart/form-data" id="deal-form" method="POST" action="{% url 'post_deal' %}">
+
+        {% csrf_token %}
+      <div class="form-group">
+        <div class="progress-step " id="step-1"></div>
+        <label for="deal-url">Deal URL</label>
+        <input name="url" type="url" id="deal-url" placeholder="Enter the deal or product URL here" required>
+        <div class="error-message" id="url-error">Please enter a valid URL.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-2"></div>
+        <label for="deal-title">Deal Title</label>
+        <input name="name" type="text" id="deal-title" pattern="[A-Za-z ]+" title="Please enter only letters." placeholder="Enter a clear deal title" required>
+        <div class="error-message" id="title-error">Please enter a valid title using only letters.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-3"></div>
+        <label for="sale-price">Sale Price</label>
+        <input name="sale_price" type="text" id="sale-price" pattern="\d*" title="Please enter a valid number." placeholder="$">
+        <div class="error-message" id="sale-price-error">Please enter a valid number for the sale price.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-4"></div>
+        <label for="list-price">List Price</label>
+        <input name="price" type="text" id="list-price" pattern="\d*" title="Please enter a valid number." placeholder="$">
+        <div class="error-message" id="list-price-error">Please enter a valid number for the list price.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-5"></div>
+        <label for="location">Deal Location</label>
+        <select name="location" id="location" required>
+          <option value="">Select Location</option>
+          <option value="Amman">Amman</option>
+          <option value="Zarqa">Zarqa</option>
+          <option value="Irbid">Irbid</option>
+          <option value="Aqaba">Aqaba</option>
+          <option value="Madaba">Madaba</option>
+        </select>
+        <div class="error-message" id="location-error">Please select a location.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-6"></div>
+        <label for="description">Deal Description</label>
+        <textarea name="description" id="description" placeholder="Provide additional details about the deal..." required></textarea>
+        <div class="error-message" id="description-error">Please provide a description for the deal.</div>
+      </div>
+
+      <div class="form-group">
+        <div class="progress-step" id="step-7"></div>
+        <label for="category">Category</label>
+        <select name="category" id="category" required>
+            <option value="">Select Category</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+          
+        
+        <div class="error-message" id="category-error">Please select a category.</div>
+      </div>
+
+
+      <div class="form-group">
+        <div class="progress-step" id="step-8"></div>
+        <label for="store">Store</label>
+        <input name="store" type="text" id="store" placeholder="Enter the store name here" required>
+        <div class="error-message" id="store-error">Please enter a valid store name.</div>
+      </div>
+
+
+              {% comment %} <!--date   -->
+              <div class="form-group">
+                <div class="progress-step" id="step-10"></div>
+                <label for="deal-expiration">Expiration Date</label>
+                <input type="date" id="deal-expiration" required>
+                <div class="error-message" id="expiration-error">Please select an expiration date.</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="progress-step" id="step-11"></div>
+                <label for="deal-posted">Posted Date</label>
+                <input type="date" id="deal-posted" readonly>
+            </div> {% endcomment %}
+
+
+
+
+      <div class="form-group">
+        <div class="progress-step" id="step-9"></div>
+        <label for="image">Upload Deal Image</label>
+        <input name="pic" type="file" id="image" accept="image/*">
+      </div>
+
+
+
+      <div class="form-actions">
+        <button type="button" id="archive-btn">Archive Deal</button>
+        <button type="submit">Post Deal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link href="{% static 'css/wishlist.css' %}" rel="stylesheet" />
+<div style="margin-top: 4%">
+  <div class="row">
+
+    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center" style="font-size: 13px; margin-top: 100px">
+      {% if searched %}
+        {% for product in searched %}
+
+          <div class="product-card">
+            <!-- Customer Profile Picture -->
+            {% if product.customer_pic_id and product.customer_pic_id.image %}
+              <img src="{{ product.customer_pic_id.image.url }}" alt="User Icon" class="rounded-circle me-2" width="30" height="30" />
+            {% else %}
+              <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="rounded-circle me-2" width="30" height="30" />
+            {% endif %}
+            
+            <!-- Product Info -->
+            <small class="text-muted">@{{ product.user.username }} {{ product.create_at|date:"d-m" }}</small>
+            
+            <div class="sale-tag">-40%</div>
+            
+            <!-- Product Image -->
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="Product" />
+            {% else %}
+              <img src="{% static 'images/default-product.png' %}" alt="Default Product" />
+            {% endif %}
+            
+            <div class="product-info">
+              <h3>{{ product.Name }}</h3>
+              <p class="description">{{ product.Description }}</p>
+              <div class="price-container">
+                <span class="current-price">${{ product.sale_price }}</span>
+                <span class="original-price">${{ product.price }}</span>
+              </div>
+              <div class="rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <span>(312)</span>
+              </div>
+            </div>
+
+            <!-- Store Info -->
+            <div>{{ product.store }}</div>
+
+            <!-- Card Footer -->
+            <div class="card-footer">
+              <button class="like-btn" data-product-id="{{ product.id }}">
+                <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+                <span class="like-count">{{ product.likes.count }}</span>
+              </button>
+              <button class="comment-btn">
+                <i class="far fa-comment"></i>
+              </button>
+              <a href="{% url 'product' product.id %}">
+                <button class="add-to-cart">Show the Deal</button>
+              </a>
+            </div>
+          </div>
+
+        {% endfor %}
+      {% else %}
+        <p>No products found.</p>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

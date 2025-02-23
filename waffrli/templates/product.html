@@ -1,0 +1,56 @@
+{% extends "base.html" %} 
+{% block content %}
+
+<div class="container">
+    <br><br><br><br>
+
+    <div class="card mb-3">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <center>
+                        <h5 class="card-title">{{ product.Name }}</h5>
+                        <p class="card-text">
+                            {{ product.Description }}
+                        </p>
+                        <div class="d-flex justify-content-center small text-warning mb-2">
+                            <!-- Bootstrap stars (ensure Bootstrap Icons or FontAwesome is included) -->
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+
+                        <!-- Product price-->
+                        <span class="text-muted text-decoration-line-through">{{ product.Price }}</span>
+                        {{ product.sale_price }}
+
+                        <br>
+                        <span class="text-muted">Views: {{ product.views }}</span> <!-- Corrected views reference -->
+                    </center>
+
+                    <center>
+                        <a class="btn btn-secondary" href="{% url 'home' %}">Home</a>
+                        <a class="btn btn-secondary" href="{% url 'user_profile' product.user.id %}">
+                            View Seller Profile
+                        </a>
+                        <a class="btn btn-secondary"
+                           href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+                           target="_blank" rel="noopener noreferrer">
+                            Go to Deal
+                        </a>
+                    </center>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br><br><br><br><br><br>
+
+</div>
+
+{% endblock %}

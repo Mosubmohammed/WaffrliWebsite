@@ -1,0 +1,234 @@
+<header>
+  <div class="announcement-bar">🔥 Hot Deals! Limited time offer</div>
+  <div class="main-header">
+      <div class="header-left">
+          <button class="menu-btn" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+          </button>
+
+          <a href="WAffRLIApp.html">
+              <div class="logo"> <span style="color: red;" class="tag-icon">%</span>
+                  Waffrli <span class="highlight">!</span>
+              </div>
+          </a>
+
+
+          <div class="nav-categories">
+              <a href="#" class="nav-link">
+                  <i class="fas fa-fire"></i>
+                  <span>Hot Deals</span>
+              </a>
+              <a href="#" class="nav-link">
+                  <i class="fas fa-bolt"></i>
+                  <span>Popular</span>
+              </a>
+              <a href="#" class="nav-link">
+                  <i class="fas fa-heart"></i>
+                  <span>Favorites</span>
+              </a>
+              <div class="dropdown">
+                  <button class="nav-link dropdown-toggle">
+                      <i class="fas fa-thin fa-icons"></i>
+                      Categories
+                      <i class="fas fa-chevron-down"></i>
+                  </button>
+                  <div class="dropdown-content">
+                      <a href="#"><i class="fas fa-laptop"></i> Electronics</a>
+                      <a href="#"><i class="fas fa-tshirt"></i> Fashion</a>
+                      <a href="#"><i class="fas fa-home"></i> Home & Garden</a>
+                      <a href="#"><i class="fas fa-futbol"></i> Sports</a>
+                      <a href="#"><i class="fas fa-spa"></i> Beauty</a>
+                  </div>
+              </div>
+
+              </a>
+              <a href="CustomerProfile.html" class="nav-link">
+                  <i class="fas fa-heart"></i>
+                  <span>dealer page</span>
+              </a>
+          </div>
+
+      </div>
+
+
+      <div class="search-container">
+          <div class="search-wrapper">
+              <input type="text" placeholder="Search for deals..." class="search-input" autocomplete="off"
+                  onkeyup="showSuggestions()" id="search-bar">
+              <button class="search-button">
+                  <i class="fas fa-search"></i>
+              </button>
+          </div>
+          <ul id="suggestions-list" class="suggestions"></ul>
+      </div>
+
+      <div class="nav-right">
+          <a href="PostDeal.html">
+              <div class="nav-actions">
+                  <button class="icon-button" title="Post Deal">
+                      <i class="fa-solid fa-circle-plus"></i>
+                      <span>Post deal</span>
+                  </button>
+          </a>
+
+          <a href="wishlist.html">
+              <button class="icon-button" title="Wishlist">
+                  <i class="fa-solid fa-clipboard-list"></i>
+                  <span>wishList</span>
+              </button> </a>
+
+
+          <button class="icon-button" title="Alerts">
+              <i class="fa-solid fa-bell"></i>
+              <span class="cart-badge">2</span>
+              <span>Alert</span>
+          </button>
+
+          <div class="dropdown">
+              <button class="icon-button" title="Account">
+
+                  <i class="fa-solid fa-user-gear"></i>
+                  <span>Account</span>
+              </button>
+              <div class="dropdown-content">
+                  <a href="{% url 'user_profile' identifier=request.user.id %}"><i class="fas fa-user"></i>My Account</a>
+                  <a href="sign-in.html"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                  <a href="register.html"><i class="fas fa-user-plus"></i> Register</a>
+                  <a href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+                  <a href="#"><i class="fas fa-cog"></i> Settings</a>
+              </div>
+          </div>
+      </div>
+  </div>
+  </div>
+</header>
+<!-- Navigation-->
+{% comment %} <div class="top-banner" style="  background: linear-gradient(90deg, #ff4747a1, #850101);
+  color: white;
+  text-align: center;
+  padding: 0.01rem;
+  font-size: 0.8rem;">
+  <p>🔥 Hot Deals!  Limited time offer</p>
+</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container px-4 px-lg-5">
+    <i class="fas fa-percent"></i>
+    <a class="navbar-brand" href="{%url 'home' %}">Waffrli</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{%url 'home' %}"
+            >Home</a
+          >
+        </li>
+        <a href="#" class="nav-link">
+                      
+          <span>🔥Hot Deals</span>
+      </a>
+      <a href="#" class="nav-link">
+        <i class="fas fa-bolt" ></i>
+        <span >Popular</span>
+    </a>
+    <a href="#" class="nav-link">
+      <i class="fas fa-heart" ></i>
+      <span>Favorites</span>
+  </a>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'logout'%}">Logout</a>
+        </li>
+          <li class="nav-item">
+          <a class="nav-link" href="{% url 'post_deal'%}">PostDeal</a>
+        </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'user_profile' user_id=request.user.id %}">Profile</a> 
+ 
+         </li>
+        
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'login'%}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'register'%}">Register</a>
+        </li>
+        {% endif %}
+
+        
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'wishlist'%}">WishList</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbarDropdown"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            >Category</a
+          >
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li>
+              <a class="dropdown-item" href="{%url 'category' 'books' %}"
+                >Books</a
+              >
+            </li>
+            <li>
+              <a class="dropdown-item" href="{%url 'category' 'toys' %}"
+                >Toys</a
+              >
+            </li>
+            <li>
+              <a class="dropdown-item" href="{%url 'category' 'makeup' %}"
+                >Makeup</a
+              >
+            </li>
+            <li><a class="dropdown-item" href="#!">animals</a></li>
+            <li><a class="dropdown-item" href="#!">food</a></li>
+          </ul>
+        </li>
+      </ul>
+          <!-- Search and Actions -->
+          <div class="nav-right">
+            <form method="POST" action="{% url 'search' %}">
+              {% csrf_token %}
+              <div class="search-container">
+                
+                  <div class="search-wrapper">
+                      <input name="searched" type="text" placeholder="Search for deals..." class="search-input">
+                      <button class="search-button">
+                          <a type="submit"><i class="fas fa-search"></i></a>
+                      </button>
+                  </div>
+              </div>
+            </form>
+            <div class="dropdown">
+              <button class="icon-button" title="Account">
+
+                  <i class="fa-solid fa-user-gear"></i>
+                  <span>Account</span>
+              </button>
+              <div class="dropdown-content">
+                  <a href="user_profile.html"><i class="fas fa-user"></i>My Account</a>
+                  <a href="#"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                  <a href="#"><i class="fas fa-user-plus"></i> Register</a>
+                  <a href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+                  <a href="#"><i class="fas fa-cog"></i> Settings</a>
+              </div>
+          </div>
+    </div>
+  </div>
+</nav> {% endcomment %}
+

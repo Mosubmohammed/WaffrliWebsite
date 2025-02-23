@@ -1,0 +1,170 @@
+{% comment %} {% extends "base.html" %} {% endcomment %}
+{% load static %}
+{% block content %}
+<link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
+
+
+<div class="container">
+  <div class="signup-container">
+      <div class="left-side">
+          <h2>Welcome to Waffrli</h2>
+          <p>The best bargains in Jordan are just one click away ! <br> </p>
+          <p style="display: flex; justify-content: center;" >Register now!</p>
+          <img src="pictures/pic/getTheDeal.png"  alt="Shopping">
+      </div>
+      
+      <div class="right-side">
+          <div class="form-header">
+              <h3>Create Your Account</h3>
+              <p>Fill in your information to get started</p>
+          </div>
+
+
+
+          <form class="signup-form" method="POST" action="{% url 'register' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="profile-upload">
+              <div class="profile-circle" id="profilePreview">
+                  <span class="upload-icon">+
+                  
+                  </span>
+                  
+              </div>
+              <input type="file" id="image" name="image" accept="image/*" class="hidden" >
+            <div class="name-group">
+                <div class="form-group">
+                    <input type="text" id="firstName" name="first_name" required>
+                    <label for="firstName">First Name  <span class="required-mark">*</span></label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="lastName" name="last_name" required>
+                    <label for="lastName">Last Name <span class="required-mark">*</span> </label>
+                </div>
+            </div>
+        
+            <div class="form-group">
+                <input type="text" id="username" name="username" required>
+                <label for="username">Username <span class="required-mark">*</span></label>
+            </div>
+        
+            <div class="form-group">
+                <input type="email" id="email" name="email" required>
+                <label for="email">Email Address <span class="required-mark">*</span></label>
+            </div>
+        
+            <div class="form-group">
+                <input type="tel" id="phone" name="phone" required>
+                <label for="phone">Phone Number <span class="required-mark">*</span></label>
+            </div>
+        
+            <div class="form-group">
+                <input type="password" id="password" name="password" required>
+                <label for="password">Password <span class="required-mark">*</span></label>
+            </div>
+        
+            <div class="form-group">
+                <input type="password" id="confirmPassword" name="confirm_password" required>
+                <label for="confirmPassword">Confirm Password <span class="required-mark">*</span></label>
+            </div>
+        
+            <div class="form-group">
+                <input type="text" id="location" name="address">
+                <label for="location">Location</label>
+                <button type="button" id="getLocationBtn">Get My Location</button>
+            </div>
+        
+            <div class="gender-group">
+                <span>Gender:</span>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="gender" value="male">
+                        <span class="radio-custom"></span>
+                        Male
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="gender" value="female">
+                        <span class="radio-custom"></span>
+                        Female
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="gender" value="other">
+                        <span class="radio-custom"></span>
+                        Other
+                    </label>
+                </div>
+            </div>
+        
+        
+            <button type="submit" class="submit-btn">Create Account</button>
+        
+            <p class="login-link">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </p>
+        </form>
+        
+      </div>
+  </div>
+</div>
+
+
+
+<script>
+  // Function to validate if the location is in Jordan
+function isLocationInJordan(latitude, longitude) {
+  // Approximate boundaries of Jordan
+  const jordanBounds = {
+      minLat: 29.1,
+      maxLat: 33.4,
+      minLon: 34.8,
+      maxLon: 39.3
+  };
+  return (
+      latitude >= jordanBounds.minLat &&
+      latitude <= jordanBounds.maxLat &&
+      longitude >= jordanBounds.minLon &&
+      longitude <= jordanBounds.maxLon
+  );
+}
+
+// Function to get the user's location using GPS
+function getLocation() {
+  if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+          (position) => {
+              const latitude = position.coords.latitude;
+              const longitude = position.coords.longitude;
+
+              if (isLocationInJordan(latitude, longitude)) {
+                  // Reverse geocoding to get the location name (optional)
+                  fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+                      .then(response => response.json())
+                      .then(data => {
+                          const locationName = data.locality || data.city || data.region || 'Jordan';
+                          document.getElementById('location').value = locationName;
+                          document.getElementById('locationError').textContent = '';
+                          document.getElementById('locationError').style.display = 'none';
+                      })
+                      .catch(() => {
+                          document.getElementById('location').value = 'Jordan';
+                      });
+              } else {
+                  document.getElementById('locationError').textContent = 'This app works only in Jordan.';
+                  document.getElementById('locationError').style.display = 'block';
+              }
+          },
+          (error) => {
+              document.getElementById('locationError').textContent = 'Unable to retrieve your location.';
+              document.getElementById('locationError').style.display = 'block';
+          }
+      );
+  } else {
+      document.getElementById('locationError').textContent = 'Geolocation is not supported by your browser.';
+      document.getElementById('locationError').style.display = 'block';
+  }
+}
+
+// Add event listener for the "Get My Location" button
+document.getElementById('getLocationBtn').addEventListener('click', getLocation);
+
+</script>
+{% endblock %}

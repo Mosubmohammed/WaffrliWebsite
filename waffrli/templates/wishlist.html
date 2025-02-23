@@ -1,0 +1,229 @@
+{% extends "base.html" %} 
+{% load static %} {% block content %}
+<link href="{% static 'css/wishlist.css' %}" rel="stylesheet" />
+<div class="wishlist-container">
+  <h1>Your Wishlist</h1>
+  <p class="instructions">
+    Add keywords and specify a price range to receive notifications about deals
+    that interest you.<br />
+    <a href="#" class="alert-link"
+      >You will be notified about deals that match your preferences.</a
+    >
+  </p>
+
+  <div class="section-header">Add a Deal Alert:</div>
+  <div class="input-group">
+    <input id="keyword" type="text" placeholder="Enter a keyword" />
+    <input id="minPrice" type="number" placeholder="Min price" />
+    <input id="maxPrice" type="number" placeholder="Max price" />
+    <select id="category">
+      <option value="">Select Category</option>
+      <option value="electronics">Electronics</option>
+      <option value="fashion">Fashion</option>
+      <option value="home">Home & Garden</option>
+      <option value="toys">Toys & Games</option>
+      <option value="sports">Sports & Outdoors</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <div class="notification-options">
+    <span>Notification Method:</span>
+    <label class="notification-option">
+      <input type="checkbox" id="notifyEmail" checked /> Email
+    </label>
+    <label class="notification-option">
+      <input type="checkbox" id="notifyWebsite" checked /> Website
+    </label>
+  </div>
+  <div class="input-group">
+    <button onclick="addWishlistItem()">+ Add Alert</button>
+  </div>
+
+  <div class="section-header">Your Wishlist:</div>
+  <div id="wishlist" class="wishlist-list"></div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="section-header">Edit Deal Alert</div>
+    <div class="input-group">
+      <input id="editKeyword" type="text" placeholder="Enter a keyword" />
+      <input id="editMinPrice" type="number" placeholder="Min price" />
+      <input id="editMaxPrice" type="number" placeholder="Max price" />
+      <select id="editCategory">
+        <option value="">Select Category</option>
+        <option value="electronics">Electronics</option>
+        <option value="fashion">Fashion</option>
+        <option value="home">Home & Garden</option>
+        <option value="toys">Toys & Games</option>
+        <option value="sports">Sports & Outdoors</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="notification-options">
+      <span>Notification Method:</span>
+      <label class="notification-option">
+        <input type="checkbox" id="editNotifyEmail" /> Email
+      </label>
+      <label class="notification-option">
+        <input type="checkbox" id="editNotifyWebsite" /> Website
+      </label>
+    </div>
+    <div class="input-group">
+      <button onclick="saveEdit()">Save Changes</button>
+      <button onclick="closeEditModal()" style="background-color: #95a5a6">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+    const wishlistContainer = document.getElementById("wishlist");
+    const editModal = document.getElementById("editModal");
+    let currentEditingItem = null;
+    
+    function addWishlistItem() {
+      const keyword = document.getElementById("keyword").value.trim();
+      const minPrice = document.getElementById("minPrice").value.trim();
+      const maxPrice = document.getElementById("maxPrice").value.trim();
+      const category = document.getElementById("category").value;
+      const notifyEmail = document.getElementById("notifyEmail").checked;
+      const notifyWebsite = document.getElementById("notifyWebsite").checked;
+    
+      if (!keyword || !minPrice || !maxPrice || !category) {
+        alert("Please fill out all fields.");
+        return;
+      }
+    
+      if (!notifyEmail && !notifyWebsite) {
+        alert("Please select at least one notification method.");
+        return;
+      }
+    
+      const item = document.createElement("div");
+      item.classList.add("wishlist-item");
+      item.innerHTML = `
+        <div class="wishlist-item-info">
+          <div><strong>${keyword}</strong></div>
+          <div class="wishlist-item-details">
+            Price range: $${minPrice} - $${maxPrice}<br>
+            Category: ${category}<br>
+            Notifications: ${getNotificationText(notifyEmail, notifyWebsite)}
+          </div>
+        </div>
+        <div class="wishlist-item-actions">
+          <button class="edit-btn" onclick="editWishlistItem(this)">Edit</button>
+          <button class="remove-btn" onclick="removeWishlistItem(this)">Remove</button>
+        </div>
+      `;
+    
+      // Store the data for editing later
+      item.dataset.keyword = keyword;
+      item.dataset.minPrice = minPrice;
+      item.dataset.maxPrice = maxPrice;
+      item.dataset.category = category;
+      item.dataset.notifyEmail = notifyEmail;
+      item.dataset.notifyWebsite = notifyWebsite;
+    
+      wishlistContainer.appendChild(item);
+    
+      // Clear inputs
+      clearInputs();
+    }
+    
+    function getNotificationText(email, website) {
+      const methods = [];
+      if (email) methods.push("Email");
+      if (website) methods.push("Website");
+      return methods.join(" & ");
+    }
+    
+    function editWishlistItem(button) {
+      currentEditingItem = button.closest(".wishlist-item");
+    
+      // Fill the edit form with current values
+      document.getElementById("editKeyword").value =
+        currentEditingItem.dataset.keyword;
+      document.getElementById("editMinPrice").value =
+        currentEditingItem.dataset.minPrice;
+      document.getElementById("editMaxPrice").value =
+        currentEditingItem.dataset.maxPrice;
+      document.getElementById("editCategory").value =
+        currentEditingItem.dataset.category;
+      document.getElementById("editNotifyEmail").checked =
+        currentEditingItem.dataset.notifyEmail === "true";
+      document.getElementById("editNotifyWebsite").checked =
+        currentEditingItem.dataset.notifyWebsite === "true";
+    
+      // Show the modal
+      editModal.style.display = "flex";
+    }
+    
+    function saveEdit() {
+      const keyword = document.getElementById("editKeyword").value.trim();
+      const minPrice = document.getElementById("editMinPrice").value.trim();
+      const maxPrice = document.getElementById("editMaxPrice").value.trim();
+      const category = document.getElementById("editCategory").value;
+      const notifyEmail = document.getElementById("editNotifyEmail").checked;
+      const notifyWebsite = document.getElementById("editNotifyWebsite").checked;
+    
+      if (!keyword || !minPrice || !maxPrice || !category) {
+        alert("Please fill out all fields.");
+        return;
+      }
+    
+      if (!notifyEmail && !notifyWebsite) {
+        alert("Please select at least one notification method.");
+        return;
+      }
+    
+      // Update the item's display
+      currentEditingItem.querySelector(".wishlist-item-info").innerHTML = `
+        <div><strong>${keyword}</strong></div>
+        <div class="wishlist-item-details">
+          Price range: $${minPrice} - $${maxPrice}<br>
+          Category: ${category}<br>
+          Notifications: ${getNotificationText(notifyEmail, notifyWebsite)}
+        </div>
+      `;
+    
+      // Update the stored data
+      currentEditingItem.dataset.keyword = keyword;
+      currentEditingItem.dataset.minPrice = minPrice;
+      currentEditingItem.dataset.maxPrice = maxPrice;
+      currentEditingItem.dataset.category = category;
+      currentEditingItem.dataset.notifyEmail = notifyEmail;
+      currentEditingItem.dataset.notifyWebsite = notifyWebsite;
+    
+      closeEditModal();
+    }
+    
+    function closeEditModal() {
+      editModal.style.display = "none";
+      currentEditingItem = null;
+    }
+    
+    function removeWishlistItem(button) {
+      const item = button.closest(".wishlist-item");
+      wishlistContainer.removeChild(item);
+    }
+    
+    function clearInputs() {
+      document.getElementById("keyword").value = "";
+      document.getElementById("minPrice").value = "";
+      document.getElementById("maxPrice").value = "";
+      document.getElementById("category").value = "";
+      document.getElementById("notifyEmail").checked = true;
+      document.getElementById("notifyWebsite").checked = true;
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function (event) {
+      if (event.target === editModal) {
+        closeEditModal();
+      }
+    };
+     </script>
+{%endblock%}

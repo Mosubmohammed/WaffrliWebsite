@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Ankasory</title>
+    <!-- Favicon-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{% static 'assets/favicon.ico'%}"
+    />
+
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+
+
+    {% comment %}
+    <link href="{% static 'css/postDeal.css' %}" rel="stylesheet" />
+    {% endcomment %}
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+
+  </head>
+  <body>
+    <!-- Navigation-->
+    <!-- Navigation-->
+    {% include 'navbar.html'%} {% if messages %} {% for messge in messages%}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      {{messge}}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+    {%endfor%} {%endif%} {% block content %} {% endblock %}
+
+    <!-- Footer-->
+    <footer class="footer">
+      <div class="footer-content">
+          <div class="footer-quote">
+              <p class="quote-text">"Your Gateway to Smart Shopping"</p>
+              <p class="quote-subtext">Discover the best deals, save more, live better.</p>
+          </div>
+          <div class="footer-links">
+              <a href="#">Privacy Policy</a>
+              <span class="divider">•</span>
+              <a href="#">Terms of Service</a>
+              <span class="divider">•</span>
+              <a href="#">Contact Us</a>
+          </div>
+          <div class="footer-copyright">
+              <p>&copy; 2025 WAFFRLI . All rights reserved.</p>
+          </div>
+      </div>
+  </footer>
+
+    <script src="{% static 'js/scripts.js'%}"></script>
+
+    <!-- Core theme JS-->
+  </body>
+</html>
