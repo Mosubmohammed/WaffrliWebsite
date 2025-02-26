@@ -10,10 +10,11 @@ from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 
+
 # Home view - Display all products
 def home(request):
     products = Product.objects.all()
-    return render(request, 'home.html', {'products': products})
+    return render(request, 'home.html',{'products':products})
 
 
 # Category view - Display products of a specific category
@@ -49,24 +50,35 @@ def category(request, foo):
 #     return render(request, 'product.html', {'deal': deal})
 
 
+
+
 def deal_or_product_detail(request, pk):
     try:
-        # Try to get the product based on pk (can be a deal_id or pk)
         product = get_object_or_404(Product, id=pk)
-        
-        # Increment views if it's a deal page
-        product.increment_views()  # Assuming you have this method in your Product model
 
-        # Render the product detail page
-        return render(request, 'product.html', {'product': product})
-    
+        # Increment views if it's a deal page
+        product.increment_views()
+
+        if request.method == 'POST':
+            comment_text = request.POST.get('comment')
+            if comment_text:
+                # Ensure comments is a list and append the new comment
+                comments = product.comments if isinstance(product.comments, list) else []
+                comments.append(comment_text)
+                product.comments = comments
+                product.save()  # Save the updated comments list
+                messages.success(request, 'Your comment has been posted successfully!')
+
+        comments = product.comments  # This should now be a list
+
+        return render(request, 'product.html', {'product': product, 'comments': comments})
+
     except Product.DoesNotExist:
         messages.error(request, 'That product does not exist')
     except Exception as e:
         print(f"Unexpected error: {e}")
         messages.error(request, 'An unexpected error occurred')
     
-    # Redirect to home page if product is not found or an error occurs
     return redirect('home')
 
 

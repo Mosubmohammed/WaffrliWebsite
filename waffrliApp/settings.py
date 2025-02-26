@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-a4ypldnl!$snhmrxrg524=u-2%)bfav1mkr8!vb0iji^pb018-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'waffrli'
+    'waffrli',  # your app
+
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",  # ✅ Allow frontend access
+    
 ]
 
 ROOT_URLCONF = 'waffrliApp.urls'

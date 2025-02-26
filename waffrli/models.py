@@ -1,3 +1,4 @@
+import json
 from django.utils import timezone
 from django.db.models.signals import post_save
 from django.db import models
@@ -61,7 +62,19 @@ class Product(models.Model):
     likes=models.ManyToManyField(User, related_name="Product_like",blank=True)
     views  = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
+    comments = models.CharField(max_length=5000, default=" ")
+
     
+    
+        
+    def add_comment(self, comment_text):
+        comments = json.loads(self.comments)
+        comments.append(comment_text)
+        self.comments = json.dumps(comments)
+        self.save()
+
+    def get_comments(self):
+        return json.loads(self.comments)
     def increment_views(self):
         self.views += 1
         self.save()

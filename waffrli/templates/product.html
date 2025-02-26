@@ -1,56 +1,303 @@
-{% extends "base.html" %} 
-{% block content %}
+{% extends "base.html" %} {% load static %} {% block content %}
+<link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
+<link href="{% static 'css/style.css' %}" rel="stylesheet" />
+{% comment %}
+<div class="container">
+  <br /><br /><br /><br />
+
+  <div class="card mb-3">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <img
+          src="{{ product.image.url }}"
+          class="img-fluid rounded-start"
+          alt="Product Image"
+        />
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <center>
+            <h5 class="card-title">{{ product.Name }}</h5>
+            <p class="card-text">{{ product.Description }}</p>
+            <div class="d-flex justify-content-center small text-warning mb-2">
+              <!-- Bootstrap stars (ensure Bootstrap Icons or FontAwesome is included) -->
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+            </div>
+
+            <!-- Product price-->
+            <span class="text-muted text-decoration-line-through"
+              >{{ product.Price }}</span
+            >
+            {{ product.sale_price }}
+
+            <br />
+            <span class="text-muted">Views: {{ product.views }}</span>
+            <!-- Corrected views reference -->
+          </center>
+
+          <center>
+            <a class="btn btn-secondary" href="{% url 'home' %}">Home</a>
+            <a
+              class="btn btn-secondary"
+              href="{% url 'user_profile' product.user.id %}"
+            >
+              View Seller Profile
+            </a>
+            <a
+              class="btn btn-secondary"
+              href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Go to Deal
+            </a>
+          </center>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <br /><br /><br /><br /><br /><br />
+</div>
+
+{% endcomment %}
 
 <div class="container">
-    <br><br><br><br>
-
-    <div class="card mb-3">
-        <div class="row g-0">
-            <div class="col-md-4">
-                <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
-            </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <center>
-                        <h5 class="card-title">{{ product.Name }}</h5>
-                        <p class="card-text">
-                            {{ product.Description }}
-                        </p>
-                        <div class="d-flex justify-content-center small text-warning mb-2">
-                            <!-- Bootstrap stars (ensure Bootstrap Icons or FontAwesome is included) -->
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-
-                        <!-- Product price-->
-                        <span class="text-muted text-decoration-line-through">{{ product.Price }}</span>
-                        {{ product.sale_price }}
-
-                        <br>
-                        <span class="text-muted">Views: {{ product.views }}</span> <!-- Corrected views reference -->
-                    </center>
-
-                    <center>
-                        <a class="btn btn-secondary" href="{% url 'home' %}">Home</a>
-                        <a class="btn btn-secondary" href="{% url 'user_profile' product.user.id %}">
-                            View Seller Profile
-                        </a>
-                        <a class="btn btn-secondary"
-                           href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-                           target="_blank" rel="noopener noreferrer">
-                            Go to Deal
-                        </a>
-                    </center>
-                </div>
-            </div>
+  <div class="content-wrapper">
+    <main class="main">
+      <div class="Detailed-deal">
+        <div class="Detailed-deal-image">
+            <img
+            src="{{ product.image.url }}"
+            class="img-fluid rounded-start"
+            alt="Product Image"
+          />
         </div>
+        <div class="Detailed-deal-content">
+          <div class="deal-tags">
+            <span class="tag tag-popular">Popular</span>
+            <span class="deal-score"
+              >Posted by: <strong>@{{ product.user.username }}</strong></span
+            >
+          </div>
+          <h2>{{ product.Name }}</h2>
+          <div class="price-container">
+            <span class="current-price">${{ product.sale_price }}</span>
+            <span class="original-price">${{ product.Price }}</span>
+            <span class="discount">36% Off</span>
+          </div>
+          <p class="description">
+            {{ product.Description }}
+          </p>
+          <div class="deal-actions">
+            
+            <a
+              class="deal-actions"
+              href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color:blue"
+            >
+            Get Deal at {{product.store}}
+            </a>
+            <div class="vote-buttons">
+              <button class="btn btn-vote">
+                <i class="fa-solid fa-thumbs-up"></i>
+              </button>
+              <button class="btn btn-vote">
+                <i class="fa-solid fa-thumbs-down"></i>
+              </button>
+
+              <div>
+                <a href="#comment-section">
+                  <span class="comments"
+                    ><i class="fa-regular fa-comment"></i> 166 Comments</span
+                  >
+                </a>
+                <span class="views"
+                  ><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="product-details">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="details">
+            Deal Details
+          </button>
+          <button class="tab-btn" data-tab="community">Community Notes</button>
+          <button class="tab-btn" data-tab="poster">About the Poster</button>
+        </div>
+
+        <div class="tab-content active" id="details">
+          <h3>Product Features</h3>
+          <ul>
+            <li>Bluetooth connectivity</li>
+            <li>Foldable design</li>
+            <li>Comfortable on-ear fit</li>
+            <li>Built-in controls</li>
+          </ul>
+        </div>
+
+        <div class="tab-content" id="community">
+          <div class="voting">
+            <div class="vote-count">+3</div>
+            <button class="vote-btn" id="upvote">👍 Good Deal</button>
+            <button class="vote-btn" id="downvote">👎 Bad Deal</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="poster">
+          <div class="poster-info">
+            <img
+              src="pictures/pic/avatar.jpg"
+              alt="User Avatar"
+              class="avatar"
+            />
+            <div class="poster-details">
+              <h3>Staff</h3>
+              <p>Joined in Mar 2009</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Related Deals</h2>
+      <div class="deals-grid">
+        <div class="deal-card">
+          <img src="pictures/pic/Sale-clothes.jpg" alt="Product" />
+          <div class="deal-card-content">
+            <span class="tag tag-discount">30% Off</span>
+            <h3>Wireless Earbuds</h3>
+            <div class="price-container">
+              <span class="current-price">$30</span>
+              <span class="original-price">$45</span>
+            </div>
+            <div class="card-actions">
+              <div class="action-buttons">
+                <button class="btn-icon">❤</button>
+                <button class="btn-icon">💬</button>
+              </div>
+              <span class="time">2 days ago</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="deal-card">
+          <img
+            src="pictures/pic/freestocks-_3Q3tsJ01nc-unsplash.jpg"
+            alt="Product"
+          />
+          <div class="deal-card-content">
+            <span class="tag tag-discount">30% Off</span>
+            <h3>Wireless Earbuds</h3>
+            <div class="price-container">
+              <span class="current-price">$30</span>
+              <span class="original-price">$45</span>
+            </div>
+            <div class="card-actions">
+              <div class="action-buttons">
+                <button class="btn-icon">❤</button>
+                <button class="btn-icon">💬</button>
+              </div>
+              <span class="time">2 days ago</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="deal-card">
+          <img
+            src="pictures/pic/artem-beliaikin-49mCO5ZRQDk-unsplash.jpg"
+            alt="Product"
+          />
+          <div class="deal-card-content">
+            <span class="tag tag-discount">30% Off</span>
+            <h3>Wireless Earbuds</h3>
+            <div class="price-container">
+              <span class="current-price">$30</span>
+              <span class="original-price">$45</span>
+            </div>
+            <div class="card-actions">
+              <div class="action-buttons">
+                <button class="btn-icon">❤</button>
+                <button class="btn-icon">💬</button>
+              </div>
+              <span class="time">2 days ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="comment-section" class="community-section">
+        <h2 class="section-title">Community Discussion</h2>
+        <div class="comment-section">
+          <div class="comment">
+            <div class="comment-header">
+              <div class="avatar"></div>
+              <div class="user-info">
+                <h3>BestBuyStar223</h3>
+                <span class="time">2 hours ago</span>
+              </div>
+            </div>
+            <p style="font-size: 12px">
+                {% if comments %}
+                <ul>
+                    {% for comment in comments %}
+                        <li>{{ comment }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No comments yet. Be the first to comment!</p>
+            {% endif %}
+            </p>
+          </div>
+
+          <div class="comment-form">
+            <form id="comment-form" method="POST">
+                {% csrf_token %}
+                <textarea
+                    id="comment-input"
+                    name="comment"
+                    placeholder="What are your thoughts on this deal?"
+                    rows="3"
+                ></textarea>
+                <button type="submit" id="post-comment-btn" class="btn btn-primary">
+                    Post Comment
+                </button>
+            </form>
+        </div>
+        
+      </div>
+    </main>
+    <div class="ads">
+      <aside class="sidebar">
+        <div class="ad-section">
+          <h3>Sponsored Deals</h3>
+          <div class="ad-card">
+            <img src="pictures/pic/Smart Buy (1).jpg" alt="Ad 1" />
+            <p>Get 50% off on electronics!</p>
+          </div>
+          <div class="ad-card">
+            <img src="pictures/pic/mekka-mall-fashion.png" alt="Ad 2" />
+            <p>Buy one, get one free on fashion!</p>
+          </div>
+        </div>
+
+        <div class="newsletter-section">
+          <h3>Subscribe for Deals</h3>
+          <input type="email" placeholder="Enter your email" />
+          <button class="btn btn-primary">Subscribe</button>
+        </div>
+      </aside>
     </div>
-
-    <br><br><br><br><br><br>
-
+  </div>
 </div>
 
 {% endblock %}
