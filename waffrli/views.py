@@ -49,37 +49,41 @@ def category(request, foo):
 #     deal.increment_views()  # Increment view count
 #     return render(request, 'product.html', {'deal': deal})
 
-
-
-
 def deal_or_product_detail(request, pk):
     try:
+        # Get the product
         product = get_object_or_404(Product, id=pk)
 
-        # Increment views if it's a deal page
+        # Increment views
         product.increment_views()
 
+        # Handle POST request for comment submission
         if request.method == 'POST':
             comment_text = request.POST.get('comment')
             if comment_text:
-                # Ensure comments is a list and append the new comment
-                comments = product.comments if isinstance(product.comments, list) else []
-                comments.append(comment_text)
-                product.comments = comments
-                product.save()  # Save the updated comments list
-                messages.success(request, 'Your comment has been posted successfully!')
+                # Get the current logged-in user's customer
+                customer = Customer.objects.get(user=request.user)
 
-        comments = product.comments  # This should now be a list
+                # Create and save the comment
+                Comment.objects.create(
+                    product=product,
+                    customer=customer,
+                    text=comment_text
+                )
+                messages.success(request, 'Your comment has been posted successfully!')
+            else:
+                messages.warning(request, 'Please write a comment.')
+
+        # Retrieve all comments for this product
+        comments = product.comments.all()
 
         return render(request, 'product.html', {'product': product, 'comments': comments})
 
     except Product.DoesNotExist:
-        messages.error(request, 'That product does not exist')
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        messages.error(request, 'An unexpected error occurred')
-    
-    return redirect('home')
+        messages.error(request, 'That product does not exist.')
+        return redirect('home')
+
+
 
 
 # User registration

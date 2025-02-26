@@ -62,19 +62,8 @@ class Product(models.Model):
     likes=models.ManyToManyField(User, related_name="Product_like",blank=True)
     views  = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
-    comments = models.CharField(max_length=5000, default=" ")
 
     
-    
-        
-    def add_comment(self, comment_text):
-        comments = json.loads(self.comments)
-        comments.append(comment_text)
-        self.comments = json.dumps(comments)
-        self.save()
-
-    def get_comments(self):
-        return json.loads(self.comments)
     def increment_views(self):
         self.views += 1
         self.save()
@@ -86,7 +75,14 @@ class Product(models.Model):
         return self.likes.count()
 
 
+class Comment(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    text = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return f"Comment by {self.customer.first_name} on {self.product.Name}"
 
 class Follow(models.Model):
     follower = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)
