@@ -96,24 +96,3 @@ class Follow(models.Model):
         return f"{self.follower.username} follows {self.following.username}"
     
 
-
-
-# Create Profile When New User Signs Up
-# @receiver(post_save, sender=User)
-
-# # ✅ Auto-create a Customer when a User is created
-# @receiver(post_save, sender=User)
-# def create_customer_profile(sender, instance, created, **kwargs):
-#     if created:
-#         Customer.objects.create(
-#             user=instance,
-#             first_name=instance.first_name if instance.first_name else "First",
-#             last_name=instance.last_name if instance.last_name else "Last",
-#             phone="0000000000",  # Placeholder phone number
-#             email=instance.email if instance.email else "default@example.com",
-#             password=instance.password,  # Storing hashed password
-#             gender="N",  # Default to 'Prefer not to say'
-#             address="Not Provided",  # Default address
-#             image=None,  # No profile image by default
-#         )
-

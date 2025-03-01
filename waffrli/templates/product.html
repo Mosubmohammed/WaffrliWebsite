@@ -105,11 +105,18 @@
             Get Deal at {{product.store}}
             </a>
             <div class="vote-buttons">
-              <button class="btn btn-vote">
+              {% comment %} <button class="btn btn-vote">
                 <i class="fa-solid fa-thumbs-up"></i>
               </button>
               <button class="btn btn-vote">
                 <i class="fa-solid fa-thumbs-down"></i>
+              </button> {% endcomment %}
+
+              <button class="like-btn" data-product-id="{{ product.id }}">
+                <i
+                  class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
+                ></i>
+                <span class="like-count">{{ product.likes.count }}</span>
               </button>
 
               <div>

@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+from itertools import count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.db.models import Q
 from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
+from django.db.models import Count
 
 
 # Home view - Display all products
@@ -293,42 +295,60 @@ def like_product(request, product_id):
 
 @login_required
 def user_profile(request, identifier):
-    # Check if identifier is a username or user ID
     profile_user = get_object_or_404(User, Q(id=identifier) | Q(username=identifier))
-    
-    is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
 
-    # Fetch followers and following
+    is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
     followers = profile_user.followers.all()
     following = profile_user.following.all()
 
-        # Count the number of deals (posts) the user has made
     deal_count = Product.objects.filter(user=profile_user).count()
-    
-    # Check if the user has a related customer profile and if the profile is not the logged-in user
+    comment_count = Comment.objects.filter(customer=profile_user.customer).count()
+
+    # Find the best deal (highest likes) and annotate with comment count
+    best_deal = (
+        Product.objects.filter(user=profile_user)
+        .annotate(comment_count=Count("comments"))
+        .order_by("-likes")
+        .first()
+    )
+
     if profile_user != request.user:
         try:
-            customer_profile = profile_user.customer  # Access the related Customer instance
+            customer_profile = profile_user.customer
             customer_profile.view_count += 1
             customer_profile.save()
             view_count = customer_profile.view_count
         except Customer.DoesNotExist:
-            view_count = 0  # If no customer profile exists, set view count to 0
+            view_count = 0
     else:
-        view_count = 0  
-        
-    total_views = Product.objects.filter(user=profile_user).aggregate(Sum('views'))['views__sum'] or 0
-    print(f"Total Views: {total_views}, View Count: {view_count}")
+        view_count = 0
 
-    return render(request, "user_profile.html", {
-        "user_profile": profile_user,
-        "is_following": is_following,
-        "followers": followers,
-        "following": following,
-        "deal_count": deal_count,
-        "view_count":view_count,
-       "total_views":total_views,
-    })
+    total_views = (
+        Product.objects.filter(user=profile_user).aggregate(Sum("views"))["views__sum"] or 0
+    )
+    total_likes_received = (
+        Product.objects.filter(user=profile_user).aggregate(Sum("likes"))["likes__sum"] or 0
+    )
+    reputation_points = total_likes_received * 5
+
+    return render(
+        request,
+        "user_profile.html",
+        {
+            "user_profile": profile_user,
+            "is_following": is_following,
+            "followers": followers,
+            "following": following,
+            "deal_count": deal_count,
+            "comment_count": comment_count,
+            "view_count": view_count,
+            "total_views": total_views,
+            "total_likes_received": total_likes_received,
+            "reputation_points": reputation_points,
+            "best_deal": best_deal,
+        },
+    )
+
 
 
 
