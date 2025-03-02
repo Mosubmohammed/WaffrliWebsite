@@ -1,0 +1,277 @@
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: row-reverse;
+
+  border-radius: 10px;
+}
+header h1 {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #333;
+  padding: 12px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.progress-bar {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.progress-step {
+  flex: 1;
+  text-align: left;
+  position: unset;
+  padding: 3px -7px;
+}
+
+.progress-step::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.progress-step.completed::before {
+  background-color: #16e220;
+}
+
+.form-section {
+  padding: 12px 8rem;
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.floating-label input,
+.floating-label textarea,
+.floating-label select {
+  width: 100%;
+  padding: 12px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s ease-in-out;
+  background-color: transparent;
+}
+
+.floating-label label {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  padding: 0 5px;
+  font-size: 14px;
+  color: #777;
+  transition: 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label textarea:focus + label,
+.floating-label textarea:not(:placeholder-shown) + label,
+.floating-label select:focus + label,
+.floating-label select:not(:placeholder-shown) + label {
+  top: 0;
+  left: 10px;
+  font-size: 12px;
+  color: #0078d4;
+}
+
+.floating-label input:focus,
+.floating-label textarea:focus,
+.floating-label select:focus {
+  border-color: #0078d4;
+}
+
+.floating-label input::placeholder,
+.floating-label textarea::placeholder {
+  color: transparent;
+}
+
+input.invalid {
+  border: 2px solid red;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none;
+}
+
+.floating-label textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button {
+  background: #0078d4;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #005ea2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* date of deal's style  */
+
+input[readonly] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+#deal-expiration,
+#deal-posted {
+  border: 1px solid #aaa;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.progress-pie-chart {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: #e5e5e5;
+  position: relative;
+  margin: 50px auto;
+}
+
+.ppc-progress {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  clip: rect(0, 200px, 200px, 0);
+}
+
+.ppc-progress-fill {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #81ce97;
+  transform-origin: center;
+  transition: transform 0.3s ease;
+  clip-path: circle(50%);
+  background-color: #81ce97;
+}
+
+.ppc-percents {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  font-size: 2.6em;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.pcc-percents-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+body {
+  font-family: Arial;
+  background: #f7f7f7;
+}
+
+.loader {
+  display: inline-flex;
+  gap: 10px;
+  position: absolute;
+  left: 55rem;
+  background-color: #fff;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  height: 20px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(farthest-side, #5fbdd4 95%, #0000) 35% 35%/6px 6px
+    no-repeat #b9b4b4a2;
+  animation: l5 3s infinite;
+}
+@keyframes l5 {
+  0%,
+  11% {
+    background-position: 35% 35%;
+  }
+  14%,
+  36% {
+    background-position: 65% 35%;
+  }
+  38%,
+  61% {
+    background-position: 65% 65%;
+  }
+  64%,
+  86% {
+    background-position: 35% 65%;
+  }
+  88%,
+  100% {
+    background-position: 35% 35%;
+  }
+}

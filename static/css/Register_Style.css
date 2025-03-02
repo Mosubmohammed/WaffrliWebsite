@@ -13,6 +13,31 @@ body {
     justify-content: center;
     padding: 2rem;
 }
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    z-index: 1000;
+}
+
+.notification {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    color: white;
+    background-color: #28a745; /* Green for success */
+    transition: opacity 0.5s;
+}
+
+.notification.error {
+    background-color: #dc3545; /* Red for errors */
+}
+
+.notification.hide {
+    opacity: 0;
+}
 
 .container {
     width: 100%;
@@ -30,7 +55,7 @@ body {
 }
 
 .left-side {
-    background: linear-gradient(90deg, #ff4747a1, #850101) !important;
+    background: linear-gradient(90deg, #004D40, #00274D);
 
     color: white;
     padding: 3rem;
@@ -87,7 +112,7 @@ body {
 .profile-circle {
     width: 100px;
     height: 100px;
-    border-radius: 50%;
+    border-radius: 80%;
     background: #f3f4f6;
     margin: 0 auto 1rem;
     cursor: pointer;
@@ -163,7 +188,7 @@ body {
 #getLocationBtn {
     margin-left: -109px;
     padding: 5px 30px;
-    background: linear-gradient(90deg, #ff4747a1, #850101);
+    background-color: #00274D;
     color: white;
     border: none;
     border-radius: 8px;
@@ -234,7 +259,7 @@ body {
 .submit-btn {
     width: 100%;
     padding: 0.875rem;
-    background: linear-gradient(90deg, #ff4747a1, #850101);
+    background: #00274D;
     color: white;
     border: none;
     border-radius: 8px;
@@ -331,7 +356,6 @@ body {
 
 .forgot-link {
     color: #00274D;
-    
     text-decoration: none;
     font-size: 0.875rem;
     font-weight: 500;

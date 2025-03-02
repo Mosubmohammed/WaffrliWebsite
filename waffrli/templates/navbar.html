@@ -27,19 +27,24 @@
                   <span>Favorites</span>
               </a>
               <div class="dropdown">
-                  <button class="nav-link dropdown-toggle">
-                      <i class="fas fa-thin fa-icons"></i>
-                      Categories
-                      <i class="fas fa-chevron-down"></i>
-                  </button>
-                  <div class="dropdown-content">
-                      <a href="#"><i class="fas fa-laptop"></i> Electronics</a>
-                      <a href="#"><i class="fas fa-tshirt"></i> Fashion</a>
-                      <a href="#"><i class="fas fa-home"></i> Home & Garden</a>
-                      <a href="#"><i class="fas fa-futbol"></i> Sports</a>
-                      <a href="#"><i class="fas fa-spa"></i> Beauty</a>
-                  </div>
+                <button class="nav-link dropdown-toggle">
+                    <i class="fas fa-thin fa-icons"></i>
+                    Categories
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-content">
+                  {% for category in categories %}
+                  <a href="{% url 'category' category.name|slugify %}">
+
+                          <i class="fas fa-tag"></i> {{ category.name }}
+                      </a>
+                  {% endfor %}
+                  <a href="{% url 'AllCategory' %}">All Categories</a>
               </div>
+              
+
+
+            </div>
 
               </a>
               <a href="CustomerProfile.html" class="nav-link">
@@ -63,7 +68,7 @@
       </div>
 
       <div class="nav-right">
-          <a href="PostDeal.html">
+          <a href="{% url 'post_deal' %}">
               <div class="nav-actions">
                   <button class="icon-button" title="Post Deal">
                       <i class="fa-solid fa-circle-plus"></i>
@@ -71,7 +76,7 @@
                   </button>
           </a>
 
-          <a href="wishlist.html">
+          <a href="{% url 'wishlist' %}">
               <button class="icon-button" title="Wishlist">
                   <i class="fa-solid fa-clipboard-list"></i>
                   <span>wishList</span>
@@ -92,9 +97,9 @@
               </button>
               <div class="dropdown-content">
                   <a href="{% url 'user_profile' identifier=request.user.id %}"><i class="fas fa-user"></i>My Account</a>
-                  <a href="sign-in.html"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-                  <a href="register.html"><i class="fas fa-user-plus"></i> Register</a>
-                  <a href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+                  <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                  <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
+                  <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
                   <a href="#"><i class="fas fa-cog"></i> Settings</a>
               </div>
           </div>

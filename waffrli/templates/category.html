@@ -1,57 +1,174 @@
-{% extends "base.html" %} {% block content %}
-<section class="py-5">
-    <div class="container px-4 px-lg-5 mt-5">
-      <div
-        class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
-      >
-        {%for product in products%} 
-
-        <div class="col mb-5">
-          <div class="card h-100">
-            <div
-              class="badge bg-dark text-white position-absolute"
-              style="top: 0.5rem; right: 0.5rem"
-            >
-              Sale
+{% extends "base.html" %}   
+{% load static %} 
+{% block content %}
+<link href="{% static 'css/Sub-categories.css' %}" rel="stylesheet" />
+<div class="container">
+    <header>
+        <h1>Electronics Deals</h1>
+        <div class="categories">
+            <div class="category-item">
+                <img src="{% static 'media/uploads/product/laptop-svgrepo-com.svg' %}" alt="Laptop">
+                <span>Laptops</span>
             </div>
-            <!-- Product image-->
-  
-            <img class="card-img-top" src="{{product.image.url}}" alt="..." />
-            <!-- Product details-->
-            <div class="card-body p-4">
-              <div class="text-center">
-                <!-- Product name-->
-                <h5 class="fw-bolder">{{product.Name}}</h5>
-                <h6 class="fw-bolder">{{product.Description}}</h6>
-                <div
-                  class="d-flex justify-content-center small text-warning mb-2"
-                >
-                  <div class="bi-star-fill"></div>
-                  &nbsp;&nbsp;Sale!&nbsp;&nbsp;
-                  <div class="bi-star-fill"></div>
-                </div>
-                <!-- Product price-->
-                <strike>${{product.Price}}</strike>
-                &nbsp; ${{product.sale_price}}
-              </div>
+            <div class="category-item">
+                <img src="pictures/pic/tablet-android-svgrepo-com.svg" alt="Tablet">
+                <span>Tablets</span>
             </div>
-            <!-- Product actions-->
-            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-              <div class="text-center">
-                <a
-                  class="btn btn-outline-dark mt-auto"
-                  href="{% url 'product' product.id %}"
-                  >View product</a
-                >
-              </div>
-            </div>  
-          </div>
+            <div class="category-item">
+                <img src="pictures/pic/printer-svgrepo-com.svg" alt="prienter">
+                <span>Prienters</span>
+            </div>
+            <div class="category-item">
+                <img src="pictures/pic/iphone-style-smartphone-svgrepo-com.svg" alt="phones">
+                <span>Phones</span>
+            </div>
+            <div class="category-item">
+                <img src="pictures/pic/headphones-round-sound-svgrepo-com.svg" alt="Computers Accessories">
+                <span>Computers <br>
+                    Accessories</span>
+            </div>
         </div>
+    </header>
+
+    <div class="main-content">
+        <aside class="filters">
+            <h2>Filters</h2>
+
+
+            <div class="filter-section">
+                <h3>Stores</h3>
+                <label><input type="checkbox" name="store" value="amazon"> mango</label>
+                <label><input type="checkbox" name="store" value="walmart"> compujordan</label>
+                <label><input type="checkbox" name="store" value="target"> Irbid city center</label>
+            </div>
+
+            <div class="filter-section">
+                <h3>Rating</h3>
+                <label><input type="checkbox" name="rating" value="5"> Popular Deals</label>
+                <label><input type="checkbox" name="rating" value="5"> 5★</label>
+                <label><input type="checkbox" name="rating" value="4"> 4★</label>
+                <label><input type="checkbox" name="rating" value="3"> 3★</label>
+                <label><input type="checkbox" name="rating" value="2"> 2★</label>
+                <label><input type="checkbox" name="rating" value="1"> 1★</label>
+
+            </div>
+
+            <div class="filter-section">
+                <h3>Price Range</h3>
+                <div class="price-slider">
+                    <input type="range" id="priceRange" min="0" max="200" value="100">
+                    <div class="price-inputs">
+                        <input type="number" id="minPrice" value="0">
+                        <span>to</span>
+                        <input type="number" id="maxPrice" value="100">
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="filter-section">
+                <div class="filter-header toggle-brands">
+                    <span>
+                        <h3>Brands</h3>
+                    </span>
+                    <i class="fa-solid fa-chevron-down brand-toggle-icon"></i>
+                </div>
+                <div class="brand-list">
+                    <label><input type="checkbox"> Logitech</label>
+                    <label><input type="checkbox"> ASUS</label>
+                    <label><input type="checkbox"> Anker</label>
+                    <label><input type="checkbox"> Corsair</label>
+                    <label><input type="checkbox"> UGREEN</label>
+                    <label><input type="checkbox"> SanDisk</label>
+                    <label><input type="checkbox"> Acer</label>
+                    <label><input type="checkbox"> AKG</label>
+                    <label><input type="checkbox"> Crucial</label>
+                    <label><input type="checkbox"> JVC</label>
+                </div>
+
+
+
+                <button id="applyFilters">Apply Filters</button>
+        </aside>
+
+        <main class="products">
+            <div class="sort-bar">
+                <select id="sortBy">
+                    <option value="popular">Most Popular</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                </select>
+            </div>
+
+            <div class="product-grid" id="productGrid">
+
+            </div>
+
+
+          
+                <div class="product-card">
+                    <img src="pictures/pic/labtopbag.jpg" alt="labtopBag">
+                    <div class="product-info">
+                        <h3 class="product-title">labtop bag</h3>
+                        <div class="product-price">30$</div>
+                        <div class="product-rating">★★★</div>
+                    </div>
+                </div>
 
         
-        </div>
-{% endfor %}
-      </div>
+        </main>
     </div>
-  </section>
-{% endblock %}
+</div>
+
+</div>
+
+
+<script>
+
+    // slider of the price 
+    const priceRange = document.getElementById("priceRange");
+    const minPrice = document.getElementById("minPrice");
+    const maxPrice = document.getElementById("maxPrice");
+
+    priceRange.addEventListener("input", function () {
+        minPrice.value = this.min;
+        maxPrice.value = this.value;
+    });
+
+    minPrice.addEventListener("input", function () {
+        if (parseInt(minPrice.value) >= parseInt(maxPrice.value)) {
+            minPrice.value = maxPrice.value - 1;
+        }
+    });
+
+    maxPrice.addEventListener("input", function () {
+        if (parseInt(maxPrice.value) <= parseInt(minPrice.value)) {
+            maxPrice.value = parseInt(minPrice.value) + 1;
+        }
+        priceRange.value = maxPrice.value;
+    });
+
+
+    // brands filter
+    document.addEventListener("DOMContentLoaded", function () {
+        const brandHeader = document.querySelector(".toggle-brands");
+        const brandList = document.querySelector(".brand-list");
+        const icon = document.querySelector(".brand-toggle-icon");
+
+        brandHeader.addEventListener("click", function () {
+
+            if (brandList.style.display === "none" || brandList.style.display === "") {
+                brandList.style.display = "block";
+                icon.classList.add("rotate");
+            } else {
+                brandList.style.display = "none";
+                icon.classList.remove("rotate");
+            }
+        });
+    });
+
+
+
+</script>
+{%endblock%}

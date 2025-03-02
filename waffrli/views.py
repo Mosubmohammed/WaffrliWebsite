@@ -33,6 +33,10 @@ def category(request, foo):
         messages.error(request, 'An unexpected error occurred')
     return redirect('home')
 
+def AllCategory(request):
+    categories = Category.objects.all()
+    return render(request, 'AllCategory.html', {})
+
 
 # # Product detail view
 # def product(request, pk):

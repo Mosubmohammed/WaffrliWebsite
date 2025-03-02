@@ -1,19 +1,11 @@
-{% extends "base.html" %} {% block content %}
-
+{% extends "base.html" %}{% load static %}  {% block content %}
+<link href="{% static 'css/post_deal.css' %}" rel="stylesheet" />
+{% comment %} 
 <div class="postcontainer">
     <header>
-      <h1 class="flex" 
-      style="background-color: rgb(122, 168, 206); 
-      box-shadow: 8px 3px 33px 42px rgba(13, 56, 167, 6.788);
-      border-radius: 50rem;
-      padding: 1rem;
-      margin: 1rem;
-      color: white;
-      font-size: 1.5rem;
-      font-weight: 500;
-      text-align: center;">
 
-      Share a Deal </h1>
+
+     
 
     </header>
 
@@ -92,19 +84,6 @@
       </div>
 
 
-              {% comment %} <!--date   -->
-              <div class="form-group">
-                <div class="progress-step" id="step-10"></div>
-                <label for="deal-expiration">Expiration Date</label>
-                <input type="date" id="deal-expiration" required>
-                <div class="error-message" id="expiration-error">Please select an expiration date.</div>
-            </div>
-            
-            <div class="form-group">
-                <div class="progress-step" id="step-11"></div>
-                <label for="deal-posted">Posted Date</label>
-                <input type="date" id="deal-posted" readonly>
-            </div> {% endcomment %}
 
 
 
@@ -123,7 +102,272 @@
       </div>
     </form>
   </div>
+</div> {% endcomment %}
+
+
+
+<div class="container">
+
+
+
+  <div class="progress-pie-chart" data-percent="0">
+      <div class="ppc-progress">
+          <div class="ppc-progress-fill"></div>
+      </div>
+      <div class="ppc-percents">
+          <div class="pcc-percents-wrapper">
+              <span>%</span>
+          </div>
+      </div>
+  </div>
+
+
+  <form class="form-section" id="deal-form">
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <input type="url" id="deal-url" placeholder=" " required>
+              <label for="deal-url">Deal URL</label>
+              <div class="error-message" id="url-error">Please enter a valid URL.</div>
+          </div>
+          <div class="form-group floating-label">
+              <input type="text" id="deal-title" pattern="[A-Za-z ]+" title="Letters only" placeholder=" "
+                  required>
+              <label for="deal-title">Deal Title</label>
+              <div class="error-message" id="title-error">Please enter a valid title using only letters.</div>
+          </div>
+      </div>
+
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <input type="number" id="sale-price" placeholder=" ">
+              <label for="sale-price">Sale Price ($)</label>
+          </div>
+          <div class="form-group floating-label">
+              <input type="number" id="list-price" placeholder=" ">
+              <label for="list-price">List Price ($)</label>
+          </div>
+      </div>
+
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <select id="location" required>
+                  <option value="" disabled selected></option>
+                  <option value="Amman">Amman</option>
+                  <option value="Zarqa">Zarqa</option>
+                  <option value="Irbid">Irbid</option>
+                  <option value="Aqaba">Aqaba</option>
+                  <option value="Madaba">Madaba</option>
+              </select>
+              <label for="location">Deal Location</label>
+          </div>
+          <div class="form-group floating-label">
+              <select id="category" required>
+                  <option value="" disabled selected></option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Fashion">Fashion</option>
+                  <option value="Home">Home</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Food">Food</option>
+              </select>
+              <label for="category">Category</label>
+              <div class="error-message" id="category-error">Please select a category.</div>
+          </div>
+      </div>
+
+      <div class="form-group floating-label">
+          <textarea id="description" placeholder=" " required></textarea>
+          <label for="description">Deal Description</label>
+          <div class="error-message" id="description-error">Please provide a description for the deal.</div>
+      </div>
+
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <input type="text" id="store" placeholder=" " required>
+              <label for="store">Store</label>
+              <div class="error-message" id="store-error">Please enter a valid store name.</div>
+          </div>
+          <div class="form-group">
+              <label for="image">Upload Image</label>
+              <input type="file" id="image" accept="image/*">
+          </div>
+      </div>
+
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <input type="date" id="deal-expiration" required>
+              <label for="deal-expiration">Expiration Date</label>
+              <div class="error-message" id="expiration-error">Please select an expiration date.</div>
+          </div>
+          <div class="form-group floating-label">
+              <input type="date" id="deal-posted" readonly>
+              <label for="deal-posted">Posted Date</label>
+          </div>
+      </div>
+
+      <div class="form-actions">
+          <button type="button" id="archive-btn">Archive Deal</button>
+          <button type="submit">Post Deal</button>
+      </div>
+  </form>
+
+
 </div>
 
+
+<div id="notification-container"></div>
+
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('deal-form');
+    const steps = document.querySelectorAll('.progress-step');
+    const fields = Array.from(form.querySelectorAll('input, select, textarea'));
+    const archiveButton = document.getElementById('archive-btn');
+    const dealPostedInput = document.getElementById("deal-posted");
+  
+    // Set today's date in "Posted Date" field
+    if (dealPostedInput) {
+      dealPostedInput.value = new Date().toISOString().split('T')[0];
+    }
+  
+    // Function to show notification messages
+    const showNotification = (message, type = 'success') => {
+      const notificationContainer = document.getElementById('notification-container');
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      notificationContainer.appendChild(notification);
+  
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 10);
+  
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          notification.remove();
+        }, 500);
+      }, 3000);
+    };
+  
+    const updateProgress = () => {
+      let firstInvalidIndex = fields.findIndex(field => field.value.trim() === '' || !field.checkValidity());
+      firstInvalidIndex = firstInvalidIndex === -1 ? fields.length : firstInvalidIndex;
+      
+      steps.forEach((step, index) => {
+        step.classList.toggle('completed', index < firstInvalidIndex);
+      });
+    };
+  
+    const showErrorMessage = (field, messageId) => {
+      const errorMessage = document.getElementById(messageId);
+      if (errorMessage) {
+        errorMessage.style.display = (!field.checkValidity() && field.value.trim() !== '') ? 'block' : 'none';
+      }
+    };
+  
+    form.addEventListener('input', (event) => {
+      const target = event.target;
+      target.classList.toggle('invalid', !target.checkValidity() && target.value.trim() !== '');
+  
+      const fieldErrorMap = {
+        'deal-url': 'url-error',
+        'deal-title': 'title-error',
+        'sale-price': 'sale-price-error',
+        'list-price': 'list-price-error',
+        'location': 'location-error',
+        'description': 'description-error',
+        'category': 'category-error',
+        'store': 'store-error',
+        'deal-expiration': 'expiration-error'
+      };
+  
+      if (fieldErrorMap[target.id]) {
+        showErrorMessage(target, fieldErrorMap[target.id]);
+      }
+  
+      updateProgress();
+    });
+  
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+  
+      let allValid = true;
+      fields.forEach(field => {
+        if (!field.checkValidity() || field.value.trim() === '') {
+          field.classList.add('invalid');
+          allValid = false;
+        } else {
+          field.classList.remove('invalid');
+        }
+      });
+  
+      if (allValid) {
+        showNotification('Deal posted successfully!');
+        form.reset();
+        updateProgress();
+      } else {
+        showNotification('Please fill out all required fields correctly.', 'error');
+      }
+    });
+  
+    archiveButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to archive this deal?')) {
+        showNotification('Deal archived successfully!');
+      }
+    });
+  });
+  
+  
+  
+  
+  
+  
+  
+          // Function to update the progress bar
+          function updateProgressBar() {
+              let totalFields = 11;
+              let filledFields = 0;
+  
+              document.querySelectorAll('input, textarea, select').forEach(field => {
+                  if (field.value.trim() !== "") {
+                      filledFields++;
+                  }
+              });
+  
+              let percent = Math.round((filledFields / totalFields) * 100);
+  
+              let progressBar = document.querySelector('.progress-pie-chart');
+              progressBar.setAttribute('data-percent', percent);
+  
+              let progressFill = progressBar.querySelector('.ppc-progress-fill');
+              progressFill.style.background = `conic-gradient(#81CE97 ${percent}%, #E5E5E5 0%)`;
+              progressBar.querySelector('.ppc-percents').textContent = percent + "%";
+          }
+          document.querySelectorAll('input, textarea, select').forEach(field => {
+              field.addEventListener('input', updateProgressBar);  // Trigger update on input
+              field.addEventListener('change', updateProgressBar); // Trigger update on change
+              field.addEventListener('focusout', updateProgressBar); // Trigger update when the field loses focus
+          });
+  
+          updateProgressBar();
+  
+          // Reset progress when the "Post Deal" button is clicked
+          document.querySelector('form').addEventListener('submit', function (event) {
+              event.preventDefault();  // Prevent form submission to handle custom logic
+  
+  
+              let progressBar = document.querySelector('.progress-pie-chart');
+              progressBar.setAttribute('data-percent', 0);
+  
+              let progressFill = progressBar.querySelector('.ppc-progress-fill');
+              progressFill.style.background = `conic-gradient(#E5E5E5 0%, #E5E5E5 0%)`;
+  
+              progressBar.querySelector('.ppc-percents').textContent = "0%";
+  
+          });
+  
+      </script>
 {% endblock %}
 

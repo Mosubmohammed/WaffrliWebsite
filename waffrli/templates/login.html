@@ -1,51 +1,52 @@
-{% comment %} {% extends "base.html" %}  {% endcomment %}
+{% comment %} {% extends "base.html" %}   {% endcomment %}
 {% load static %} 
 {% block content %}
 <link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
 
 <div class="container">
-  <div class="signup-container">
-      <div class="left-side">
-          <h2>Welcome Back!</h2>
-          <p>Sign in to access your account and continue shopping with us.</p>
-          <img  src="pictures/pic/artem-beliaikin-49mCO5ZRQDk-unsplash.jpg" alt="Shopping">
-      </div>
-      
-      <div class="right-side">
-          <div class="form-header">
-              <h3>Sign In</h3>
-              <p>Enter your credentials to continue</p>
-          </div>
+    <div id="loginForm" class="signup-container">
+        <div class="left-side">
+            <h2>Welcome Back!</h2>
+            <p>Sign in to access your account and continue shopping with us.</p>
+            <img  src="pictures/pic/artem-beliaikin-49mCO5ZRQDk-unsplash.jpg" alt="Shopping">
+        </div>
+        
+        <div class="right-side">
+            <div class="form-header">
+                <h3>Sign In</h3>
+                <p>Enter your credentials to continue</p>
+            </div>
 
-          <form class="signIn-form" method="POST" action="{% url 'login' %}">
-            {% csrf_token %}
-              <div class="form-group">
-                  <input type="text" id="username" name="username" required>
-                  <label for="username">Username or Email</label>
-              </div>
+            
+            <form id="login" class="signIn-form" method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" name="username" id="username" required>
+                    <label for="username">Username or Email</label>
+                </div>
 
-              <div class="form-group">
-                  <input type="password" name="password" id="password" required>
-                  <label for="password">Password</label>
-              </div>
+                <div class="form-group">
+                    <input type="password" name="password" id="password" required>
+                    <label for="password">Password</label>
+                </div>
 
-              <div class="remember-forgot">
-                  <label class="remember-label">
-                      <input type="checkbox" name="remember">
-                      <span class="checkbox-custom"></span>
-                      Remember me
-                  </label>
-                  <a href="#" class="forgot-link">Forgot Password?</a>
-              </div>
+                <div class="remember-forgot">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember" id="remember" >
+                        <span class="checkbox-custom"></span>
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-link" id="forgotPassword">Forgot Password?</a>
+                </div>
 
-              <button type="submit" class="submit-btn">Sign In</button>
+                <button type="submit" class="submit-btn">Sign In</button>
 
-              <p class="login-link">
-                  Don't have an account? <a href="{% url 'register'%}">Sign up</a>
-              </p>
-          </form>
-      </div>
-  </div>
+                <p class="login-link">
+                    Don't have an account? <a href="{% url 'register'%}" id="showSignup">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </div>
 </div>
-
+<div id="notification-container"></div>
 {%endblock%}

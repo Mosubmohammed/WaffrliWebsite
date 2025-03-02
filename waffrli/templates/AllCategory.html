@@ -1,0 +1,170 @@
+{% extends "base.html" %} 
+{% load static %} 
+{% block content %}
+<link href="{% static 'css/AllCategory.css' %}" rel="stylesheet" />
+{% comment %} <section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+      <div
+        class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
+      >
+        {%for product in products%} 
+
+        <div class="col mb-5">
+          <div class="card h-100">
+            <div
+              class="badge bg-dark text-white position-absolute"
+              style="top: 0.5rem; right: 0.5rem"
+            >
+              Sale
+            </div>
+            <!-- Product image-->
+  
+            <img class="card-img-top" src="{{product.image.url}}" alt="..." />
+            <!-- Product details-->
+            <div class="card-body p-4">
+              <div class="text-center">
+                <!-- Product name-->
+                <h5 class="fw-bolder">{{product.Name}}</h5>
+                <h6 class="fw-bolder">{{product.Description}}</h6>
+                <div
+                  class="d-flex justify-content-center small text-warning mb-2"
+                >
+                  <div class="bi-star-fill"></div>
+                  &nbsp;&nbsp;Sale!&nbsp;&nbsp;
+                  <div class="bi-star-fill"></div>
+                </div>
+                <!-- Product price-->
+                <strike>${{product.Price}}</strike>
+                &nbsp; ${{product.sale_price}}
+              </div>
+            </div>
+            <!-- Product actions-->
+            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+              <div class="text-center">
+                <a
+                  class="btn btn-outline-dark mt-auto"
+                  href="{% url 'product' product.id %}"
+                  >View product</a
+                >
+              </div>
+            </div>  
+          </div>
+        </div>
+
+        
+        </div>
+{% endfor %}
+      </div>
+    </div>
+  </section> {% endcomment %}
+
+
+  <section class="top-deals">
+    <h2>Top Deal Categories</h2>
+    <div class="tv-slider">
+      <div class="tv-ad">
+        <img src="pictures/pic/tvbg.jpg" alt="TV Deal">
+        <div class="tv-content">
+          <h3>TV's</h3>
+          <p>Live the silver screen with the best TV's available</p>
+          <a href="https://smartbuy-me.com/ar/search?type=product&q=tv" class="shop-link">Shop TV's ›</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="featured-categories">
+    <h2>Featured Deal Categories</h2>
+    <div class="category-grid">
+      <a href="#" class="category-item">
+        <i class="fab fa-apple"></i>
+        <span>Apple</span>
+      </a>
+     
+      <a href="#" class="category-item">
+        <i class="fas fa-baby"></i>
+        <span>Babies & Kids</span>
+      </a>
+      <a href="bags.html" class="category-item">
+        <i class="fas fa-suitcase"></i>
+        <span>Bags & Luggage</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-book"></i>
+        <span>Books & Magazines</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-tshirt"></i>
+        <span>Clothing & Accessories</span>
+      </a>
+      <a href="electronics.html" class="category-item">
+        <i class="fas fa-laptop"></i>
+        <span>Computers</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Education</span>
+      </a>
+      <a href="electronics.html" class="category-item">
+        <i class="fas fa-laptop-code"></i>
+        <span>Electronics</span>
+      </a>
+      
+      <a href="#" class="category-item">
+        <i class="fas fa-gift"></i>
+        <span>Flowers & Gifts</span>
+      </a>
+    
+      <a href="#" class="category-item">
+        <i class="fas fa-shopping-basket"></i>
+        <span>Grocery</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-heartbeat"></i>
+        <span>Health & Beauty</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-home"></i>
+        <span>Home & Home Improvement</span>
+      </a>
+   
+      <a href="#" class="category-item">
+        <i class="fas fa-pencil-ruler"></i>
+        <span>Office & School Supplies</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-question-circle"></i>
+        <span>Other</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-paw"></i>
+        <span>Pets</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-mobile-alt"></i>
+        <span>Phones</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-utensils"></i>
+        <span>Restaurants</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-shoe-prints"></i>
+        <span>Shoes</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-basketball-ball"></i>
+        <span>Sporting Goods</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-plane"></i>
+        <span>Travel & Vacations</span>
+      </a>
+      <a href="#" class="category-item">
+        <i class="fas fa-tv"></i>
+        <span>TV</span>
+      </a>
+    </div>
+  </section>
+
+{% endblock %}
