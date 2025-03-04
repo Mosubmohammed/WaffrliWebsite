@@ -595,6 +595,51 @@ a:hover {
   display: flex;
   gap: 10px;
 }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+.profile-pic {
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+}
+.username {
+  color: #333;
+  font-size: 10px;
+}
+
+.deal-time {
+  font-size: 10px;
+  color: #777;
+}
+
+.sale-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: #ff4757;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
+}
 
 .products-grid {
   /*padding: 6rem 0rem 2rem 3rem;
@@ -632,16 +677,6 @@ a:hover {
 
 .product-info {
   padding: 15px;
-}
-
-.sale-tag {
-  position: absolute;
-  background-color: #ff4757;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  margin: 10px;
 }
 
 .price-container {

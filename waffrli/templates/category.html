@@ -3,32 +3,32 @@
 {% block content %}
 <link href="{% static 'css/Sub-categories.css' %}" rel="stylesheet" />
 <div class="container">
-    <header>
+    {% comment %} <header>
         <h1>Electronics Deals</h1>
         <div class="categories">
             <div class="category-item">
-                <img src="{% static 'media/uploads/product/laptop-svgrepo-com.svg' %}" alt="Laptop">
+                <img src="{% get_media_prefix %}uploads/product/laptop-svgrepo-com.svg" alt="Laptop">
                 <span>Laptops</span>
             </div>
             <div class="category-item">
-                <img src="pictures/pic/tablet-android-svgrepo-com.svg" alt="Tablet">
+                <img src="{% get_media_prefix %}uploads/product/tablet-android-svgrepo-com.svg" alt="Laptop">
                 <span>Tablets</span>
             </div>
             <div class="category-item">
-                <img src="pictures/pic/printer-svgrepo-com.svg" alt="prienter">
+                <img src="{% get_media_prefix %}uploads/product/printer-svgrepo-com.svg" alt="Laptop">
                 <span>Prienters</span>
             </div>
             <div class="category-item">
-                <img src="pictures/pic/iphone-style-smartphone-svgrepo-com.svg" alt="phones">
+                <img src="{% get_media_prefix %}uploads/product/iphone-style-smartphone-svgrepo-com.svg" alt="Laptop">
                 <span>Phones</span>
             </div>
             <div class="category-item">
-                <img src="pictures/pic/headphones-round-sound-svgrepo-com.svg" alt="Computers Accessories">
+                <img src="{% get_media_prefix %}uploads/product/headphones-round-sound-svgrepo-com.svg" alt="Laptop">
                 <span>Computers <br>
                     Accessories</span>
             </div>
         </div>
-    </header>
+    </header> {% endcomment %}
 
     <div class="main-content">
         <aside class="filters">
@@ -37,9 +37,11 @@
 
             <div class="filter-section">
                 <h3>Stores</h3>
-                <label><input type="checkbox" name="store" value="amazon"> mango</label>
-                <label><input type="checkbox" name="store" value="walmart"> compujordan</label>
-                <label><input type="checkbox" name="store" value="target"> Irbid city center</label>
+                {% for store in stores %}
+                    <label>
+                        <input type="checkbox" name="store" value="{{ store }}"> {{ store }}
+                    </label>
+                {% endfor %}
             </div>
 
             <div class="filter-section">
@@ -64,6 +66,7 @@
                     </div>
                 </div>
             </div>
+            
 
 
             <div class="filter-section">
@@ -88,7 +91,7 @@
 
 
 
-                <button id="applyFilters">Apply Filters</button>
+                
         </aside>
 
         <main class="products">
@@ -105,23 +108,75 @@
 
             </div>
 
-
-          
-                <div class="product-card">
-                    <img src="pictures/pic/labtopbag.jpg" alt="labtopBag">
-                    <div class="product-info">
-                        <h3 class="product-title">labtop bag</h3>
-                        <div class="product-price">30$</div>
-                        <div class="product-rating">★★★</div>
+                <div id="product-list">
+                {% for product in products %}
+                    <div class="product-card">
+                        <div class="card-header">
+                            <div class="user-info">
+                                {% if product.customer_pic_id and product.customer_pic_id.image %}
+                                <img style="width: 20px; height: 24px" 
+                                     src="{{ product.customer_pic_id.image.url }}" 
+                                     alt="User Icon" 
+                                     class="profile-pic" 
+                                     width="30" 
+                                     height="30" />
+                                {% else %}
+                                <img style="width: 20px; height: 24px" 
+                                     src="{% static 'images/default-profile.png' %}" 
+                                     alt="Default User" 
+                                     class="profile-pic" 
+                                     width="30" 
+                                     height="30" />
+                                {% endif %}
+                                <div class="user-details">
+                                    <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+                                    <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+                                </div>
+                            </div>
+                            <div class="sale-tag">-70%</div>
+                        </div>
+            
+                        <img src="{{ product.image.url }}" alt="Product" />
+            
+                        <div class="product-info">
+                            <h3>{{ product.Name }}</h3>
+                            <p class="description">{{ product.Description }}</p>
+            
+                            <div class="price-container">
+                                <span class="current-price">${{ product.sale_price }}</span>
+                                <span class="original-price">${{ product.Price }}</span>
+                            </div>
+            
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                                <span>(128)</span>
+                            </div>
+                        </div>
+            
+                        <div class="card-footer">
+                            <button class="like-btn" data-product-id="{{ product.id }}">
+                                <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+                                <span class="like-count">{{ product.likes.count }}</span>
+                            </button>
+                            <button class="comment-btn">
+                                <i class="far fa-comment"></i> {{ c }}
+                            </button>
+                        </div>
                     </div>
-                </div>
+                {% endfor %}
+            </div>
+            
 
         
         </main>
     </div>
 </div>
 
-</div>
+
 
 
 <script>
@@ -168,7 +223,101 @@
         });
     });
 
-
-
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll('input[name="store"]');
+        const ratingCheckboxes = document.querySelectorAll('input[name="rating"]');
+        const minPriceInput = document.getElementById("minPrice");
+        const maxPriceInput = document.getElementById("maxPrice");
+        const priceSlider = document.getElementById("priceRange");
+    
+        function fetchFilteredProducts() {
+            let selectedStores = [];
+            let selectedRatings = [];
+    
+            checkboxes.forEach(cb => {
+                if (cb.checked) selectedStores.push(cb.value);
+            });
+    
+            ratingCheckboxes.forEach(rb => {
+                if (rb.checked) selectedRatings.push(rb.value);
+            });
+    
+            let minPrice = minPriceInput.value || 0;
+            let maxPrice = maxPriceInput.value || 999999;
+    
+            minPrice = parseFloat(minPrice);
+            maxPrice = parseFloat(maxPrice);
+    
+            // Get current category from the URL
+            const categorySlug = "{{ category.name|slugify }}";
+    
+            // Send AJAX request with store, price, and rating filters
+            fetch(`/category/${categorySlug}/filter-products/?stores=${selectedStores.join(",")}&min_price=${minPrice}&max_price=${maxPrice}&ratings=${selectedRatings.join(",")}`)
+                .then(response => response.json())
+                .then(data => {
+                    const productList = document.getElementById("product-list");
+                    productList.innerHTML = ""; // Clear existing products
+    
+                    if (data.products.length === 0) {
+                        productList.innerHTML = "<p>No products found.</p>";
+                        return;
+                    }
+    
+                    data.products.forEach(product => {
+                        const productCard = document.createElement("div");
+                        productCard.classList.add("product-card");
+                        productCard.innerHTML = `
+                            <div class="card-header">
+                                <div class="user-info">
+                                    <img style="width: 20px; height: 24px" 
+                                        src="${product.customer_pic_url || '/static/images/default-profile.png'}" 
+                                        alt="User Icon" 
+                                        class="profile-pic"
+                                        width="30" 
+                                        height="30" />
+                                    <div class="user-details">
+                                        <span class="username">Found by <strong>@${product.username}</strong></span>
+                                        <span class="deal-time">${product.create_at}</span>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <img src="${product.image_url}" alt="Product" />
+    
+                            <div class="product-info">
+                                <h3>${product.name}</h3>
+                                <p class="description">${product.description}</p>
+                                <div class="price-container">
+                                    <span class="current-price">$${product.sale_price}</span>
+                                    <span class="original-price">$${product.price}</span>
+                                </div>
+                                <div class="likes">👍 ${product.likes_count} Likes</div>
+                            </div>
+    
+                            <div class="card-footer">
+                                <button class="like-btn" data-product-id="${product.id}">
+                                    <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
+                                    <span class="like-count">${product.likes_count}</span>
+                                </button>
+                            </div>
+                        `;
+                        productList.appendChild(productCard);
+                    });
+                })
+                .catch(error => console.error("Error fetching products:", error));
+        }
+    
+        // Event Listeners
+        checkboxes.forEach(checkbox => checkbox.addEventListener("change", fetchFilteredProducts));
+        ratingCheckboxes.forEach(checkbox => checkbox.addEventListener("change", fetchFilteredProducts));
+        minPriceInput.addEventListener("input", fetchFilteredProducts);
+        maxPriceInput.addEventListener("input", fetchFilteredProducts);
+        priceSlider.addEventListener("input", function () {
+            maxPriceInput.value = priceSlider.value;
+            fetchFilteredProducts();
+        });
+    });
+    
+    
 </script>
 {%endblock%}

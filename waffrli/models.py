@@ -47,6 +47,10 @@ class Customer(models.Model):
     def number_of_likes(self):
             return self.likes.count()
     
+    
+    
+    
+    
 class Product(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     Name = models.CharField(max_length=255)
@@ -63,16 +67,15 @@ class Product(models.Model):
     views  = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
 
-    
     def increment_views(self):
         self.views += 1
         self.save()
-
     def __str__(self) -> str:
         return self.Name
-
     def number_of_likes(self):
         return self.likes.count()
+
+
 
 
 class Comment(models.Model):
@@ -83,6 +86,8 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.customer.first_name} on {self.product.Name}"
+
+
 
 class Follow(models.Model):
     follower = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)

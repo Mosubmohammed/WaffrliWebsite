@@ -25,35 +25,92 @@ def category(request, foo):
     try:
         category = Category.objects.get(name__iexact=foo)
         products = Product.objects.filter(category=category)
-        return render(request, 'category.html', {'products': products, 'category': category})
+        
+        # Get unique store names from products in this category
+        stores = Product.objects.filter(category=category).values_list('store', flat=True).distinct()
+
+        return render(request, 'category.html', {'products': products, 'category': category, 'stores': stores})
     except Category.DoesNotExist:
         messages.error(request, 'That category does not exist')
     except Exception as e:
         print(f"Unexpected error: {e}")
         messages.error(request, 'An unexpected error occurred')
+
     return redirect('home')
 
+
+
+
+
+def filter_products(request, foo):
+    foo = foo.replace('-', ' ').strip()
+    try:
+        category = Category.objects.get(name__iexact=foo)
+        store_names = request.GET.get("stores", "").split(",") if request.GET.get("stores") else []
+        min_price = request.GET.get("min_price", 0)
+        max_price = request.GET.get("max_price", 999999)
+        rating_filter = request.GET.get("ratings", "").split(",") if request.GET.get("ratings") else []
+
+        # Convert to numbers to prevent errors
+        try:
+            min_price = float(min_price)
+            max_price = float(max_price)
+            rating_filter = [int(r) for r in rating_filter if r.isdigit()]
+        except ValueError:
+            return JsonResponse({"error": "Invalid filters"}, status=400)
+
+        # Start filtering by category and price range
+        products = Product.objects.filter(category=category, Price__gte=min_price, Price__lte=max_price)
+
+        # Apply store filtering only if stores are selected
+        if store_names and store_names[0] != "":
+            products = products.filter(store__in=store_names)
+
+        # Apply rating (likes) filtering
+        if rating_filter:
+            query = Q()
+            for rating in rating_filter:
+                query |= Q(likes__gte=rating)  # Filter products with at least X likes
+            products = products.filter(query)
+
+        # Ensure distinct products
+        products = products.distinct()
+
+        data = {
+            "products": [
+                {
+                    "id": p.id,
+                    "name": p.Name,
+                    "store": p.store,
+                    "price": str(p.Price),
+                    "sale_price": str(p.sale_price) if p.sale_price else None,
+                    "description": p.Description,
+                    "create_at": p.create_at.strftime("%d-%m"),
+                    "username": p.user.username if p.user else "Unknown",
+                    "customer_pic_url": p.customer_pic_id.image.url if p.customer_pic_id and p.customer_pic_id.image else None,
+                    "image_url": p.image.url if p.image else "/static/images/default-product.png",
+                    "likes_count": p.likes.count(),
+                    "liked_by_user": request.user in p.likes.all(),
+                    "comment_count": 0,  # Replace with actual count if needed
+                }
+                for p in products
+            ]
+        }
+        return JsonResponse(data)
+
+    except Category.DoesNotExist:
+        return JsonResponse({"error": "Category not found"}, status=404)
+
+
+    
+    
+    
 def AllCategory(request):
     categories = Category.objects.all()
     return render(request, 'AllCategory.html', {})
 
 
-# # Product detail view
-# def product(request, pk):
-#     try:
-#         product = Product.objects.get(id=pk)
-#         return render(request, 'product.html', {'product': product})
-#     except Product.DoesNotExist:
-#         messages.error(request, 'That product does not exist')
-#     except Exception as e:
-#         print(f"Unexpected error: {e}")
-#         messages.error(request, 'An unexpected error occurred')
-#     return redirect('home')
 
-# def deal_detail(request, deal_id):
-#     deal = get_object_or_404(Product, id=deal_id)
-#     deal.increment_views()  # Increment view count
-#     return render(request, 'product.html', {'deal': deal})
 
 def deal_or_product_detail(request, pk):
     try:
