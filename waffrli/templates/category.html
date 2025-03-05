@@ -44,16 +44,17 @@
                 {% endfor %}
             </div>
 
-            <div class="filter-section">
-                <h3>Rating</h3>
-                <label><input type="checkbox" name="rating" value="5"> Popular Deals</label>
-                <label><input type="checkbox" name="rating" value="5"> 5★</label>
-                <label><input type="checkbox" name="rating" value="4"> 4★</label>
-                <label><input type="checkbox" name="rating" value="3"> 3★</label>
-                <label><input type="checkbox" name="rating" value="2"> 2★</label>
-                <label><input type="checkbox" name="rating" value="1"> 1★</label>
+<div class="filter-section">
+    <h3>Rating</h3>
+    <label><input type="radio" name="rating" value="5"> Popular Deals</label>
+    <label><input type="radio" name="rating" value="5"> 5+ Thumbs</label>
+    <label><input type="radio" name="rating" value="4"> 4+ Thumbs</label>
+    <label><input type="radio" name="rating" value="3"> 3+ Thumbs</label>
+    <label><input type="radio" name="rating" value="2"> 2+ Thumbs</label>
+    <label><input type="radio" name="rating" value="1"> 1+ Thumbs</label>
+    <label><input type="radio" name="rating" value="0" checked> All Ratings</label>
+</div>
 
-            </div>
 
             <div class="filter-section">
                 <h3>Price Range</h3>
@@ -104,9 +105,9 @@
                 </select>
             </div>
 
-            <div class="product-grid" id="productGrid">
+            <div  id="productGrid">
 
-            </div>
+            
 
                 <div id="product-list">
                 {% for product in products %}
@@ -133,7 +134,7 @@
                                     <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
                                 </div>
                             </div>
-                            <div class="sale-tag">-70%</div>
+                            
                         </div>
             
                         <img src="{{ product.image.url }}" alt="Product" />
@@ -147,14 +148,7 @@
                                 <span class="original-price">${{ product.Price }}</span>
                             </div>
             
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                                <span>(128)</span>
-                            </div>
+
                         </div>
             
                         <div class="card-footer">
@@ -169,6 +163,7 @@
                     </div>
                 {% endfor %}
             </div>
+        
             
 
         
@@ -224,98 +219,109 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
-        const checkboxes = document.querySelectorAll('input[name="store"]');
-        const ratingCheckboxes = document.querySelectorAll('input[name="rating"]');
+        const priceRange = document.getElementById("priceRange");
         const minPriceInput = document.getElementById("minPrice");
         const maxPriceInput = document.getElementById("maxPrice");
-        const priceSlider = document.getElementById("priceRange");
+        const storeCheckboxes = document.querySelectorAll('input[name="store"]');
+        const ratingRadios = document.querySelectorAll('input[name="rating"]');
     
+        // Update min/max price based on slider
+        priceRange.addEventListener("input", function () {
+            maxPriceInput.value = this.value;
+            fetchFilteredProducts();
+        });
+    
+        // Prevent min price from exceeding max price
+        minPriceInput.addEventListener("input", function () {
+            if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
+                minPriceInput.value = maxPriceInput.value - 1;
+            }
+            fetchFilteredProducts();
+        });
+    
+        maxPriceInput.addEventListener("input", function () {
+            if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
+                maxPriceInput.value = parseInt(minPriceInput.value) + 1;
+            }
+            priceRange.value = maxPriceInput.value;
+            fetchFilteredProducts();
+        });
+    
+        // Brand Filter Toggle
+        const brandHeader = document.querySelector(".toggle-brands");
+        const brandList = document.querySelector(".brand-list");
+        const icon = document.querySelector(".brand-toggle-icon");
+    
+        if (brandHeader) {
+            brandHeader.addEventListener("click", function () {
+                const isHidden = brandList.style.display === "none" || brandList.style.display === "";
+                brandList.style.display = isHidden ? "block" : "none";
+                icon.classList.toggle("rotate", isHidden);
+            });
+        }
+    
+        // Fetch Filtered Products
         function fetchFilteredProducts() {
-            let selectedStores = [];
-            let selectedRatings = [];
+            let selectedStores = [...storeCheckboxes]
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
     
-            checkboxes.forEach(cb => {
-                if (cb.checked) selectedStores.push(cb.value);
-            });
+            let selectedRating = document.querySelector('input[name="rating"]:checked')?.value || "0";
     
-            ratingCheckboxes.forEach(rb => {
-                if (rb.checked) selectedRatings.push(rb.value);
-            });
+            const minPrice = minPriceInput.value;
+            const maxPrice = maxPriceInput.value;
     
-            let minPrice = minPriceInput.value || 0;
-            let maxPrice = maxPriceInput.value || 999999;
-    
-            minPrice = parseFloat(minPrice);
-            maxPrice = parseFloat(maxPrice);
-    
-            // Get current category from the URL
+            // Get category slug dynamically
             const categorySlug = "{{ category.name|slugify }}";
     
-            // Send AJAX request with store, price, and rating filters
-            fetch(`/category/${categorySlug}/filter-products/?stores=${selectedStores.join(",")}&min_price=${minPrice}&max_price=${maxPrice}&ratings=${selectedRatings.join(",")}`)
+            // Fetch filtered products via AJAX
+            fetch(`/category/${categorySlug}/filter-products/?stores=${selectedStores.join(",")}&min_price=${minPrice}&max_price=${maxPrice}&ratings=${selectedRating}`)
                 .then(response => response.json())
                 .then(data => {
                     const productList = document.getElementById("product-list");
-                    productList.innerHTML = ""; // Clear existing products
-    
-                    if (data.products.length === 0) {
-                        productList.innerHTML = "<p>No products found.</p>";
-                        return;
-                    }
-    
+                    productList.innerHTML = ""; // Clear previous products
                     data.products.forEach(product => {
-                        const productCard = document.createElement("div");
-                        productCard.classList.add("product-card");
-                        productCard.innerHTML = `
-                            <div class="card-header">
-                                <div class="user-info">
-                                    <img style="width: 20px; height: 24px" 
-                                        src="${product.customer_pic_url || '/static/images/default-profile.png'}" 
-                                        alt="User Icon" 
-                                        class="profile-pic"
-                                        width="30" 
-                                        height="30" />
-                                    <div class="user-details">
-                                        <span class="username">Found by <strong>@${product.username}</strong></span>
-                                        <span class="deal-time">${product.create_at}</span>
+                        productList.innerHTML += `
+                            <div class="product-card">
+                                <div class="card-header">
+                                    <div class="user-info">
+                                        ${product.customer_pic_url ? 
+                                            `<img style="width: 20px; height: 24px" src="${product.customer_pic_url}" alt="User Icon" class="profile-pic" />` : 
+                                            `<img style="width: 20px; height: 24px" src="/static/images/default-profile.png" alt="Default User" class="profile-pic" />`
+                                        }
+                                        <div class="user-details">
+                                            <span class="username">Found by <strong>@${product.username}</strong></span>
+                                            <span class="deal-time">${product.create_at}</span>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <img src="${product.image_url}" alt="Product" />
+                                <div class="product-info">
+                                    <h3>${product.name}</h3>
+                                    <p class="description">${product.description}</p>
+                                    <div class="price-container">
+                                        <span class="current-price">$${product.sale_price ? product.sale_price : product.price}</span>
+                                        <span class="original-price">$${product.price}</span>
                                     </div>
                                 </div>
-                            </div>
-    
-                            <img src="${product.image_url}" alt="Product" />
-    
-                            <div class="product-info">
-                                <h3>${product.name}</h3>
-                                <p class="description">${product.description}</p>
-                                <div class="price-container">
-                                    <span class="current-price">$${product.sale_price}</span>
-                                    <span class="original-price">$${product.price}</span>
+                                <div class="card-footer">
+                                    <button class="like-btn" data-product-id="${product.id}">
+                                        <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
+                                        <span class="like-count">${product.likes_count}</span>
+                                    </button>
+                                    <button class="comment-btn">
+                                        <i class="far fa-comment"></i> ${product.comment_count}
+                                    </button>
                                 </div>
-                                <div class="likes">👍 ${product.likes_count} Likes</div>
-                            </div>
-    
-                            <div class="card-footer">
-                                <button class="like-btn" data-product-id="${product.id}">
-                                    <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
-                                    <span class="like-count">${product.likes_count}</span>
-                                </button>
-                            </div>
-                        `;
-                        productList.appendChild(productCard);
+                            </div>`;
                     });
-                })
-                .catch(error => console.error("Error fetching products:", error));
+                });
         }
     
-        // Event Listeners
-        checkboxes.forEach(checkbox => checkbox.addEventListener("change", fetchFilteredProducts));
-        ratingCheckboxes.forEach(checkbox => checkbox.addEventListener("change", fetchFilteredProducts));
-        minPriceInput.addEventListener("input", fetchFilteredProducts);
-        maxPriceInput.addEventListener("input", fetchFilteredProducts);
-        priceSlider.addEventListener("input", function () {
-            maxPriceInput.value = priceSlider.value;
-            fetchFilteredProducts();
-        });
+        // Attach event listeners
+        storeCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
+        ratingRadios.forEach(radio => radio.addEventListener("change", fetchFilteredProducts));
     });
     
     

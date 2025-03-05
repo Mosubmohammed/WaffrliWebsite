@@ -604,6 +604,11 @@ a:hover {
   border-bottom: 1px solid #ddd;
   position: relative;
 }
+.product-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
 
 .user-info {
   display: flex;

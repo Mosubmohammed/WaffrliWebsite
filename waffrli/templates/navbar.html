@@ -6,9 +6,9 @@
               <i class="fas fa-bars"></i>
           </button>
 
-          <a href="WAffRLIApp.html">
+          <a href="{% url 'home' %}">
               <div class="logo"> <span style="color: red;" class="tag-icon">%</span>
-                  Waffrli <span class="highlight">!</span>
+                  Waffrli
               </div>
           </a>
 
@@ -41,9 +41,6 @@
                   {% endfor %}
                   <a href="{% url 'AllCategory' %}">All Categories</a>
               </div>
-              
-
-
             </div>
 
               </a>
@@ -52,9 +49,7 @@
                   <span>dealer page</span>
               </a>
           </div>
-
       </div>
-
 
       <div class="search-container">
           <div class="search-wrapper">

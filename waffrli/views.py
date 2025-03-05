@@ -44,8 +44,10 @@ def category(request, foo):
 
 def filter_products(request, foo):
     foo = foo.replace('-', ' ').strip()
+    
     try:
-        category = Category.objects.get(name__iexact=foo)
+        category = get_object_or_404(Category, name__iexact=foo)
+        
         store_names = request.GET.get("stores", "").split(",") if request.GET.get("stores") else []
         min_price = request.GET.get("min_price", 0)
         max_price = request.GET.get("max_price", 999999)
@@ -59,8 +61,8 @@ def filter_products(request, foo):
         except ValueError:
             return JsonResponse({"error": "Invalid filters"}, status=400)
 
-        # Start filtering by category and price range
-        products = Product.objects.filter(category=category, Price__gte=min_price, Price__lte=max_price)
+        # Start filtering by category and **sale_price**
+        products = Product.objects.filter(category=category, sale_price__gte=min_price, sale_price__lte=max_price)
 
         # Apply store filtering only if stores are selected
         if store_names and store_names[0] != "":
@@ -112,7 +114,7 @@ def AllCategory(request):
 
 
 
-def deal_or_product_detail(request, pk):
+def product(request, pk):
     try:
         # Get the product
         product = get_object_or_404(Product, id=pk)

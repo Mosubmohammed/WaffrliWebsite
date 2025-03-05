@@ -6,75 +6,65 @@
     <!-- Product Grid -->
     <div class="products-grid">
       {% for product in products %}
-      <div class="product-card">
-        <div class="card-header">
-          <div class="user-info">
-            {% if product.customer_pic_id and product.customer_pic_id.image %}
-            <img
-            style="width: 20px; height: 24px"
-              src="{{ product.customer_pic_id.image.url }}"
-              alt="User Icon"
-              class="profile-pic"
-              width="30"
-              height="30"
-            />
-            {% else %}
-            <img
-            style="width: 20px; height: 24px"
-              src="{% static 'images/default-profile.png' %}"
-              alt="Default User"
-              class="profile-pic"
-              width="30"
-              height="30"
-            />
-            {% endif %}
-            <div class="user-details">
-              <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-              <span class="deal-time">{{ product.create_at|date:"d-m"}}</span>
+      <a href="{% url 'product' product.id %}" class="product-link">
+        <div class="product-card">
+          <div class="card-header">
+            <div class="user-info">
+              {% if product.customer_pic_id and product.customer_pic_id.image %}
+              <img
+                style="width: 20px; height: 24px"
+                src="{{ product.customer_pic_id.image.url }}"
+                alt="User Icon"
+                class="profile-pic"
+                width="30"
+                height="30"
+              />
+              {% else %}
+              <img
+                style="width: 20px; height: 24px"
+                src="{% static 'images/default-profile.png' %}"
+                alt="Default User"
+                class="profile-pic"
+                width="30"
+                height="30"
+              />
+              {% endif %}
+              <div class="user-details">
+                <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+                <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+              </div>
+            </div>
+            <div class="sale-tag">-70%</div>
+          </div>
+    
+          <img src="{{ product.image.url }}" alt="Product" />
+    
+          <div class="product-info">
+            <h3>{{ product.Name }}</h3>
+            <p class="description">{{ product.Description }}</p>
+    
+            <div class="price-container">
+              <span class="current-price">${{ product.sale_price }}</span>
+              <span class="original-price">${{ product.Price }}</span>
             </div>
           </div>
-          <div class="sale-tag">-70%</div>
-                    
-        </div>
-
-
-
-
-        <img src="{{ product.image.url }}" alt="Product" />
-
-        <div class="product-info">
-          <h3>{{ product.Name }}</h3>
-          <p class="description">{{ product.Description }}</p>
-
-          <div class="price-container">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="original-price">${{ product.Price }}</span>
-          </div>
-
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star-half-alt"></i>
-            <span>(128)</span>
+    
+          <div class="card-footer">
+            <button class="like-btn" data-product-id="{{ product.id }}">
+              <i
+                class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
+              ></i>
+              <span class="like-count">{{ product.likes.count }}</span>
+            </button>
+            <button class="comment-btn">
+              <i class="far fa-comment"></i> {{ c }}
+            </button>
           </div>
         </div>
-
-        <div class="card-footer">
-          <button class="like-btn" data-product-id="{{ product.id }}">
-            <i
-              class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
-            ></i>
-            <span class="like-count">{{ product.likes.count }}</span>
-          </button>
-          <button class="comment-btn">
-            <i class="far fa-comment"></i> {{ c }}
-          </button>
-        </div>
-      </div>
+      </a>
       {% endfor %}
     </div>
+    
 
     <!-- Sidebar -->
     <aside class="sidebar">
