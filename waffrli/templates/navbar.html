@@ -91,6 +91,8 @@
                   <span>Account</span>
               </button>
               <div class="dropdown-content">
+                {% comment %} <a href="{% url 'user_profile' identifier_request.user.id %}">
+                  <i class="fas fa-user"></i> My Account</a> {% endcomment %}
                   <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
                   <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
                   <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
