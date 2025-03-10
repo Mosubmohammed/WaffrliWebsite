@@ -9,6 +9,7 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('login/', login_user, name='login'),
     path('logout/', logout_user, name='logout'),
+    path('restPassword/', restPassword, name='restPassword'),
     path('search/', search, name='search'),
     path('post_deal/', post_deal, name='post_deal'),
     path("user_profile/<int:identifier>/", user_profile, name="user_profile"),
@@ -16,4 +17,5 @@ urlpatterns = [
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path('wishlist/', wishlist, name='wishlist'),
     path('like/<int:product_id>/', like_product, name='like_product'),
+    path("firebase-login/", firebase_login, name="firebase_login"),
 ]

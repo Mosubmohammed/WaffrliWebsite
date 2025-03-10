@@ -108,63 +108,64 @@
 
 
 
-<script>
-  // Function to validate if the location is in Jordan
-function isLocationInJordan(latitude, longitude) {
-  // Approximate boundaries of Jordan
-  const jordanBounds = {
-      minLat: 29.1,
-      maxLat: 33.4,
-      minLon: 34.8,
-      maxLon: 39.3
-  };
-  return (
-      latitude >= jordanBounds.minLat &&
-      latitude <= jordanBounds.maxLat &&
-      longitude >= jordanBounds.minLon &&
-      longitude <= jordanBounds.maxLon
-  );
-}
-
-// Function to get the user's location using GPS
-function getLocation() {
-  if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-          (position) => {
-              const latitude = position.coords.latitude;
-              const longitude = position.coords.longitude;
-
-              if (isLocationInJordan(latitude, longitude)) {
-                  // Reverse geocoding to get the location name (optional)
-                  fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
-                      .then(response => response.json())
-                      .then(data => {
-                          const locationName = data.locality || data.city || data.region || 'Jordan';
-                          document.getElementById('location').value = locationName;
-                          document.getElementById('locationError').textContent = '';
-                          document.getElementById('locationError').style.display = 'none';
-                      })
-                      .catch(() => {
-                          document.getElementById('location').value = 'Jordan';
-                      });
-              } else {
-                  document.getElementById('locationError').textContent = 'This app works only in Jordan.';
-                  document.getElementById('locationError').style.display = 'block';
-              }
-          },
-          (error) => {
-              document.getElementById('locationError').textContent = 'Unable to retrieve your location.';
-              document.getElementById('locationError').style.display = 'block';
-          }
-      );
-  } else {
-      document.getElementById('locationError').textContent = 'Geolocation is not supported by your browser.';
-      document.getElementById('locationError').style.display = 'block';
-  }
-}
-
-// Add event listener for the "Get My Location" button
-document.getElementById('getLocationBtn').addEventListener('click', getLocation);
-
-</script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, getIdToken } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnxYMZZowFbUG18K9PGeIrEpkSp6n2HIU",
+        authDomain: "waffrli-30386.firebaseapp.com",
+        databaseURL: "https://waffrli-30386-default-rtdb.firebaseio.com",
+        projectId: "waffrli-30386",
+        storageBucket: "waffrli-30386.firebasestorage.app",
+        messagingSenderId: "942370827762",
+        appId: "1:942370827762:web:45a627c2898b68e1e58f6b",
+        measurementId: "G-35JDJNBD6F"
+      };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    document.querySelector(".signup-form").addEventListener("submit", async (event) => {
+        event.preventDefault();  // Stop form from submitting immediately
+    
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        
+        try {
+            // Firebase Sign Up
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+    
+            // Send email verification
+            await sendEmailVerification(user);
+    
+            // Get Firebase Token
+            const token = await user.getIdToken();
+    
+            // Send Token to Django Backend
+            const response = await fetch("/firebase-login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ email })
+            });
+    
+            if (response.ok) {
+                alert("User registered successfully! Please verify your email.");
+                window.location.href = "/login/"; // Redirect to login page
+            } else {
+                const errorData = await response.json();
+                alert("Server error: " + errorData.error);
+            }
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    });
+    
+    
+    </script>
 {% endblock %}

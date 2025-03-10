@@ -11,6 +11,12 @@ from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.db.models import Count
+import json
+from django.http import JsonResponse
+from django.contrib.auth import login
+from django.views.decorators.csrf import csrf_exempt
+from firebase_admin import auth
+from django.contrib.auth.models import User
 
 
 # Home view - Display all products
@@ -239,7 +245,32 @@ def logout_user(request):
     messages.success(request, 'Logged out successfully!')
     return redirect('home')
 
+def restPassword(request):
+    return render(request,'restPassword.html',{})
 
+@csrf_exempt
+def firebase_login(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            token = request.headers.get("Authorization").split("Bearer ")[-1]
+
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token["uid"]
+            email = decoded_token.get("email")
+
+            # Get or create a user in Django
+            user, created = User.objects.get_or_create(username=uid, defaults={"email": email})
+
+            # Log the user in
+            login(request, user)
+
+            return JsonResponse({"message": "User authenticated successfully"}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
 # Search functionality
 def search(request):
     if request.method == "POST":
