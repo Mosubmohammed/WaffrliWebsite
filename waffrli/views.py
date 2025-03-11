@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse
 from django.db.models import Q
+import firebase_admin
 from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -15,8 +16,10 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth import login
 from django.views.decorators.csrf import csrf_exempt
-from firebase_admin import auth
 from django.contrib.auth.models import User
+from firebase_admin import auth as firebase_auth
+
+
 
 
 # Home view - Display all products
@@ -158,85 +161,237 @@ def product(request, pk):
 
 
 # User registration
+# def register(request):
+#     if request.method == 'POST':
+#         first_name = request.POST.get('first_name', '').strip()
+#         last_name = request.POST.get('last_name', '').strip()
+#         username = request.POST.get('username', '').strip()
+#         email = request.POST.get('email', '').strip()
+#         phone = request.POST.get('phone', '').strip()
+#         password = request.POST.get('password', '')
+#         confirm_password = request.POST.get('confirm_password', '')
+#         address = request.POST.get('address', 'Not Provided')
+#         gender = request.POST.get('gender', 'N')
+#         image = request.FILES.get('image', None)
+        
+#         print("Received image:", image)  # Debugging step
+
+#         # **1. Validate required fields**
+#         if not all([first_name, last_name, username, email, phone, password, confirm_password]):
+#             messages.error(request, "All fields are required.")
+#             return render(request, 'register.html')
+
+#         # **2. Validate passwords**
+#         if password != confirm_password:
+#             messages.error(request, "Passwords do not match.")
+#             return render(request, 'register.html')
+
+#         # **3. Check if username or email already exists**
+#         if User.objects.filter(username=username).exists():
+#             messages.error(request, "Username is already taken.")
+#             return render(request, 'register.html')
+
+#         if User.objects.filter(email=email).exists():
+#             messages.error(request, "Email is already in use.")
+#             return render(request, 'register.html')
+
+#         # **4. Create the User**
+#         user = User.objects.create_user(username=username, email=email, password=password)
+#         user.first_name = first_name
+#         user.last_name = last_name
+#         user.save()
+
+#         # **5. Create the Customer profile**
+#         customer = Customer.objects.create(
+#             user=user,
+#             first_name=first_name,
+#             last_name=last_name,
+#             phone=phone,
+#             email=email,
+#             address=address,
+#             gender=gender,
+#             image=image  # This should now store the image
+#         )
+
+#         # **6. Log the user in**
+#         login(request, user)
+#         messages.success(request, f'Account created for {user.username}!')
+#         return redirect('home')
+
+#     return render(request, 'register.html')
+
+
 def register(request):
     if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        password = request.POST.get('password', '')
-        confirm_password = request.POST.get('confirm_password', '')
-        address = request.POST.get('address', 'Not Provided')
-        gender = request.POST.get('gender', 'N')
-        image = request.FILES.get('image', None)
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        gender = request.POST.get('gender')
+        address = request.POST.get('address')
+        image = request.FILES.get('image')
         
-        print("Received image:", image)  # Debugging step
-
-        # **1. Validate required fields**
-        if not all([first_name, last_name, username, email, phone, password, confirm_password]):
-            messages.error(request, "All fields are required.")
-            return render(request, 'register.html')
-
-        # **2. Validate passwords**
+        # Generate username from email (or use a field in your form for username)
+        username = email.split('@')[0]
+        
+        # Basic validation
         if password != confirm_password:
-            messages.error(request, "Passwords do not match.")
+            messages.error(request, "Passwords don't match")
             return render(request, 'register.html')
-
-        # **3. Check if username or email already exists**
+        
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username is already taken.")
-            return render(request, 'register.html')
-
+            # Make username unique if it already exists
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+        
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email is already in use.")
+            messages.error(request, "Email already exists")
             return render(request, 'register.html')
-
-        # **4. Create the User**
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.first_name = first_name
-        user.last_name = last_name
-        user.save()
-
-        # **5. Create the Customer profile**
-        customer = Customer.objects.create(
-            user=user,
-            first_name=first_name,
-            last_name=last_name,
-            phone=phone,
-            email=email,
-            address=address,
-            gender=gender,
-            image=image  # This should now store the image
-        )
-
-        # **6. Log the user in**
-        login(request, user)
-        messages.success(request, f'Account created for {user.username}!')
-        return redirect('home')
-
+        
+        try:
+            # Create user in Firebase
+            firebase_user = firebase_auth.create_user(
+                email=email,
+                password=password,
+                display_name=f"{first_name} {last_name}",
+                email_verified=False  # Explicitly set as not verified
+            )
+            firebase_uid = firebase_user.uid
+            
+            # Generate email verification link
+            verification_link = firebase_auth.generate_email_verification_link(
+                email, 
+                action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                    url="http://localhost:8000/verified/",  # Use localhost instead of 127.0.0.1
+                    handle_code_in_app=False
+                )
+            )
+            
+            # Create Django User
+            django_user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_active=True  # User can still log in to your site, but you can check verification status
+            )
+            
+            # Link Django User to Firebase
+            FirebaseUser.objects.create(
+                user=django_user,
+                firebase_uid=firebase_uid,
+                email_verified=False  # Track verification status in your database
+            )
+            
+            # Create Customer profile
+            customer = Customer.objects.create(
+                user=django_user,
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                email=email,
+                password=password,  # Note: This is redundant since Django User already stores password
+                gender=gender,
+                address=address
+            )
+            
+            # Add image if provided
+            if image:
+                customer.image = image
+                customer.save()
+            
+    
+            login(request, django_user)
+            
+            messages.success(request, "Registration successful! Please check your email to verify your account.")
+            return redirect('home')  
+            
+        except Exception as e:
+            messages.error(request, f"Registration failed: {str(e)}")
+            return render(request, 'register.html')
+    
+    # For GET requests
     return render(request, 'register.html')
 
 
+def check_email_verification(request):
+    return render(request, 'verification_success.html')
 
-# User login
+
+def verify_email_status(request):
+    # Function to check if a user's email is verified
+    if request.user.is_authenticated:
+        try:
+            firebase_user = FirebaseUser.objects.get(user=request.user)
+            # Get fresh user data from Firebase
+            firebase_user_info = firebase_auth.get_user(firebase_user.firebase_uid)
+            
+            # Update local record if verification status changed
+            if firebase_user_info.email_verified != firebase_user.email_verified:
+                firebase_user.email_verified = firebase_user_info.email_verified
+                firebase_user.save()
+            
+            return firebase_user.email_verified
+        except FirebaseUser.DoesNotExist:
+            return False
+    return False
+
+
 def login_user(request):
-   if request.method == 'POST':
-       username = request.POST['username']
-       password = request.POST['password']
-       user = authenticate(request,username=username, password=password)
-       if user is not None:
-           login(request, user)
+    if request.method == 'POST':
+        username_or_email = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Check if input is email or username
+        if '@' in username_or_email:
+            # It's an email
+            try:
+                user = User.objects.get(email=username_or_email)
+                username = user.username
+            except User.DoesNotExist:
+                messages.error(request, "No account found with this email")
+                return render(request, 'login.html')
+        else:
+            # It's a username
+            username = username_or_email
+        
+        # Authenticate user
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect('home')  # Redirect to home or dashboard
+        else:
+            messages.error(request, "Invalid credentials")
+            return render(request, 'login.html')
+    
+    # For GET requests
+    return render(request, 'login.html')
+# User login
+# def login_user(request):
+#    if request.method == 'POST':
+#        username = request.POST['username']
+#        password = request.POST['password']
+#        user = authenticate(request,username=username, password=password)
+#        if user is not None:
+#            login(request, user)
            
-           current_user=Customer.objects.get(user__id=request.user.id)
+#            current_user=Customer.objects.get(user__id=request.user.id)
 
-           messages.success(request,('You have been logged in'))
-           return redirect('home')
-       else:
-           messages.success(request,('There was an error,please try again...'))
-           return redirect('login')
-   else:
-        return render(request,'login.html',{})
+#            messages.success(request,('You have been logged in'))
+#            return redirect('home')
+#        else:
+#            messages.success(request,('There was an error,please try again...'))
+#            return redirect('login')
+#    else:
+#         return render(request,'login.html',{})
 
 
 # User logout

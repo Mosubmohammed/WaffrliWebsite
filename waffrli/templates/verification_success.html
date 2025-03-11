@@ -1,0 +1,20 @@
+<!-- templates/verification_success.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>Email Verification Successful</h4>
+                </div>
+                <div class="card-body">
+                    <p>Thank you for verifying your email address. Your account is now fully activated.</p>
+                    <a href="{% url 'home' %}" class="btn btn-primary">Continue to Homepage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

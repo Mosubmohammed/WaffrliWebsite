@@ -1,4 +1,101 @@
-{% comment %} {% extends "base.html" %} {% endcomment %}
+{% comment %} {% extends "base.html" %}   {% endcomment %}
+{% load static %} 
+{% block content %}
+<link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
+
+<div class="container">
+    <div id="registerForm" class="signup-container">
+        <div class="left-side">
+            <h2>Join Our Community!</h2>
+            <p>Create an account to start shopping and enjoy exclusive benefits.</p>
+            <img src="{% static 'images/shopping.jpg' %}" alt="Shopping">
+        </div>
+        
+        <div class="right-side">
+            <div class="form-header">
+                <h3>Create Account</h3>
+                <p>Please fill in your details</p>
+            </div>
+            
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form id="register" class="signup-form" method="POST" action="{% url 'register' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <input type="text" name="first_name" id="first_name" required>
+                        <label for="first_name">First Name</label>
+                    </div>
+                    
+                    <div class="form-group half">
+                        <input type="text" name="last_name" id="last_name" required>
+                        <label for="last_name">Last Name</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="email" name="email" id="email" required>
+                    <label for="email">Email Address</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="tel" name="phone" id="phone" pattern="[0-9]{10}" required>
+                    <label for="phone">Phone Number (10 digits)</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" name="password" id="password" required>
+                    <label for="password">Password</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" name="confirm_password" id="confirm_password" required>
+                    <label for="confirm_password">Confirm Password</label>
+                </div>
+                
+                <div class="form-group">
+                    <select name="gender" id="gender" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                        <option value="O">Other</option>
+                        <option value="N">Prefer not to say</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" name="address" id="address" required>
+                    <label for="address">Address</label>
+                </div>
+                
+                <div class="form-group">
+                    {% comment %} <label for="image" class="file-label">Profile Image (Optional)</label> {% endcomment %}
+                    <input type="file" name="image" id="image" accept="image/*">
+                </div>
+                
+                <button type="submit" class="submit-btn">Create Account</button>
+                
+                <p class="login-link">
+                    Already have an account? <a href="{% url 'login' %}" id="showLogin">Sign in</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="notification-container"></div>
+
+{% endblock %}
+
+{% comment %} {% extends "base.html" %}
 {% load static %}
 {% block content %}
 <link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
@@ -168,4 +265,4 @@
     
     
     </script>
-{% endblock %}
+{% endblock %} {% endcomment %}

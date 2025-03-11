@@ -9,6 +9,7 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('login/', login_user, name='login'),
     path('logout/', logout_user, name='logout'),
+    path('verified/', check_email_verification, name='verification_success'),
     path('restPassword/', restPassword, name='restPassword'),
     path('search/', search, name='search'),
     path('post_deal/', post_deal, name='post_deal'),
