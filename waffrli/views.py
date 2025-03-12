@@ -1,10 +1,7 @@
 from decimal import Decimal, InvalidOperation
-from itertools import count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse
 from django.db.models import Q
 import firebase_admin
@@ -13,8 +10,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.db.models import Count
 import json
-from django.http import JsonResponse
-from django.contrib.auth import login
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
@@ -22,7 +17,6 @@ from firebase_admin import auth as firebase_auth
 
 
 
-# Home view - Display all products
 def home(request):
     products = Product.objects.all()
     return render(request, 'home.html',{'products':products})
@@ -158,67 +152,6 @@ def product(request, pk):
         return redirect('home')
 
 
-
-
-# User registration
-# def register(request):
-#     if request.method == 'POST':
-#         first_name = request.POST.get('first_name', '').strip()
-#         last_name = request.POST.get('last_name', '').strip()
-#         username = request.POST.get('username', '').strip()
-#         email = request.POST.get('email', '').strip()
-#         phone = request.POST.get('phone', '').strip()
-#         password = request.POST.get('password', '')
-#         confirm_password = request.POST.get('confirm_password', '')
-#         address = request.POST.get('address', 'Not Provided')
-#         gender = request.POST.get('gender', 'N')
-#         image = request.FILES.get('image', None)
-        
-#         print("Received image:", image)  # Debugging step
-
-#         # **1. Validate required fields**
-#         if not all([first_name, last_name, username, email, phone, password, confirm_password]):
-#             messages.error(request, "All fields are required.")
-#             return render(request, 'register.html')
-
-#         # **2. Validate passwords**
-#         if password != confirm_password:
-#             messages.error(request, "Passwords do not match.")
-#             return render(request, 'register.html')
-
-#         # **3. Check if username or email already exists**
-#         if User.objects.filter(username=username).exists():
-#             messages.error(request, "Username is already taken.")
-#             return render(request, 'register.html')
-
-#         if User.objects.filter(email=email).exists():
-#             messages.error(request, "Email is already in use.")
-#             return render(request, 'register.html')
-
-#         # **4. Create the User**
-#         user = User.objects.create_user(username=username, email=email, password=password)
-#         user.first_name = first_name
-#         user.last_name = last_name
-#         user.save()
-
-#         # **5. Create the Customer profile**
-#         customer = Customer.objects.create(
-#             user=user,
-#             first_name=first_name,
-#             last_name=last_name,
-#             phone=phone,
-#             email=email,
-#             address=address,
-#             gender=gender,
-#             image=image  # This should now store the image
-#         )
-
-#         # **6. Log the user in**
-#         login(request, user)
-#         messages.success(request, f'Account created for {user.username}!')
-#         return redirect('home')
-
-#     return render(request, 'register.html')
 
 
 def register(request):
@@ -374,27 +307,7 @@ def login_user(request):
     
     # For GET requests
     return render(request, 'login.html')
-# User login
-# def login_user(request):
-#    if request.method == 'POST':
-#        username = request.POST['username']
-#        password = request.POST['password']
-#        user = authenticate(request,username=username, password=password)
-#        if user is not None:
-#            login(request, user)
-           
-#            current_user=Customer.objects.get(user__id=request.user.id)
 
-#            messages.success(request,('You have been logged in'))
-#            return redirect('home')
-#        else:
-#            messages.success(request,('There was an error,please try again...'))
-#            return redirect('login')
-#    else:
-#         return render(request,'login.html',{})
-
-
-# User logout
 def logout_user(request):
     logout(request)
     messages.success(request, 'Logged out successfully!')
@@ -445,14 +358,14 @@ def search(request):
     return render(request, "home.html")
 
 
-# Post a deal (Ensure user is logged in)
+
 def post_deal(request):
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
 
     if request.method == "POST":
-        print("POST request received")  # Debugging output
+
 
         # Fetch image
         pic = request.FILES.get('pic')
