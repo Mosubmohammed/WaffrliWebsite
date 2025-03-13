@@ -1,15 +1,19 @@
+{% comment %} {% extends "base.html" %}   {% endcomment %} 
+{% load static %}  
 
- {% comment %} {% extends "base.html" %}   {% endcomment %}
-{% load static %} 
-{% block content %}
+{% block content %} 
 <link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
+
+<!-- Add Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
 <div class="container">
     <div id="loginForm" class="signup-container">
         <div class="left-side">
             <h2>Welcome Back!</h2>
             <p>Sign in to access your account and continue shopping with us.</p>
-            <img  src="pictures/pic/artem-beliaikin-49mCO5ZRQDk-unsplash.jpg" alt="Shopping">
+            <img src="pictures/pic/artem-beliaikin-49mCO5ZRQDk-unsplash.jpg" alt="Shopping">
         </div>
         
         <div class="right-side">
@@ -17,31 +21,40 @@
                 <h3>Sign In</h3>
                 <p>Enter your credentials to continue</p>
             </div>
-
             
-            <form id="login" class="signIn-form" method="POST" action="{% url 'login' %}">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form id="login" class="signIn-form">
                 {% csrf_token %}
                 <div class="form-group">
-                    <input type="text" name="username" id="username" required>
-                    <label for="username">Email</label>
+                    <input type="email" name="email" id="email" required>
+                    <label for="email">Email</label>
                 </div>
-
+                
                 <div class="form-group">
                     <input type="password" name="password" id="password" required>
                     <label for="password">Password</label>
                 </div>
-
+                
                 <div class="remember-forgot">
                     <label class="remember-label">
-                        <input type="checkbox" name="remember" id="remember" >
+                        <input type="checkbox" name="remember" id="remember">
                         <span class="checkbox-custom"></span>
                         Remember me
                     </label>
-                    <a href="#" class="forgot-link" id="forgotPassword">Forgot Password?</a>
+                    <a href="{% url 'restPassword' %}" class="forgot-link" id="forgotPassword">Forgot Password?</a>
                 </div>
-
+                
                 <button type="submit" class="submit-btn">Sign In</button>
-
+                
                 <p class="login-link">
                     Don't have an account? <a href="{% url 'register'%}" id="showSignup">Sign up</a>
                 </p>
@@ -49,6 +62,59 @@
         </div>
     </div>
 </div>
-<div id="notification-container"></div>
-{%endblock%} 
 
+<div id="notification-container"></div>
+
+<script>
+// Firebase configuration - Replace with your own Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyAnxYMZZowFbUG18K9PGeIrEpkSp6n2HIU",
+    authDomain: "waffrli-30386.firebaseapp.com",
+    databaseURL: "https://waffrli-30386-default-rtdb.firebaseio.com",
+    projectId: "waffrli-30386",
+    storageBucket: "waffrli-30386.firebasestorage.app",
+    messagingSenderId: "942370827762",
+    appId: "1:942370827762:web:45a627c2898b68e1e58f6b",
+    measurementId: "G-35JDJNBD6F"
+  };
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Handle login form submission
+document.getElementById('login').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent default form submission
+
+    // Get CSRF token from form
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Get user input
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Create a form data object
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    // Send request to Django backend
+    fetch("{% url 'firebase_login' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrfToken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            window.location.href = "/"; // Redirect on success
+        }
+    })
+    .catch(error => console.error("Error:", error));
+});
+
+</script>
+{% endblock %}

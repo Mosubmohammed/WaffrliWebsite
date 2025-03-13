@@ -95,7 +95,7 @@
                 <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Account</a>
                 <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
                 {% else %}
-              <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+              <a href="{% url 'firebase_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
               <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
                   {% endif %}
                   <a href="#"><i class="fas fa-cog"></i> Settings</a>

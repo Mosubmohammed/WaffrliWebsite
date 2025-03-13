@@ -196,14 +196,22 @@ def register(request):
             )
             firebase_uid = firebase_user.uid
             
-            # Generate email verification link
-            verification_link = firebase_auth.generate_email_verification_link(
-                email, 
-                action_code_settings=firebase_admin.auth.ActionCodeSettings(
-                    url="http://localhost:8000/verified/",  # Use localhost instead of 127.0.0.1
-                    handle_code_in_app=False
+            # Generate and send verification email - store the link for debugging
+            try:
+                verification_link = firebase_auth.generate_email_verification_link(
+                    email, 
+                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                        url="http://localhost:8000/verified/",
+                        handle_code_in_app=False
+                    )
                 )
-            )
+                # Print link to console for debugging
+                print(f"Verification link generated: {verification_link}")
+            
+            except Exception as email_error:
+                # Log the specific email sending error
+                print(f"Email verification error: {str(email_error)}")
+                messages.warning(request, "Account created but verification email could not be sent. Please contact support.")
             
             # Create Django User
             django_user = User.objects.create_user(
@@ -239,7 +247,6 @@ def register(request):
                 customer.image = image
                 customer.save()
             
-    
             login(request, django_user)
             
             messages.success(request, "Registration successful! Please check your email to verify your account.")
@@ -276,69 +283,121 @@ def verify_email_status(request):
     return False
 
 
-def login_user(request):
-    if request.method == 'POST':
-        username_or_email = request.POST.get('username')
-        password = request.POST.get('password')
+# def login_user(request):
+#     if request.method == 'POST':
+#         username_or_email = request.POST.get('username')
+#         password = request.POST.get('password')
         
-        # Check if input is email or username
-        if '@' in username_or_email:
-            # It's an email
-            try:
-                user = User.objects.get(email=username_or_email)
-                username = user.username
-            except User.DoesNotExist:
-                messages.error(request, "No account found with this email")
-                return render(request, 'login.html')
-        else:
-            # It's a username
-            username = username_or_email
+#         # Check if input is email or username
+#         if '@' in username_or_email:
+#             # It's an email
+#             try:
+#                 user = User.objects.get(email=username_or_email)
+#                 username = user.username
+#             except User.DoesNotExist:
+#                 messages.error(request, "No account found with this email")
+#                 return render(request, 'login.html')
+#         else:
+#             # It's a username
+#             username = username_or_email
         
-        # Authenticate user
-        user = authenticate(request, username=username, password=password)
+#         # Authenticate user
+#         user = authenticate(request, username=username, password=password)
         
-        if user is not None:
-            login(request, user)
-            messages.success(request, "Login successful!")
-            return redirect('home')  # Redirect to home or dashboard
-        else:
-            messages.error(request, "Invalid credentials")
-            return render(request, 'login.html')
+#         if user is not None:
+#             login(request, user)
+#             messages.success(request, "Login successful!")
+#             return redirect('home')  # Redirect to home or dashboard
+#         else:
+#             messages.error(request, "Invalid credentials")
+#             return render(request, 'login.html')
     
-    # For GET requests
-    return render(request, 'login.html')
+#     # For GET requests
+#     return render(request, 'login.html')
 
 def logout_user(request):
     logout(request)
     messages.success(request, 'Logged out successfully!')
     return redirect('home')
 
+
+
 def restPassword(request):
-    return render(request,'restPassword.html',{})
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        if email:
+            try:
+                # Generate password reset link via Firebase
+                reset_link = firebase_auth.generate_password_reset_link(
+                    email,
+                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                        url="http://localhost:8000/password-reset-complete/",
+                        handle_code_in_app=False
+                    )
+                )
+                
+                # Print link for debugging
+                print(f"Password reset link generated: {reset_link}")
+                
+                messages.success(request, "Password reset link has been sent to your email.")
+                return redirect('login')
+                
+            except firebase_auth.UserNotFoundError:
+                # Don't reveal that the user doesn't exist for security reasons
+                messages.success(request, "If an account with that email exists, a password reset link has been sent.")
+                return redirect('login')
+                
+            except Exception as e:
+                print(f"Password reset error: {str(e)}")
+                messages.error(request, "An error occurred. Please try again.")
+        else:
+            messages.error(request, "Please enter your email address.")
+    
+    return render(request, 'restPassword.html')
+
+
+
+
+def password_reset_complete(request):
+    messages.success(request, "Your password has been successfully reset.")
+    return redirect('login')
+
+
+
+
 
 @csrf_exempt
 def firebase_login(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            token = request.headers.get("Authorization").split("Bearer ")[-1]
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=400)
 
-            decoded_token = auth.verify_id_token(token)
-            uid = decoded_token["uid"]
-            email = decoded_token.get("email")
+    try:
+        data = json.loads(request.body)
+        token = request.headers.get("Authorization")
 
-            # Get or create a user in Django
-            user, created = User.objects.get_or_create(username=uid, defaults={"email": email})
+        if not token or not token.startswith("Bearer "):
+            return JsonResponse({"error": "Missing or invalid Authorization token"}, status=400)
 
-            # Log the user in
-            login(request, user)
+        token = token.split("Bearer ")[-1]
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+        email = decoded_token.get("email")
 
-            return JsonResponse({"message": "User authenticated successfully"}, status=200)
+        if not email:
+            return JsonResponse({"error": "Email not found in Firebase token"}, status=400)
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+        # Get or create user in Django
+        user, created = User.objects.get_or_create(username=uid, defaults={"email": email})
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
+        # Log the user in
+        login(request, user)
+
+        return JsonResponse({"message": "User authenticated successfully"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
 # Search functionality
 def search(request):
     if request.method == "POST":

@@ -27,9 +27,6 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural='Categories'
         
-        
-
-
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, default=get_default_user)

@@ -113,7 +113,7 @@
       })
       .then((response) => {
         if (response.status === 401) {
-          window.location.href = "{% url 'login' %}"; // Redirect to login if not authenticated
+          window.location.href = "{% url 'firebase_login' %}"; // Redirect to login if not authenticated
           return;
         }
         return response.json();
