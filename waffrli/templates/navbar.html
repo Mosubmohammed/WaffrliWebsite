@@ -85,23 +85,23 @@
           </button>
 
           <div class="dropdown">
-              <button class="icon-button" title="Account">
-
-                  <i class="fa-solid fa-user-gear"></i>
-                  <span>Account</span>
-              </button>
-              <div class="dropdown-content">
+            <button class="icon-button" title="Account">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Account</span>
+            </button>
+            <div class="dropdown-content">
                 {% if request.user.is_authenticated %}
-                <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Account</a>
-                <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+                    <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Account</a>
+                    <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
                 {% else %}
-              <a href="{% url 'firebase_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-              <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
-                  {% endif %}
-                  <a href="#"><i class="fas fa-cog"></i> Settings</a>
-
-              </div>
-          </div>
+                    <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                    <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
+                    <a href="{% url 'forgot_password' %}"><i class="fas fa-key"></i> Forgot Password</a>
+                    <a href="{% url 'restPassword' %}"><i class="fas fa-key"></i> Rest Password</a>
+                {% endif %}
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+        </div>
       </div>
   </div>
   </div>

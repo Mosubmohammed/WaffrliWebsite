@@ -283,37 +283,53 @@ def verify_email_status(request):
     return False
 
 
-# def login_user(request):
-#     if request.method == 'POST':
-#         username_or_email = request.POST.get('username')
-#         password = request.POST.get('password')
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
         
-#         # Check if input is email or username
-#         if '@' in username_or_email:
-#             # It's an email
-#             try:
-#                 user = User.objects.get(email=username_or_email)
-#                 username = user.username
-#             except User.DoesNotExist:
-#                 messages.error(request, "No account found with this email")
-#                 return render(request, 'login.html')
-#         else:
-#             # It's a username
-#             username = username_or_email
-        
-#         # Authenticate user
-#         user = authenticate(request, username=username, password=password)
-        
-#         if user is not None:
-#             login(request, user)
-#             messages.success(request, "Login successful!")
-#             return redirect('home')  # Redirect to home or dashboard
-#         else:
-#             messages.error(request, "Invalid credentials")
-#             return render(request, 'login.html')
-    
-#     # For GET requests
-#     return render(request, 'login.html')
+        try:
+            # Try Django authentication first - trying email as username
+            user = authenticate(request, username=email, password=password)
+            
+            # If that fails, try finding the user by email and then authenticate with their username
+            if user is None:
+                try:
+                    django_user = User.objects.get(email=email)
+                    user = authenticate(request, username=django_user.username, password=password)
+                except User.DoesNotExist:
+                    user = None
+                    
+            if user is not None:
+                # User authenticated successfully with Django
+                login(request, user)
+                
+                # Check if user has a Firebase profile
+                firebase_profile = FirebaseUser.objects.filter(user=user).first()
+                if firebase_profile:
+                    try:
+                        # Verify the user exists in Firebase
+                        firebase_auth.get_user(firebase_profile.firebase_uid)
+                    except Exception as firebase_error:
+                        # Firebase verification failed, but still allow Django login
+                        print(f"Firebase verification error: {str(firebase_error)}")
+                        messages.warning(request, "Logged in successfully, but there may be an issue with your account. Some features may be limited.")
+                        return redirect('home')
+                
+                # All good
+                messages.success(request, "Login successful!")
+                return redirect('home')
+            else:
+                # Authentication failed
+                messages.error(request, "Invalid email or password.")
+                return render(request, 'login.html')
+                
+        except Exception as e:
+            messages.error(request, f"Login error: {str(e)}")
+            return render(request, 'login.html')
+            
+    # For GET requests
+    return render(request, 'login.html')
 
 def logout_user(request):
     logout(request)
@@ -323,80 +339,110 @@ def logout_user(request):
 
 
 def restPassword(request):
+    """Handle password reset completion and sync with Firebase"""
+    # This would be called after a user completes the Django password reset process
+    
     if request.method == 'POST':
         email = request.POST.get('email')
+        new_password = request.POST.get('new_password')
         
-        if email:
+        if not email or not new_password:
+            messages.error(request, "Email and new password are required.")
+            return render(request, 'restPassword.html')
+            
+        try:
+            # Update Django user password
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            
+            # Update Firebase user password
             try:
-                # Generate password reset link via Firebase
-                reset_link = firebase_auth.generate_password_reset_link(
-                    email,
-                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
-                        url="http://localhost:8000/password-reset-complete/",
-                        handle_code_in_app=False
-                    )
+                firebase_user = FirebaseUser.objects.get(user=user)
+                firebase_auth.update_user(
+                    firebase_user.firebase_uid,
+                    password=new_password
                 )
+                messages.success(request, "Password reset successfully! You can now log in with your new password.")
+            except FirebaseUser.DoesNotExist:
+                messages.warning(request, "Password reset successful in our system, but not synchronized with authentication provider.")
+            except Exception as firebase_e:
+                messages.warning(request, "Password reset successful in our system, but not synchronized with authentication provider.")
+                print(f"Firebase password update error: {str(firebase_e)}")
                 
-                # Print link for debugging
-                print(f"Password reset link generated: {reset_link}")
-                
-                messages.success(request, "Password reset link has been sent to your email.")
-                return redirect('login')
-                
-            except firebase_auth.UserNotFoundError:
-                # Don't reveal that the user doesn't exist for security reasons
-                messages.success(request, "If an account with that email exists, a password reset link has been sent.")
-                return redirect('login')
-                
-            except Exception as e:
-                print(f"Password reset error: {str(e)}")
-                messages.error(request, "An error occurred. Please try again.")
-        else:
-            messages.error(request, "Please enter your email address.")
-    
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return render(request, 'restPassword.html')
+        except Exception as e:
+            messages.error(request, f"Password reset error: {str(e)}")
+            return render(request, 'restPassword.html')
+            
+    # For GET requests
     return render(request, 'restPassword.html')
 
 
+def forgot_password(request):
+    """Handle forgot password requests"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        if not email:
+            messages.error(request, "Email is required.")
+            return render(request, 'forgot_password.html')
+            
+        try:
+            # Check if user exists in Django
+            user_exists = User.objects.filter(email=email).exists()
+            
+            if not user_exists:
+                # Don't reveal if user exists or not for security
+                messages.success(request, "If your email exists in our system, you will receive a password reset link.")
+                return render(request, 'forgot_password.html')
+                
+            # Send password reset email via Firebase
+            try:
+                reset_link = firebase_auth.generate_password_reset_link(
+                    email, 
+                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                        url="http://localhost:8000/password_reset_callback/",
+                        handle_code_in_app=False
+                    )
+                )
+                # Here you would actually send the email with the reset_link
+                # For debugging, just print it
+                print(f"Password reset link: {reset_link}")
+                messages.success(request, "Password reset link has been sent to your email.")
+            except Exception as firebase_e:
+                # Fallback to Django's password reset if Firebase fails
+                print(f"Firebase password reset error: {str(firebase_e)}")
+                # Implement Django's built-in password reset here
+                # Or redirect to Django's password reset view
+                messages.warning(request, "Please use our standard password reset process.")
+                return redirect('password_reset')  # Django's built-in view
+                
+            return redirect('login')
+            
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            return render(request, 'forgot_password.html')
+            
+    # For GET requests
+    return render(request, 'forgot_password.html')
 
 
-def password_reset_complete(request):
-    messages.success(request, "Your password has been successfully reset.")
+def password_reset_callback(request):
+    """Callback endpoint after Firebase password reset"""
+    # Extract the new Firebase password and user info from the callback
+    # This is where you'd sync the Django user's password with Firebase
+    
+    # For now, just inform the user
+    messages.success(request, "Your password has been reset successfully. You can now log in with your new password.")
     return redirect('login')
 
 
 
-
-
-@csrf_exempt
-def firebase_login(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=400)
-
-    try:
-        data = json.loads(request.body)
-        token = request.headers.get("Authorization")
-
-        if not token or not token.startswith("Bearer "):
-            return JsonResponse({"error": "Missing or invalid Authorization token"}, status=400)
-
-        token = token.split("Bearer ")[-1]
-        decoded_token = auth.verify_id_token(token)
-        uid = decoded_token["uid"]
-        email = decoded_token.get("email")
-
-        if not email:
-            return JsonResponse({"error": "Email not found in Firebase token"}, status=400)
-
-        # Get or create user in Django
-        user, created = User.objects.get_or_create(username=uid, defaults={"email": email})
-
-        # Log the user in
-        login(request, user)
-
-        return JsonResponse({"message": "User authenticated successfully"}, status=200)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
 
 # Search functionality
 def search(request):
