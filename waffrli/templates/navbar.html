@@ -91,15 +91,19 @@
             </button>
             <div class="dropdown-content">
                 {% if request.user.is_authenticated %}
-                    <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Account</a>
-                    <a href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+                    <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Profile</a>
+                    
+                    
+                    <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
+                    <a class="nav-link" href="{% url 'saved_items' %}"><i class="far fa-bookmark"></i> Saved Items</a>
+                    <a href="{% url 'logout' %}" style="color:red"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
                 {% else %}
                     <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
                     <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
-                    <a href="{% url 'forgot_password' %}"><i class="fas fa-key"></i> Forgot Password</a>
-                    <a href="{% url 'restPassword' %}"><i class="fas fa-key"></i> Rest Password</a>
+                    {% comment %} <a href="{% url 'forgot_password' %}"><i class="fas fa-key"></i> Forgot Password</a> {% endcomment %}
+
                 {% endif %}
-                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                
             </div>
         </div>
       </div>

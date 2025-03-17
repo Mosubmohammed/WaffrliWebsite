@@ -1,0 +1,259 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<link href="{% static 'css/style.css' %}" rel="stylesheet" />
+
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="saved-items-title">My Saved Items</h1>
+      <div class="saved-items-count">
+        {% if saved_count == 1 %} 1 item saved {% else %} {{ saved_count }}
+        items saved {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if saved_products %}
+  <div class="products-grid saved-items-grid">
+    {% for product in saved_products %}
+    <div class="product-item-wrapper" data-product-id="{{ product.id }}">
+      <a href="{% url 'product' product.id %}" class="product-link">
+        <div class="product-card">
+          <div class="card-header">
+            <div class="user-info">
+              {% if product.customer_pic_id and product.customer_pic_id.image %}
+              <img
+                style="width: 20px; height: 24px"
+                src="{{ product.customer_pic_id.image.url }}"
+                alt="User Icon"
+                class="profile-pic"
+                width="30"
+                height="30"
+              />
+              {% else %}
+              <img
+                style="width: 20px; height: 24px"
+                src="{% static 'images/default-profile.png' %}"
+                alt="Default User"
+                class="profile-pic"
+                width="30"
+                height="30"
+              />
+              {% endif %}
+              <div class="user-details">
+                <span class="username"
+                  >Found by <strong>@{{ product.user.username }}</strong></span
+                >
+                <span class="deal-time"
+                  >{{ product.create_at|date:"d-m" }}</span
+                >
+              </div>
+            </div>
+            {% comment %} <div class="sale-tag"> {% endcomment %}
+              {% comment %} {% if product.Price and product.sale_price %} {% endcomment %}
+               {% comment %} {% with
+              discount=product.Price|sub:product.sale_price|div:product.Price|mul:100
+              %} -{{ discount|floatformat:0 }}% {% endwith %}  {% endcomment %}
+              {% comment %} {% endif %} {% endcomment %}
+            {% comment %} </div> {% endcomment %}
+            <!-- Add remove button on top of the card -->
+            <button
+              class="remove-saved-item"
+              data-product-id="{{ product.id }}"
+              title="Remove from saved items"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+
+          <img src="{{ product.image.url }}" alt="{{ product.Name }}" />
+
+          <div class="product-info">
+            <h3>{{ product.Name }}</h3>
+            <p class="description">{{ product.Description }}</p>
+
+            <div class="price-container">
+              <span class="current-price">${{ product.sale_price }}</span>
+              <span class="original-price">${{ product.Price }}</span>
+            </div>
+
+            <!-- Optional: Add store information -->
+            <div class="store-info">
+              <span>Store: <strong>{{ product.store }}</strong></span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="like-btn" data-product-id="{{ product.id }}">
+              <i
+                class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
+              ></i>
+              <span class="like-count">{{ product.likes.count }}</span>
+            </button>
+            <button class="comment-btn">
+              <i class="far fa-comment"></i>
+               {{ comment_count}} 
+            </button>
+
+
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="row mt-5">
+    <div class="col-12 text-center empty-saved-items">
+      <div class="empty-icon">
+        <i class="far fa-bookmark"></i>
+      </div>
+      <h3>You haven't saved any items yet</h3>
+      <p>Items you save will appear here for easy access.</p>
+      <a href="{% url 'home' %}" class="btn btn-primary mt-3">Browse Deals</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Handle remove saved item button clicks
+      const removeButtons = document.querySelectorAll('.remove-saved-item');
+      removeButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+              // Prevent navigation to product page when clicking the remove button
+              e.preventDefault();
+              e.stopPropagation();
+
+              const productId = this.getAttribute('data-product-id');
+              const productWrapper = this.closest('.product-item-wrapper');
+
+              // Send AJAX request to toggle save
+              fetch(`/product/${productId}/toggle-save/`, {
+                  method: 'POST',
+                  headers: {
+                      'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRFToken': '{{ csrf_token }}'
+                  }
+              })
+              .then(response => response.json())
+              .then(data => {
+                  // Remove the card with animation
+                  productWrapper.style.opacity = '0';
+                  productWrapper.style.transform = 'scale(0.8)';
+
+                  setTimeout(() => {
+                      productWrapper.remove();
+
+                      // Update saved count
+                      const savedCountElement = document.querySelector('.saved-items-count');
+                      const currentCount = {{ saved_count }} - 1;
+
+                      if (currentCount === 1) {
+                          savedCountElement.textContent = '1 item saved';
+                      } else {
+                          savedCountElement.textContent = `${currentCount} items saved`;
+                      }
+
+                      // Show empty state if no items left
+                      if (currentCount === 0) {
+                          const productsGrid = document.querySelector('.products-grid');
+                          if (productsGrid) {
+                              productsGrid.remove();
+
+                              const container = document.querySelector('.container');
+                              const emptyState = document.createElement('div');
+                              emptyState.innerHTML = `
+                                  <div class="row mt-5">
+                                      <div class="col-12 text-center empty-saved-items">
+                                          <div class="empty-icon">
+                                              <i class="far fa-bookmark"></i>
+                                          </div>
+                                          <h3>You haven't saved any items yet</h3>
+                                          <p>Items you save will appear here for easy access.</p>
+                                          <a href="{% url 'home' %}" class="btn btn-primary mt-3">Browse Deals</a>
+                                      </div>
+                                  </div>
+                              `;
+                              container.appendChild(emptyState.firstElementChild);
+                          }
+                      }
+
+                      // Show notification
+                      showNotification('Item removed from saved items', 'info');
+                  }, 300);
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+                  showNotification('Error removing item', 'error');
+              });
+          });
+      });
+
+      // Function to show notification
+      function showNotification(message, type) {
+          // Create notification element
+          const notification = document.createElement('div');
+          notification.className = `notification notification-${type}`;
+
+          // Add icon based on notification type
+          let iconHTML = '';
+          if (type === 'success') {
+            iconHTML = '<i class="fas fa-check-circle"></i>';
+          } else if (type === 'error') {
+            iconHTML = '<i class="fas fa-exclamation-circle"></i>';
+          } else if (type === 'info') {
+            iconHTML = '<i class="fas fa-info-circle"></i>';
+          }
+
+          // Create message span
+          const messageSpan = document.createElement('span');
+          messageSpan.textContent = message;
+
+          // Create close button
+          const closeButton = document.createElement('button');
+          closeButton.className = 'notification-close';
+          closeButton.innerHTML = '<i class="fas fa-times"></i>';
+
+          // Append all elements to notification
+          if (iconHTML) {
+            const iconContainer = document.createElement('div');
+            iconContainer.innerHTML = iconHTML;
+            const icon = iconContainer.firstChild;
+            notification.appendChild(icon);
+          }
+          notification.appendChild(messageSpan);
+          notification.appendChild(closeButton);
+
+          // Add to DOM
+          document.body.appendChild(notification);
+
+          // Animate in
+          setTimeout(() => {
+            notification.classList.add('show');
+          }, 10);
+
+          // Set auto remove timer
+          const removeTimeout = setTimeout(() => {
+            removeNotification(notification);
+          }, 3000);
+
+          // Add close button functionality
+          closeButton.addEventListener('click', () => {
+            clearTimeout(removeTimeout);
+            removeNotification(notification);
+          });
+      }
+
+      // Function to remove notification
+      function removeNotification(notification) {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+      }
+  });
+</script>
+{% endblock %}

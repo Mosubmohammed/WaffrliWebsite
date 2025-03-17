@@ -6,7 +6,7 @@
     <!-- Product Grid -->
     <div class="products-grid">
       {% for product in products %}
-      <a href="{% url 'product' product.id %}" class="product-link">
+      <div class="product-card-wrapper">
         <div class="product-card">
           <div class="card-header">
             <div class="user-info">
@@ -37,31 +37,37 @@
             <div class="sale-tag">-70%</div>
           </div>
     
-          <img src="{{ product.image.url }}" alt="Product" />
+          <!-- Product image with link -->
+          <a href="{% url 'product' product.id %}" class="product-image-link">
+            <img src="{{ product.image.url }}" alt="Product" />
+          </a>
     
-          <div class="product-info">
-            <h3>{{ product.Name }}</h3>
-            <p class="description">{{ product.Description }}</p>
+          <!-- Product info with link -->
+          <a href="{% url 'product' product.id %}" class="product-info-link">
+            <div class="product-info">
+              <h3>{{ product.Name }}</h3>
+              <p class="description">{{ product.Description }}</p>
     
-            <div class="price-container">
-              <span class="current-price">${{ product.sale_price }}</span>
-              <span class="original-price">${{ product.Price }}</span>
+              <div class="price-container">
+                <span class="current-price">${{ product.sale_price }}</span>
+                <span class="original-price">${{ product.Price }}</span>
+              </div>
             </div>
-          </div>
+          </a>
     
           <div class="card-footer">
             <button class="like-btn" data-product-id="{{ product.id }}">
-              <i
+              <i 
                 class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
               ></i>
               <span class="like-count">{{ product.likes.count }}</span>
             </button>
-            <button class="comment-btn">
-              <i class="far fa-comment"></i> {{ c }}
-            </button>
+            <a href="{% url 'product' product.id %}#comment-section" class="comment-btn">
+              <i class="far fa-comment"></i> {{ product.comments.count }}
+            </a>
           </div>
         </div>
-      </a>
+      </div>
       {% endfor %}
     </div>
     
@@ -105,7 +111,7 @@
       let likeIcon = this.querySelector("i");
       let likeCount = this.querySelector(".like-count");
 
-      fetch(/like/${productId}/, {
+      fetch(`/like/${productId}/`, {
         method: "POST",
         headers: {
           "X-CSRFToken": "{{ csrf_token }}",

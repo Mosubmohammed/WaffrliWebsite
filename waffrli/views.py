@@ -13,8 +13,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
-
-
+from .forms import UserUpdateForm, ProfileUpdateForm
 
 
 def home(request):
@@ -121,17 +120,17 @@ def product(request, pk):
     try:
         # Get the product
         product = get_object_or_404(Product, id=pk)
-
+        
         # Increment views
         product.increment_views()
-
+        
         # Handle POST request for comment submission
         if request.method == 'POST':
             comment_text = request.POST.get('comment')
-            if comment_text:
+            if comment_text and request.user.is_authenticated:
                 # Get the current logged-in user's customer
                 customer = Customer.objects.get(user=request.user)
-
+                
                 # Create and save the comment
                 Comment.objects.create(
                     product=product,
@@ -140,13 +139,20 @@ def product(request, pk):
                 )
                 messages.success(request, 'Your comment has been posted successfully!')
             else:
-                messages.warning(request, 'Please write a comment.')
-
+                messages.warning(request, 'Please write a comment or log in to comment.')
+        
         # Retrieve all comments for this product
         comments = product.comments.all()
-
-        return render(request, 'product.html', {'product': product, 'comments': comments})
-
+        
+        # Create context with all necessary data
+        context = {
+            'product': product,
+            'comments': comments,
+            'user': request.user,  # Ensure user is in context
+        }
+        
+        return render(request, 'product.html', context)
+    
     except Product.DoesNotExist:
         messages.error(request, 'That product does not exist.')
         return redirect('home')
@@ -637,3 +643,89 @@ def unfollow(request, user_id):
     return redirect('user_profile', user_id=user_id)
 
 
+def settings(request):
+    return render(request, "settings.html", {})
+
+
+    
+@login_required
+def update_info(request):
+    try:
+        # Get the customer profile associated with the user
+        customer = Customer.objects.get(user=request.user)
+        
+        if request.method == 'POST':
+            user_form = UserUpdateForm(request.POST, instance=request.user)
+            profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.customer)
+            
+            if user_form.is_valid() and profile_form.is_valid():
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Your profile has been updated successfully!')
+                return redirect('update_info')
+        else:
+            user_form = UserUpdateForm(instance=request.user)
+            profile_form = ProfileUpdateForm(instance=customer)
+        
+        context = {
+            'user_form': user_form,
+            'profile_form': profile_form,
+        }
+        
+        return render(request, 'update_info.html', context)
+    
+    except Customer.DoesNotExist:
+        # Handle the case where a Customer doesn't exist for this user
+        messages.error(request, 'Customer profile not found. Please contact support.')
+        return redirect('settings')
+
+@login_required
+def toggle_save_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    customer = get_object_or_404(Customer, user=request.user)
+    
+    if product in customer.saved_products.all():
+        # User has already saved this product, so remove it
+        customer.saved_products.remove(product)
+        is_saved = False
+    else:
+        # User hasn't saved this product, so save it
+        customer.saved_products.add(product)
+        is_saved = True
+    
+    # For AJAX requests
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'is_saved': is_saved,
+            'saved_count': product.saved_by_customers.count()
+        })
+    
+    # For regular requests
+    return redirect('product', product_id=product_id)
+
+
+
+
+@login_required
+def saved_items(request):
+    try:
+        # Get the customer associated with the current user
+        customer = Customer.objects.get(user=request.user)
+        
+        # Get all products saved by this customer
+        saved_products = customer.saved_products.all().order_by('-id')
+        
+        context = {
+            'saved_products': saved_products,
+            'saved_count': saved_products.count(),
+        }
+        
+        return render(request, 'saved_items.html', context)
+    
+    except Customer.DoesNotExist:
+        # Handle case where customer doesn't exist
+        context = {
+            'saved_products': [],
+            'saved_count': 0,
+        }
+        return render(request, 'saved_items.html', context)

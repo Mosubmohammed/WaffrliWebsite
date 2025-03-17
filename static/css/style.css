@@ -266,7 +266,7 @@ a {
 }
 
 a {
-  color: whitesmoke;
+  color: black;
   text-decoration: none;
   font-size: larger;
   font-weight: 700;
@@ -647,14 +647,6 @@ a:hover {
 }
 
 .products-grid {
-  /*padding: 6rem 0rem 2rem 3rem;
-    padding-right:4rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 1.5rem;
-    margin-right: 2rem;
-    margin-right: 5rem;
-*/
   flex: 70%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -662,16 +654,16 @@ a:hover {
 }
 
 .product-card {
-  background-color: #fff;
-  border-radius: 8px;
+  background-color: white;
+  border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  width: 12rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .product-card img {
@@ -718,9 +710,20 @@ a:hover {
 .comment-btn {
   background: none;
   border: none;
+  color: #666;
   cursor: pointer;
-  font-size: 16px;
-  color: #555;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.comment-btn i {
+  margin-right: 4px;
+}
+
+.comment-btn:hover {
+  color: #333;
 }
 
 .add-to-cart {

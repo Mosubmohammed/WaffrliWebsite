@@ -20,5 +20,9 @@ urlpatterns = [
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path('wishlist/', wishlist, name='wishlist'),
     path('like/<int:product_id>/', like_product, name='like_product'),
+    path('settings/', settings, name='settings'),
+    path('settings/update_info/', update_info, name='update_info'),
+    path('product/<int:product_id>/toggle-save/', toggle_save_product, name='toggle_save_product'),
+    path('saved-items/', saved_items, name='saved_items'),
 
 ]

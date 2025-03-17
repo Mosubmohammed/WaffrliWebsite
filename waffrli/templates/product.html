@@ -1,71 +1,6 @@
 {% extends "base.html" %} {% load static %} {% block content %}
 <link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
 
-{% comment %}
-<div class="container">
-  <br /><br /><br /><br />
-
-  <div class="card mb-3">
-    <div class="row g-0">
-      <div class="col-md-4">
-        <img
-          src="{{ product.image.url }}"
-          class="img-fluid rounded-start"
-          alt="Product Image"
-        />
-      </div>
-      <div class="col-md-8">
-        <div class="card-body">
-          <center>
-            <h5 class="card-title">{{ product.Name }}</h5>
-            <p class="card-text">{{ product.Description }}</p>
-            <div class="d-flex justify-content-center small text-warning mb-2">
-              <!-- Bootstrap stars (ensure Bootstrap Icons or FontAwesome is included) -->
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-            </div>
-
-            <!-- Product price-->
-            <span class="text-muted text-decoration-line-through"
-              >{{ product.Price }}</span
-            >
-            {{ product.sale_price }}
-
-            <br />
-            <span class="text-muted">Views: {{ product.views }}</span>
-            <!-- Corrected views reference -->
-          </center>
-
-          <center>
-            <a class="btn btn-secondary" href="{% url 'home' %}">Home</a>
-            <a
-              class="btn btn-secondary"
-              href="{% url 'user_profile' product.user.id %}"
-            >
-              View Seller Profile
-            </a>
-            <a
-              class="btn btn-secondary"
-              href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Go to Deal
-            </a>
-          </center>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <br /><br /><br /><br /><br /><br />
-</div>
-
-{% endcomment %}
-
 <div class="container">
   <div class="content-wrapper">
     <main class="main">
@@ -104,32 +39,25 @@
             >
             Get Deal at {{product.store}}
             </a>
-            <div class="vote-buttons">
-              {% comment %} <button class="btn btn-vote">
-                <i class="fa-solid fa-thumbs-up"></i>
-              </button>
-              <button class="btn btn-vote">
-                <i class="fa-solid fa-thumbs-down"></i>
-              </button> {% endcomment %}
 
-              <button class="like-btn" data-product-id="{{ product.id }}">
-                <i
-                  class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
-                ></i>
-                <span class="like-count">{{ product.likes.count }}</span>
-              </button>
+          <div class="vote-buttons">
+            <button class="like-btn" data-product-id="{{ product.id }}">
+              <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+              <span class="like-count">{{ product.likes.count }}</span>
+            </button>
 
-              <div>
-                <a href="#comment-section">
-                  <span class="comments"
-                    ><i class="fa-regular fa-comment"></i> 166 Comments</span
-                  >
-                </a>
-                <span class="views"
-                  ><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span
-                >
-              </div>
+
+            <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+              <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+            </button>
+
+            <div>
+              <a href="#comment-section">
+                <span class="comments"><i class="fa-regular fa-comment"></i> 166 Comments</span>
+              </a>
+              <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -309,5 +237,95 @@
   </div>
 </div>
 
-
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle save button clicks
+    const saveButtons = document.querySelectorAll('.save-btn');
+    saveButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-product-id');
+        
+        // Send AJAX request
+        fetch(`/product/${productId}/toggle-save/`, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Update icon based on response
+          const icon = this.querySelector('i');
+          
+          if (data.is_saved) {
+            icon.className = 'fas fa-bookmark';
+            this.setAttribute('title', 'Unsave this item');
+            showNotification('Product saved successfully!', 'success');
+          } else {
+            icon.className = 'far fa-bookmark';
+            this.setAttribute('title', 'Save this item');
+            showNotification('Product removed from saved items', 'info');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Something went wrong. Please try again.', 'error');
+        });
+      });
+    });
+    
+    // Function to show notification
+    function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      
+      // Add icon based on notification type
+      let icon = '';
+      if (type === 'success') {
+        icon = '<i class="fas fa-check-circle"></i>';
+      } else if (type === 'error') {
+        icon = '<i class="fas fa-exclamation-circle"></i>';
+      } else if (type === 'info') {
+        icon = '<i class="fas fa-info-circle"></i>';
+      }
+      
+      // Set notification content
+      notification.innerHTML = `
+        ${icon}
+        <span>${message}</span>
+        <button class="notification-close"><i class="fas fa-times"></i></button>
+      `;
+      
+      // Add to DOM
+      document.body.appendChild(notification);
+      
+      // Animate in
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 10);
+      
+      // Set auto remove timer
+      const removeTimeout = setTimeout(() => {
+        removeNotification(notification);
+      }, 3000);
+      
+      // Add close button functionality
+      const closeButton = notification.querySelector('.notification-close');
+      closeButton.addEventListener('click', () => {
+        clearTimeout(removeTimeout);
+        removeNotification(notification);
+      });
+    }
+    
+    // Function to remove notification
+    function removeNotification(notification) {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+      }, 300); // Match this with CSS transition time
+    }
+  });
+</script>
 {% endblock %}

@@ -29,7 +29,7 @@ class Category(models.Model):
         
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, default=get_default_user)
+    user = models.OneToOneField(User, related_name='customer', on_delete=models.CASCADE, default=get_default_user)
     view_count = models.IntegerField(default=0)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -44,6 +44,7 @@ class Customer(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='uploads/product', null=True, blank=True)
     likes=models.ManyToManyField(User, related_name="Customer_like",blank=True)
+    saved_products = models.ManyToManyField('Product', related_name="saved_by_customers", blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
