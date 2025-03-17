@@ -729,3 +729,63 @@ def saved_items(request):
             'saved_count': 0,
         }
         return render(request, 'saved_items.html', context)
+    
+    
+    
+def inbox(request):
+    inbox_messages = Message.objects.filter(recipient=request.user).order_by('-date_sent')
+    
+    context = {
+        'user': request.user,
+        'total_messages': Message.objects.filter(recipient=request.user).count() + Message.objects.filter(sender=request.user).count(),
+        'inbox_count': Message.objects.filter(recipient=request.user).count(),
+        'sent_count': Message.objects.filter(sender=request.user).count(),
+        'messages': inbox_messages,
+        'active_tab': 'inbox'
+    }
+    
+    return render(request, 'inbox.html', context)
+@login_required
+def send_message(request):
+    if request.method == 'POST':
+        recipient_username = request.POST.get('recipient')
+        subject = request.POST.get('subject')
+        body = request.POST.get('body')
+        
+        # Validate inputs
+        if not recipient_username or not subject or not body:
+            messages.error(request, 'Please fill in all fields.')
+            return render(request, 'send_message.html', {
+                'recipient': recipient_username,
+                'subject': subject,
+                'body': body,
+            })
+            
+        # Find recipient user
+        try:
+            recipient = User.objects.get(username=recipient_username)
+        except User.DoesNotExist:
+            messages.error(request, f'User "{recipient_username}" does not exist.')
+            return render(request, 'send_message.html', {
+                'recipient': recipient_username,
+                'subject': subject,
+                'body': body,
+            })
+        
+        # Create and save message
+        new_message = Message(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject,
+            content=body
+        )
+        new_message.save()
+        
+        messages.success(request, 'Message sent successfully!')
+        return redirect('inbox')
+    
+    # For GET requests, just show the form
+    return render(request, 'send_message.html', {
+        'inbox_count': Message.objects.filter(recipient=request.user).count(),
+        'sent_count': Message.objects.filter(sender=request.user).count(),
+    })

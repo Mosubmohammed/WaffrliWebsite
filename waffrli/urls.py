@@ -24,5 +24,7 @@ urlpatterns = [
     path('settings/update_info/', update_info, name='update_info'),
     path('product/<int:product_id>/toggle-save/', toggle_save_product, name='toggle_save_product'),
     path('saved-items/', saved_items, name='saved_items'),
+    path('inbox/', inbox, name='inbox'),
+    path('send_message/', send_message, name='send_message'),
 
 ]
