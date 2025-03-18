@@ -96,7 +96,9 @@
                     
                     <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
                     <a class="nav-link" href="{% url 'saved_items' %}"><i class="far fa-bookmark"></i> Saved Items</a>
+                    <a href="{% url 'inbox' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Inbox</a>
                     <a href="{% url 'logout' %}" style="color:red"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+
                 {% else %}
                     <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
                     <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>

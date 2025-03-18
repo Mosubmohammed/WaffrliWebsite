@@ -169,7 +169,7 @@
         >
           <i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})
         </a>
-        <a href="" class="sidebar-subitem">
+        <a href="{% url 'sent_items' %}" class="sidebar-subitem">
           <i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})
         </a>
       </div>
@@ -200,8 +200,8 @@
                 <tr{% if not message.is_read %} class="unread"{% endif %}>
                     <td><input type="checkbox" name="message_id" value="{{ message.id }}"></td>
                     <td>{{ message.sender.username }}</td>
-                    {% comment %} <td><a href="{% url 'view_message' message.id %}">{{ message.subject }}</a></td> {% endcomment %}
-                    {{ message.subject }}
+                    <td><a href="{% url 'view_message' message.id %}">{{ message.subject }}</a></td> 
+                    
                     <td>{{ message.date_sent|date:"M d, Y" }}</td>
                 </tr>
                 {% endfor %}

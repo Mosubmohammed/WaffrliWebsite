@@ -113,6 +113,9 @@ class Message(models.Model):
     content = models.TextField()
     date_sent = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    is_reply = models.BooleanField(default=False)
+    parent_message = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies')
+
     
     def __str__(self):
         return f"{self.subject} - From: {self.sender} To: {self.recipient}"

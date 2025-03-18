@@ -789,3 +789,107 @@ def send_message(request):
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
     })
+
+
+@login_required
+def view_message(request, message_id):
+    try:
+        message = Message.objects.get(id=message_id, recipient=request.user)
+    except Message.DoesNotExist:
+        messages.error(request, 'Message not found.')
+        return redirect('inbox')
+    
+    context = {
+        'message': message,
+        'inbox_count': Message.objects.filter(recipient=request.user).count(),
+        'sent_count': Message.objects.filter(sender=request.user).count(),
+        'active_tab': 'inbox'
+    }
+    
+    return render(request, 'view_message.html', context)
+
+@login_required
+def reply_message(request, message_id):
+    try:
+        original_message = Message.objects.get(id=message_id, recipient=request.user)
+    except Message.DoesNotExist:
+        messages.error(request, 'Message not found.')
+        return redirect('inbox')
+    
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        
+        if not content:
+            messages.error(request, 'Reply cannot be empty.')
+            return redirect('view_message', message_id=message_id)
+        
+        # Create a subject with Re: prefix if not already there
+        if original_message.subject.startswith('Re:'):
+            subject = original_message.subject
+        else:
+            subject = f'Re: {original_message.subject}'
+        
+        # Create and save reply
+        reply = Message(
+            sender=request.user,
+            recipient=original_message.sender,  # Reply to the original sender
+            subject=subject,
+            content=content,
+            is_reply=True,
+            parent_message=original_message
+        )
+        reply.save()
+        
+        messages.success(request, 'Reply sent successfully.')
+        return redirect('inbox')
+    
+    # For GET requests, redirect to view_message
+    return redirect('view_message', message_id=message_id)
+
+
+@login_required
+def sent_items(request):
+    sent_messages = Message.objects.filter(sender=request.user).order_by('-date_sent')
+    
+    context = {
+        'user': request.user,
+        'total_messages': Message.objects.filter(recipient=request.user).count() + Message.objects.filter(sender=request.user).count(),
+        'inbox_count': Message.objects.filter(recipient=request.user).count(),
+        'sent_count': Message.objects.filter(sender=request.user).count(),
+        'messages': sent_messages,
+        'active_tab': 'sent'
+    }
+    
+    return render(request, 'sent_items.html', context)
+
+
+def delete_messages(request):
+    if request.method == 'POST':
+        message_ids = request.POST.getlist('message_ids')
+        folder = request.POST.get('folder', 'inbox')
+        
+        if message_ids:
+            if folder == 'inbox':
+                # Only delete inbox messages that belong to this user
+                messages_to_delete = Message.objects.filter(
+                    id__in=message_ids,
+                    recipient=request.user
+                )
+            else:  # sent folder
+                # Only delete sent messages that belong to this user
+                messages_to_delete = Message.objects.filter(
+                    id__in=message_ids,
+                    sender=request.user
+                )
+                
+            deleted_count = messages_to_delete.delete()[0]
+            messages.success(request, f'{deleted_count} message(s) deleted successfully.')
+        
+        if folder == 'sent':
+            return redirect('sent_items')
+        else:
+            return redirect('inbox')
+            
+    return redirect('inbox')
+
+
