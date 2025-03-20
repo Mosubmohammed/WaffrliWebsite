@@ -1,178 +1,131 @@
-<!-- base.html -->
+{% extends "base.html" %} 
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Messaging System{% endblock %}</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f5f5f5;
-      }
 
-      .header {
-        background-color: #f5f5f5;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #ddd;
-      }
+{% block title %}Messaging System{% endblock %}
 
-      .user-info {
-        display: flex;
-        align-items: center;
-      }
-
-      .user-avatar {
-        width: 50px;
-        height: 50px;
-        background-color: #ddd;
-        border-radius: 50%;
-        margin-right: 10px;
-      }
-
-      .username {
-        font-weight: bold;
-        font-size: 18px;
-        color: #333;
-      }
-
-      .nav-items {
-        display: flex;
-        gap: 20px;
-      }
-
-      .nav-item {
-        display: flex;
-        align-items: center;
-        color: #666;
-        text-decoration: none;
-        padding: 10px 0;
-      }
-
-      .nav-item i {
-        margin-right: 5px;
-      }
-
-      .nav-item.active {
-        color: #0078d7;
-        border-bottom: 2px solid #0078d7;
-      }
-
-      .container {
-        display: flex;
-        min-height: calc(100vh - 70px);
-      }
-
-      .sidebar {
-        width: 250px;
-        background-color: #fff;
-        border-right: 1px solid #ddd;
-        padding: 20px;
-      }
-
-      .sidebar-item {
-        padding: 10px 0;
-        color: #666;
-        text-decoration: none;
-        display: block;
-      }
-
-      .sidebar-item.active {
-        color: #0078d7;
-      }
-
-      .sidebar-subitem {
-        padding: 10px 20px;
-        color: #666;
-        text-decoration: none;
-        display: block;
-      }
-
-      .sidebar-subitem i {
-        margin-right: 5px;
-      }
-
-      .content {
-        flex: 1;
-        padding: 20px;
-      }
-
-      .content-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .content-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
-      }
-
-      .content-actions {
-        display: flex;
-        gap: 15px;
-      }
-
-      .content-actions a {
-        color: #0078d7;
-        text-decoration: none;
-      }
-
-      .messages-empty {
-        margin-top: 20px;
-        color: #666;
-      }
-
-      .checkbox-dropdown {
-        border: 1px solid #ddd;
-        padding: 5px 10px;
-        background-color: #fff;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <div class="user-info">
-        <div class="user-avatar"></div>
-        <div class="username">{{ user.username }}</div>
+{% block content %}
+<link href="{% static 'css/settings.css' %}" rel="stylesheet" />
+<nav class="navbar">
+  <div class="nav-profile">
+    {% if user.customer and user.customer.image %}
+    <img
+      src="{{ user.customer.image.url }}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% else %}
+    <img
+      src="{% static 'images/default-profile.png' %}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% endif %}
+      <div class="profile-info">
+          <h2 class="username">{{ user.username }} <span class="badge">DEAL HUNTER</span></h2>
       </div>
-      <div class="nav-items">
-        <a href="" class="nav-item"> <i class="fas fa-user"></i> My Profile </a>
-        <a href="{% url 'inbox' %}" class="nav-item active">
-          <i class="fas fa-envelope"></i> Inbox
-        </a>
-        <a href="" class="nav-item">
-          <i class="fas fa-save"></i> Saved Items
-        </a>
-        <a href="{% url 'settings' %}" class="nav-item">
-          <i class="fas fa-cog"></i> Settings & Options
-        </a>
-      </div>
+  </div>
+  <ul>
+      <li><a href="{% url 'user_profile' user.id %}">My Profile</a></li>
+      <li class="active"><a href="{% url 'inbox' %}">Inbox</a></li>
+      <li><a href="{% url 'saved_items' %}">Saved Items</a></li>
+      <li><a href="{% url 'settings' %}">Settings & Options</a></li>
+  </ul>
+</nav> 
+
+<div class="SettingContainer">
+  <div class="SettingSidebar">
+    <ul class="nav-menu">
+      <li><strong>Notifications</strong></li>
+        <li class="active"><a href="{% url 'inbox' %}">Messages Messages ({{ total_messages }})</a></li>
+        <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
+        <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
+    </ul>
+  </div>
+
+  <div class="inbox-container">
+    <div class="inbox-header">
+        <h1>Inbox</h1>
+        <div class="action-buttons">
+            {% comment %} <a href="#" class="action-btn search-btn">
+                <i class="fas fa-search"></i>
+                Search your Messages
+            </a> {% endcomment %}
+            <a href="{% url 'send_message' %}" class="action-btn compose-btn">
+                <i class="fas fa-pen"></i>
+                send a Message
+            </a>
+        </div>
+    </div>
+    <div class="messages-section">
+        <div class="messages-header">
+            <h2>Messages</h2>
+        </div>
+        <div class="message-list">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>You have {{ messages|length }} items in your Inbox</p>
+                <span class="empty-state-hint">New messages will appear here</span>
+            </div>
+        </div>
     </div>
 
+  </div>
+</div>
+  
+
+{% comment %} 
+  <div class="savedListContainer" id="savedListContainer">
+    <div class="favorites-header">
+      <h1>Messages</h1>
+    </div>
+    <div class="items-count">You have {{ messages|length }} items in your Inbox</div>
+    
+    <div class="content-actions">
+      <a href="{% url 'send_message' %}">Send A Message</a>
+    </div>
+    
+    {% if messages %}
+    <table class="messages-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox"></th>
+          <th>From</th>
+          <th>Subject</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for message in messages %}
+        <tr{% if not message.is_read %} class="unread"{% endif %}>
+          <td><input type="checkbox" name="message_id" value="{{ message.id }}"></td>
+          <td>{{ message.sender.username }}</td>
+          <td><a href="{% url 'view_message' message.id %}">{{ message.subject }}</a></td>
+          <td>{{ message.date_sent|date:"M d, Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="messages-empty">
+      <p>You have 0 items in your Inbox</p>
+    </div>
+    {% endif %}
+  </div>
+</div> {% endcomment %}
+
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+{% endblock %}
+
+
+
+
+<!-- base.html -->
+{% comment %} {% load static %}
+  
+
+
     <div class="container">
-      <div class="sidebar">
-        <strong><div class="sidebar-item">Notifications</div></strong>
-        <br />
-        <div class="sidebar-item active">Messages ({{ total_messages }})</div>
-        <a
-          href="{% url 'inbox' %}"
-          class="sidebar-subitem{% if active_tab == 'inbox' %} active{% endif %}"
-        >
-          <i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})
-        </a>
-        <a href="{% url 'sent_items' %}" class="sidebar-subitem">
-          <i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})
-        </a>
-      </div>
+
 
       <div class="content">
         <div class="content-header">
@@ -220,4 +173,4 @@
 
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   </body>
-</html>
+</html>  {% endcomment %}

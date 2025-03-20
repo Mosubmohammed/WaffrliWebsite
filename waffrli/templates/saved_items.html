@@ -1,132 +1,88 @@
 {% extends "base.html" %} {% load static %} {% block content %}
-<link href="{% static 'css/style.css' %}" rel="stylesheet" />
+<link href="{% static 'css/settings.css' %}" rel="stylesheet" />
+<link href="{% static 'css/savedList.css' %}" rel="stylesheet" />
 
-<div class="container mt-4 mb-5">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="saved-items-title">My Saved Items</h1>
-      <div class="saved-items-count">
-        {% if saved_count == 1 %} 1 item saved {% else %} {{ saved_count }}
-        items saved {% endif %}
+
+<nav class="navbar">
+  <div class="nav-profile">
+    {% if user.customer and user.customer.image %}
+    <img
+      src="{{ user.customer.image.url }}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% else %}
+    <img
+      src="{% static 'images/default-profile.png' %}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% endif %}
+      <div class="profile-info">
+          <h2 class="username">{{ user.username }} <span class="badge">DEAL HUNTER</span></h2>
       </div>
-    </div>
+  </div>
+  <ul>
+      <li><a href="{% url 'user_profile' user.id %}">My Profile</a></li>
+      <li><a href="{% url 'inbox' %}">Inbox</a></li>
+      <li class="active"><a href="{% url 'saved_items' %}">Saved Items</a></li>
+      <li><a href="{% url 'settings' %}">Settings & Options</a></li>
+  </ul>
+</nav> 
+
+
+
+
+<div class="SettingContainer">
+  <div class="SettingSidebar">
+      <ul class="nav-menu">
+          <li class="active"><a href="{% url 'saved_items' %}">My lists</a></li>
+          <li><a href="#">Subscribed Threads</a></li>
+          <li><a href="#">Ignored Threads</a></li>
+      </ul>
   </div>
 
-  {% if saved_products %}
-  <div class="products-grid saved-items-grid">
-    {% for product in saved_products %}
-    <div class="product-item-wrapper" data-product-id="{{ product.id }}">
-      <a href="{% url 'product' product.id %}" class="product-link">
-        <div class="product-card">
-          <div class="card-header">
-            <div class="user-info">
-              {% if product.customer_pic_id and product.customer_pic_id.image %}
-              <img
-                style="width: 20px; height: 24px"
-                src="{{ product.customer_pic_id.image.url }}"
-                alt="User Icon"
-                class="profile-pic"
-                width="30"
-                height="30"
-              />
-              {% else %}
-              <img
-                style="width: 20px; height: 24px"
-                src="{% static 'images/default-profile.png' %}"
-                alt="Default User"
-                class="profile-pic"
-                width="30"
-                height="30"
-              />
-              {% endif %}
-              <div class="user-details">
-                <span class="username"
-                  >Found by <strong>@{{ product.user.username }}</strong></span
-                >
-                <span class="deal-time"
-                  >{{ product.create_at|date:"d-m" }}</span
-                >
+  <div class="savedListContainer" id="savedListContainer">
+      <div class="favorites-header">
+          <h1>Favorites</h1>
+      </div>
+      <div class="items-count">You have {{ saved_products|length }} items in this list</div>
+      
+      {% if saved_products %}
+          {% for product in saved_products %}
+          <div class="saved-item" data-product-id="{{ product.id }}">
+              <img src="{{ product.image.url }}" alt="{{ product.Name }}" class="item-image">
+              <div class="item-details">
+                  <h3>{{ product.store }}: {{ product.Name }}: {{ product.Description }} ${{ product.sale_price }}</h3>
+                  <div class="post-info">
+                      <span class="post-date">Added {{ product.create_at|timesince }} ago</span>
+                      <span class="post-author">Posted {{ product.create_at|date:"n/j/Y" }} at {{ product.create_at|date:"g:i A" }} by {{ product.user.username }}</span>
+                  </div>
+                  <div class="item-rating">
+                      <span class="stars">★★★★☆</span>
+                      <span class="comments-count">{{ comment_count|default:"0" }} comments</span>
+                  </div>
               </div>
-            </div>
-            {% comment %} <div class="sale-tag"> {% endcomment %}
-              {% comment %} {% if product.Price and product.sale_price %} {% endcomment %}
-               {% comment %} {% with
-              discount=product.Price|sub:product.sale_price|div:product.Price|mul:100
-              %} -{{ discount|floatformat:0 }}% {% endwith %}  {% endcomment %}
-              {% comment %} {% endif %} {% endcomment %}
-            {% comment %} </div> {% endcomment %}
-            <!-- Add remove button on top of the card -->
-            <button
-              class="remove-saved-item"
-              data-product-id="{{ product.id }}"
-              title="Remove from saved items"
-            >
-              <i class="fa-solid fa-trash"></i>
-            </button>
+              <div class="item-actions">
+                  <button class="delete-btn" data-product-id="{{ product.id }}">Delete</button>
+              </div>
           </div>
+          {% endfor %}
 
-          <img src="{{ product.image.url }}" alt="{{ product.Name }}" />
-
-          <div class="product-info">
-            <h3>{{ product.Name }}</h3>
-            <p class="description">{{ product.Description }}</p>
-
-            <div class="price-container">
-              <span class="current-price">${{ product.sale_price }}</span>
-              <span class="original-price">${{ product.Price }}</span>
-            </div>
-
-            <!-- Optional: Add store information -->
-            <div class="store-info">
-              <span>Store: <strong>{{ product.store }}</strong></span>
-            </div>
-          </div>
-
-          <div class="card-footer">
-            <button class="like-btn" data-product-id="{{ product.id }}">
-              <i
-                class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
-              ></i>
-              <span class="like-count">{{ product.likes.count }}</span>
-            </button>
-            <button class="comment-btn">
-              <i class="far fa-comment"></i>
-               {{ comment_count}} 
-            </button>
-
-
-          </div>
-        </div>
-      </a>
-    </div>
-    {% endfor %}
+      {% endif %}
   </div>
-  {% else %}
-  <div class="row mt-5">
-    <div class="col-12 text-center empty-saved-items">
-      <div class="empty-icon">
-        <i class="far fa-bookmark"></i>
-      </div>
-      <h3>You haven't saved any items yet</h3>
-      <p>Items you save will appear here for easy access.</p>
-      <a href="{% url 'home' %}" class="btn btn-primary mt-3">Browse Deals</a>
-    </div>
-  </div>
-  {% endif %}
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-      // Handle remove saved item button clicks
-      const removeButtons = document.querySelectorAll('.remove-saved-item');
-      removeButtons.forEach(button => {
+      // Handle delete button clicks
+      const deleteButtons = document.querySelectorAll('.delete-btn');
+      deleteButtons.forEach(button => {
           button.addEventListener('click', function(e) {
-              // Prevent navigation to product page when clicking the remove button
               e.preventDefault();
-              e.stopPropagation();
-
+              
               const productId = this.getAttribute('data-product-id');
-              const productWrapper = this.closest('.product-item-wrapper');
+              const savedItem = this.closest('.saved-item');
 
               // Send AJAX request to toggle save
               fetch(`/product/${productId}/toggle-save/`, {
@@ -138,50 +94,32 @@
               })
               .then(response => response.json())
               .then(data => {
-                  // Remove the card with animation
-                  productWrapper.style.opacity = '0';
-                  productWrapper.style.transform = 'scale(0.8)';
+                  // Remove the item
+                  savedItem.remove();
 
-                  setTimeout(() => {
-                      productWrapper.remove();
+                  // Update item count
+                  const itemsCount = document.querySelector('.items-count');
+                  const remainingItems = document.querySelectorAll('.saved-item').length;
+                  itemsCount.textContent = `You have ${remainingItems} items in this list`;
 
-                      // Update saved count
-                      const savedCountElement = document.querySelector('.saved-items-count');
-                      const currentCount = {{ saved_count }} - 1;
+                  // Show empty state if no items left
+                  if (remainingItems === 0) {
+                      const container = document.querySelector('.savedListContainer');
+                      const emptyState = document.createElement('div');
+                      emptyState.className = 'empty-saved-items';
+                      emptyState.innerHTML = `
+                          <div class="empty-icon">
+                              <i class="far fa-bookmark"></i>
+                          </div>
+                          <h3>You haven't saved any items yet</h3>
+                          <p>Items you save will appear here for easy access.</p>
+                          <a href="{% url 'home' %}" class="btn btn-primary">Browse Deals</a>
+                      `;
+                      container.appendChild(emptyState);
+                  }
 
-                      if (currentCount === 1) {
-                          savedCountElement.textContent = '1 item saved';
-                      } else {
-                          savedCountElement.textContent = `${currentCount} items saved`;
-                      }
-
-                      // Show empty state if no items left
-                      if (currentCount === 0) {
-                          const productsGrid = document.querySelector('.products-grid');
-                          if (productsGrid) {
-                              productsGrid.remove();
-
-                              const container = document.querySelector('.container');
-                              const emptyState = document.createElement('div');
-                              emptyState.innerHTML = `
-                                  <div class="row mt-5">
-                                      <div class="col-12 text-center empty-saved-items">
-                                          <div class="empty-icon">
-                                              <i class="far fa-bookmark"></i>
-                                          </div>
-                                          <h3>You haven't saved any items yet</h3>
-                                          <p>Items you save will appear here for easy access.</p>
-                                          <a href="{% url 'home' %}" class="btn btn-primary mt-3">Browse Deals</a>
-                                      </div>
-                                  </div>
-                              `;
-                              container.appendChild(emptyState.firstElementChild);
-                          }
-                      }
-
-                      // Show notification
-                      showNotification('Item removed from saved items', 'info');
-                  }, 300);
+                  // Show notification
+                  showNotification('Item removed from saved items', 'info');
               })
               .catch(error => {
                   console.error('Error:', error);
@@ -199,11 +137,11 @@
           // Add icon based on notification type
           let iconHTML = '';
           if (type === 'success') {
-            iconHTML = '<i class="fas fa-check-circle"></i>';
+              iconHTML = '<i class="fas fa-check-circle"></i>';
           } else if (type === 'error') {
-            iconHTML = '<i class="fas fa-exclamation-circle"></i>';
+              iconHTML = '<i class="fas fa-exclamation-circle"></i>';
           } else if (type === 'info') {
-            iconHTML = '<i class="fas fa-info-circle"></i>';
+              iconHTML = '<i class="fas fa-info-circle"></i>';
           }
 
           // Create message span
@@ -217,10 +155,10 @@
 
           // Append all elements to notification
           if (iconHTML) {
-            const iconContainer = document.createElement('div');
-            iconContainer.innerHTML = iconHTML;
-            const icon = iconContainer.firstChild;
-            notification.appendChild(icon);
+              const iconContainer = document.createElement('div');
+              iconContainer.innerHTML = iconHTML;
+              const icon = iconContainer.firstChild;
+              notification.appendChild(icon);
           }
           notification.appendChild(messageSpan);
           notification.appendChild(closeButton);
@@ -230,18 +168,18 @@
 
           // Animate in
           setTimeout(() => {
-            notification.classList.add('show');
+              notification.classList.add('show');
           }, 10);
 
           // Set auto remove timer
           const removeTimeout = setTimeout(() => {
-            removeNotification(notification);
+              removeNotification(notification);
           }, 3000);
 
           // Add close button functionality
           closeButton.addEventListener('click', () => {
-            clearTimeout(removeTimeout);
-            removeNotification(notification);
+              clearTimeout(removeTimeout);
+              removeNotification(notification);
           });
       }
 
@@ -249,9 +187,9 @@
       function removeNotification(notification) {
           notification.classList.remove('show');
           setTimeout(() => {
-            if (notification.parentNode) {
-              notification.parentNode.removeChild(notification);
-            }
+              if (notification.parentNode) {
+                  notification.parentNode.removeChild(notification);
+              }
           }, 300);
       }
   });
