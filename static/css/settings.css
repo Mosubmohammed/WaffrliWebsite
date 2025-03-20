@@ -1,0 +1,520 @@
+/* Settings page styles */
+
+/* Reset and general styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f4f7f9;
+}
+
+/* Navigation styles */
+.navbar {
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 10px 20px;
+  margin-bottom: 30px;
+}
+
+.navbar ul {
+  display: flex;
+  list-style: none;
+  justify-content: center;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.navbar li {
+  margin: 0 20px;
+}
+
+.navbar li a {
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.navbar li.active a,
+.navbar li a:hover {
+  color: #007bff;
+}
+
+.nav-profile {
+  display: flex;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.profile-pic {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+  border: 3px solid #f0f0f0;
+}
+
+.profile-info h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.badge {
+  background-color: #f0c14b;
+  color: #333;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-weight: bold;
+}
+
+/* Settings container */
+.SettingContainer {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Sidebar styles */
+.SettingSidebar {
+  width: 220px;
+  background-color: #f8f9fa;
+  padding: 20px 0;
+  border-right: 1px solid #e9ecef;
+}
+
+.nav-menu {
+  list-style: none;
+}
+
+.nav-menu li {
+  margin-bottom: 5px;
+}
+
+.nav-menu li a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #555;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.nav-menu li.active a {
+  background-color: #e9ecef;
+  color: #007bff;
+  font-weight: 600;
+  border-left: 3px solid #007bff;
+}
+
+.nav-menu li a:hover {
+  background-color: #e9ecef;
+}
+
+/* Main content styles */
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.main-content h1,
+.profile-settings h1 {
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.section,
+.setting-section {
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.section:last-child,
+.setting-section:last-child {
+  border-bottom: none;
+}
+
+.section h2,
+.setting-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-group input[readonly] {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+/* Link styles */
+.link {
+  color: #007bff;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.link.danger {
+  color: #dc3545;
+}
+
+.link.danger:hover {
+  color: #bd2130;
+}
+
+/* Button styles */
+.save-btn,
+.request-btn,
+.save-settings-btn,
+.change-avatar-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.save-btn:hover,
+.request-btn:hover,
+.save-settings-btn:hover,
+.change-avatar-btn:hover {
+  background-color: #0069d9;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.form-actions {
+  margin-top: 20px;
+}
+
+/* Username change form */
+.username-change-form {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: opacity 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+}
+
+/* Verification styles */
+.verified-tag {
+  color: #28a745;
+  font-size: 0.85rem;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.alert {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 10px;
+  border-left: 4px solid #ffc107;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+.alert-icon {
+  margin-right: 8px;
+}
+
+/* Profile Settings Specific Styles */
+.profile-settings {
+  flex: 1;
+  padding: 30px;
+}
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.avatar-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.current-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 20px;
+  border: 3px solid #f0f0f0;
+}
+
+.change-avatar-btn {
+  height: 40px;
+}
+
+.dob-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 400px;
+}
+
+.modern-date-picker {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.dob-privacy {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.signature-input {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.save-settings-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  margin-top: 30px;
+}
+/* New styles for account deletion page */
+.alert.warning {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.confirmation-text {
+  margin-bottom: 25px;
+}
+
+.confirmation-text ul {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.confirmation-text li {
+  margin-bottom: 5px;
+}
+
+.danger-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.danger-btn:hover {
+  background-color: #c82333;
+}
+
+.danger-btn:disabled {
+  background-color: #e9a8ae;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+  text-decoration: none;
+  color: white;
+}
+/* Responsive styles */
+@media (max-width: 768px) {
+  .SettingContainer {
+    flex-direction: column;
+  }
+
+  .SettingSidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .nav-menu {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .nav-menu li {
+    margin: 0 5px;
+    white-space: nowrap;
+  }
+
+  .nav-menu li a {
+    padding: 8px 15px;
+  }
+
+  .main-content,
+  .profile-settings {
+    padding: 20px;
+  }
+
+  .navbar ul {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 10px;
+  }
+
+  .avatar-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .current-avatar {
+    margin-bottom: 15px;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-pic {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .alert {
+    max-width: 100%;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .cancel-btn {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+}

@@ -30,5 +30,6 @@ urlpatterns = [
     path('message/<int:message_id>/reply/', reply_message, name='reply_message'),
     path('sent_items/', sent_items, name='sent_items'),
     path('delete-messages/', delete_messages, name='delete_messages'),
+    path('close-account/', close_account, name='close_account'),
 
 ]

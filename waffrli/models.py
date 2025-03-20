@@ -40,7 +40,7 @@ class Customer(models.Model):
         ('M', 'Male'), ('F', 'Female'), ('O', 'Other'), ('N', 'Prefer not to say')
     ], default='N')
     address = models.CharField(max_length=100)
-
+    City = models.CharField(max_length=100)
     date_modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='uploads/product', null=True, blank=True)
     likes=models.ManyToManyField(User, related_name="Customer_like",blank=True)

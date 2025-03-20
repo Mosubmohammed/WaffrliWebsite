@@ -16,46 +16,34 @@
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
   border-bottom: 2px solid #00332e67;
 }
 
 .navbar ul li a {
   display: block;
   width: 10rem;
-  padding: 0rem;
-  margin: 0px;
+  padding: 0.5rem 0;
   font-size: 14px;
-  font-weight: bold;
   text-decoration: none;
   color: rgba(0, 0, 0, 0.719);
-
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   font-weight: 500;
-  line-height: 2.4;
-  letter-spacing: 0em;
-  white-space: nowrap;
-  transform: scaleX(1.5);
   text-align: center;
 }
 
 .navbar ul li a:hover,
-.navbar ul li .active {
+.navbar ul li a.active {
   color: #003e45a8;
   border-bottom: 2px solid #00332ebd;
-  text-decoration: wavy;
   font-weight: bold;
 }
 
 .profile-container {
   display: flex;
-
   border-radius: 10px;
-
   padding: 1px;
-  margin: 11px 118px;
-  max-width: 1293px;
-  justify-content: space-around;
+  margin: 20px auto;
+  max-width: 1200px;
 }
 
 .profile-header {
@@ -63,57 +51,62 @@
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 20px;
   border-radius: 10px;
-  margin-inline: -6rem;
+  width: 100%;
 }
 
 .profile-left {
   flex: 1;
   display: flex;
-
-  padding: 8px 8px;
+  align-items: flex-start;
+  padding: 8px;
 }
 
 .profile-info {
   display: flex;
   flex-direction: column;
-  padding: 2px 64px;
+  padding: 0 20px;
 }
 
 .profile-pic {
-  width: 163px;
-  height: 124px;
-  background-color: #e6e6e6;
-  /* margin: 8px 0px; */
-  position: relative;
-  bottom: 20px;
-  right: 20px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .profile-info h2 {
   margin: 0;
-  font-size: 17px;
-  margin: 1px -52px;
-  position: relative;
-  left: -6px;
-  bottom: 16px;
+  font-size: 18px;
 }
 
-.profile-info p {
-  font-size: 12px;
-  color: #666;
-  margin: 5px 0;
+.follow-stats {
+  display: flex;
+  gap: 13px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.follow-stats a {
+  color: #3660ea;
+  text-decoration: none;
+}
+
+.follow-count {
+  cursor: pointer;
+}
+
+.follow-count:hover {
+  color: #007bff;
 }
 
 .action-buttons {
   display: flex;
   gap: 10px;
-  margin-top: 54px;
-  margin-left: 153px;
-  position: relative;
-  right: 13rem;
+  margin-left: auto;
+  align-self: center;
 }
 
 .follow-btn {
@@ -121,23 +114,23 @@
   background: #007bff;
   color: white;
   border: none;
-  padding: 4px 17px;
+  padding: 8px 16px;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  text-decoration: none;
+}
 
-  &:hover {
-    background-color: #0056b3;
-  }
+.follow-btn:hover {
+  background-color: #0056b3;
 }
 
 .btn {
-  background: rgb(255, 255, 255);
+  background: #ffffff;
   color: #007bff;
-
   border: 1px solid #007bff91;
-  padding: 5px 7px;
-  border-radius: 7px;
+  padding: 8px 16px;
+  border-radius: 5px;
   cursor: pointer;
 }
 
@@ -149,545 +142,329 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  justify-content: center;
-  max-width: 600px;
-  margin: auto;
-}
-
-.badge {
-  background: #ffc72a;
-  color: #850101;
-  padding: 5px 7px;
-  font-size: 9px;
-  border-radius: 20px;
+  margin-top: 20px;
+  width: 100%;
 }
 
 .stat-box {
   background: #f8f9fa;
-  padding: 2px;
+  padding: 15px;
   border-radius: 8px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 11px;
+  text-align: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .stat-box i {
-  font-size: 18px;
+  font-size: 24px;
   color: #007bff;
-  margin-bottom: 5px;
-}
-.fa-solid {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  font-size: initial;
+  margin-bottom: 8px;
 }
 
 .stat-value {
-  font-size: 12px;
+  font-size: 18px;
   font-weight: bold;
+  margin-bottom: 5px;
 }
 
 .stat-label {
-  color: #333;
-  margin-top: 30px;
-  position: relative;
-  right: 30px;
-  top: 0px;
+  color: #666;
+  font-size: 14px;
 }
 
 hr {
   width: 98%;
-  height: 1px;
   border: none;
+  height: 1px;
   background: #e0e0e0;
-  margin: -10px 0 0;
+  margin: 20px auto;
 }
 
-@media (max-width: 768px) {
-  .profile-container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .stats-container {
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
-  }
-}
-
+/* Best Deal Section */
 .best-deal {
   padding: 20px;
+  margin: 0 auto;
+  max-width: 800px;
 }
 
 .best-deal h3 {
-  font-size: 24px;
+  font-size: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.best-deal a {
+.see-all {
   font-size: 14px;
   color: #007bff;
   text-decoration: none;
-  padding: 6px 7px;
-}
-.best-deal a:hover {
-  font-size: 14px;
-  color: #0056b3;
-  text-decoration: underline;
-  padding: 6px 9px;
 }
 
-.deal-container {
+.see-all:hover {
+  text-decoration: underline;
+}
+
+.deal-card {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.deal-image {
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+}
+
+.deal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.deal-details {
+  flex: 1;
+  padding: 20px;
+}
+
+.deal-title {
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+.deal-store,
+.deal-price {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.deal-stats {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.deal-likes,
+.deal-views,
+.deal-comments {
+  font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #ddd;
-  padding: 5px 11px;
-  margin: -12px 12px;
 }
-.deal-info {
-  display: flex;
-  align-items: center;
+
+.deal-stats i {
+  margin-right: 5px;
+  color: #007bff;
 }
-.deal-icon {
-  font-size: 24px;
-  color: blue;
-  margin-right: 10px;
-}
-.deal-text a {
-  color: #1486db;
+
+.deal-btn {
+  display: inline-block;
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
   text-decoration: none;
   font-weight: bold;
-  padding: 10px 3px;
+  transition: background-color 0.3s ease;
 }
-.deal-text a:hover {
-  text-decoration: underline;
+
+.deal-btn:hover {
+  background-color: #0056b3;
 }
-.deal-meta {
-  font-size: 12px;
-  color: gray;
-  padding: 6px 8px;
+
+.new-deal {
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 30px;
 }
-.deal-source {
+
+.post-deal p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+/* Content layout */
+.content-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-weight: bold;
-  font-size: 12px;
-}
-.fire-icon {
-  color: red;
-  margin-right: 5px;
-}
-.deal-stats {
-  text-align: justify;
-}
-.vote {
-  color: #005eff9e;
-  font-weight: bold;
-}
-.stars {
-  color: gold;
-}
-
-.Voidstars
-{
-    color: rgba(182, 178, 157, 0.404);
-}
-.Dbadge {
-  background-color: #005eff9e;
-  color: white;
-  font-size: 12px;
-  padding: 3px 6px;
-  border-radius: 5px;
-  display: inline-block;
-  margin-top: 5px;
-}
-.comments,
-.views {
-  font-size: 11px;
-  color: gray;
-  margin-left: 162px;
-  position: relative;
-  bottom: 48px;
-  left: -29px;
-  display: block;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .profile-info {
-    flex-direction: column;
-  }
-
-  .stats-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.Activity-container {
-    margin: 10rem auto;
-    background: #f8f9fa87;
-    padding: 21px 8rem;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 1200px;
-    position: relative;
-    bottom: 27rem;
-    width: fit-content;
-    left: 7rem;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 8px;
-  margin-bottom: 20px;
-}
-.header h2 {
-  margin: 15px;
-  font-size: 15px;
-}
-.tabs {
-  display: flex;
-  gap: 25px;
-}
-.tab {
-  text-decoration: revert-layer;
-  color: #333;
-  font-weight: 300;
-  padding: 5px 10px;
-  border-radius: 5px;
-  transition: 0.3s;
-}
-.tab:hover,
-.tab.active {
-  background: #00332e67;
-  color: #fff;
-}
-.activity-item {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-}
-.activity-item:last-child {
-  border-bottom: none;
-}
-.newThread-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #00aeff8f;
-  border-radius: 50%;
-  margin-right: 15px;
-  font-size: 18px;
-  color: white;
-}
-
-.reputation-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffcc00;
-  border-radius: 50%;
-  margin-right: 15px;
-  font-size: 18px;
-  color: white;
-}
-
-.replyThread-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #14130bb7;
-  border-radius: 50%;
-  margin-right: 15px;
-  font-size: 18px;
-  color: white;
-}
-
-.activity-content {
-  flex: 1;
-}
-.activity-content p {
-  margin: 0;
-  font-size: 14px;
-}
-.activity-content .title {
-  font-weight: bold;
-  color: #333;
-}
-.activity-content .timestamp {
-  font-size: 12px;
-  color: gray;
+  margin: 30px auto;
+  max-width: 1200px;
 }
 
 .Asidebar {
-    width: 142px;
-    padding: 20px;
-    border-radius: 10px;
-    position: relative;
-    white-space: normal;
-    padding: 0px 0px;
-    border-right: 1px solid #e0e0e0;
-    left: 23rem;
-    top: 5rem;
-  
+  width: 180px;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
 }
+
 .Asidebar h3 {
-  font-size: 12px;
-  margin-bottom: 10px;
+  font-size: 16px;
+  margin: 20px 0 10px 0;
+  color: #333;
 }
+
 .Asidebar a {
   display: block;
   text-decoration: none;
-  color: #333;
-  padding: 8px 1px;
+  color: #666;
+  padding: 8px 0;
   transition: 0.3s;
-  font-size: 12px;
+  font-size: 14px;
 }
+
 .Asidebar a:hover,
 .Asidebar a.active {
   color: #007bff;
   font-weight: bold;
 }
 
-
-
-
-
-/*  new user design  */
-
-
-
-
-
-
-.New-deal {
-background: #f8f9fa87;
-border-radius: 10px;
-box-shadow: 2px 3px 1px rgba(0, 0, 0, 0.1);
-text-align: center;
-margin-top: 18px;
-margin: 1rem 19rem;
-width: 34rem;
-padding: 10px;
-}
-
-.New-deal h3 {
-font-size: 24px;
-}
-.New-deal .Newdeal-container {
-display: flex;
-justify-content: center;
-align-items: center;
-flex-direction: column;
-}
-.New-deal .post-deal p {
-font-size: 16px;
-color: #333;
-margin-bottom: 15px;
-}
-.New-deal .deal-btn {
-background: #007bff;
-color: #fff;
-border: none;
-padding: 10px 15px;
-border-radius: 5px;
-cursor: pointer;
-transition: 0.3s;
-}
-.New-deal .deal-btn:hover {
-background: #0056b3;
-}
-
-
-.hidden
-{
-display: none;
-}
-
-
-
 .New-Activity-container {
-margin: 10rem auto;
-background: #f8f9fa87;
-padding: 21px 8rem;
-border-radius: 10px;
-box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-max-width: 1200px;
-position: relative;
-bottom: 27rem;
-width: fit-content;
-left: 7rem;
-height: 47rem;
-
-}
-
-.follow-stats {
-display: flex ;
-    gap: 13px;
-    font-size: 14px;
-    color: #3660ea;
-    margin: -1px -1px;
-    justify-content: space-evenly;
-    position: relative;
-    top: 1rem;
-    left: -5rem;
-    padding: 4px 2px;
-}
-
-.follow-count {
-cursor: pointer;
-font-weight: bold;
-}
-
-.follow-count:hover {
-color: #007bff;
-}
-
-
-.note
-{
-background: #a29f920f;
-/* color: #857c5f; */
-padding: 10px;
-border-left: 52px solid #d8d8d8;
-border-radius: 5px;
-font-size: 14px;
-margin: 20px 0;
-}
-
-@media (max-width: 768px) {
-.stats-container {
-  grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
-}
-}
-
-@media (max-width: 480px) {
-.stats-container {
-  grid-template-columns: 1fr; /* 1 column on mobile */
-}
-}
-
-
-
-@media (max-width: 480px) {
-.profile-pic {
-  width: 100px;
-  height: 100px;
-}
-
-.profile-info h2 {
-  font-size: 14px;
-}
-
-.profile-info p {
-  font-size: 10px;
-}
-
-.stat-box {
-  font-size: 10px;
-}
-
-.stat-value {
-  font-size: 10px;
-}
-
-.stat-label {
-  font-size: 10px;
-}
-
-.New-deal h3 {
-  font-size: 20px;
-}
-
-.New-deal .post-deal p {
-  font-size: 14px;
-}
-}
-
-
-@media (max-width: 768px) {
-.profile-container {
-  flex-direction: column;
-  align-items: center;
-}
-
-.profile-header {
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.profile-left {
-  flex-direction: column;
-  align-items: center;
-}
-
-.stats-container {
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-}
-
-.action-buttons {
-  margin: 20px 0;
-  position: static;
-  justify-content: center;
-}
-
-.navbar ul {
-  flex-direction: column;
-  align-items: center;
-}
-
-.navbar ul li a {
-  width: auto;
-  padding: 10px;
-}
-
-.New-deal {
-  width: 100%;
-  margin: 1rem auto;
-}
-
-.Asidebar {
-  width: 100%;
-  padding: 10px;
-  text-align: center;
-  left: 0;
-  top: 0;
-}
-
-.Activity-container,
-.New-Activity-container {
-  position: static;
-  width: 90%;
-  margin: 2rem auto;
+  flex: 1;
   padding: 20px;
-  left: 0;
-  bottom: 0;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-left: 20px;
+  min-height: 400px;
 }
 
-.follow-stats {
-  position: static;
-  justify-content: center;
-  margin: 20px 0;
-  }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
 }
 
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab {
+  text-decoration: none;
+  color: #666;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+.tab:hover,
+.tab.active {
+  background: #00332e67;
+  color: #fff;
+}
+
+.activity-item {
+  padding: 20px;
+}
+
+.note {
+  background: #f5f5f5;
+  color: #666;
+  padding: 20px;
+  border-left: 5px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .profile-header {
+    flex-direction: column;
+  }
+
+  .stats-container {
+    margin-top: 30px;
+  }
+
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .Asidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 20px;
+  }
+
+  .Asidebar a {
+    padding: 8px 15px;
+  }
+
+  .New-Activity-container {
+    margin-left: 0;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-left {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .action-buttons {
+    margin: 20px auto 0;
+  }
+
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .deal-card {
+    flex-direction: column;
+  }
+
+  .deal-image {
+    width: 100%;
+    height: 200px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tabs {
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+  }
+
+  .navbar ul li a {
+    width: 100%;
+    padding: 10px 0;
+  }
+}

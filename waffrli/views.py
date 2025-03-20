@@ -170,6 +170,7 @@ def register(request):
         confirm_password = request.POST.get('confirm_password')
         gender = request.POST.get('gender')
         address = request.POST.get('address')
+        city = request.POST.get('city')
         image = request.FILES.get('image')
         
         # Generate username from email (or use a field in your form for username)
@@ -245,7 +246,8 @@ def register(request):
                 email=email,
                 password=password,  # Note: This is redundant since Django User already stores password
                 gender=gender,
-                address=address
+                address=address,
+                City=city,
             )
             
             # Add image if provided
@@ -345,9 +347,7 @@ def logout_user(request):
 
 
 def restPassword(request):
-    """Handle password reset completion and sync with Firebase"""
-    # This would be called after a user completes the Django password reset process
-    
+
     if request.method == 'POST':
         email = request.POST.get('email')
         new_password = request.POST.get('new_password')
@@ -644,40 +644,81 @@ def unfollow(request, user_id):
 
 
 def settings(request):
-    return render(request, "settings.html", {})
+    try:
+        customer = request.user.customer
+        allow_username_edit = False  # Set to True if you want to allow direct username edits
+        
+        if request.method == 'POST':
+            # Handle username change request
+            if 'request_username' in request.POST:
+                new_username = request.POST.get('new_username')
+                if new_username:
+                    request.user.username = new_username
+                    request.user.save()
+                    messages.success(request, 'Username updated successfully!')
+                    return redirect('settings')
+            
+            if 'update_profile' in request.POST:
+                email = request.POST.get('email')
+                if email and email != request.user.email:
+                    request.user.email = email
+                    request.user.save()
+                    # If email changed, you might want to set email_verified to False
+                    customer.email_verified = False
+                    customer.save()
+                    messages.success(request, 'Email updated successfully! Please verify your new email.')
+                    return redirect('settings')
+            
+            # # Handle zipcode update
+            # if 'update_zipcode' in request.POST:
+            #     zipcode = request.POST.get('zipcode')
+            #     customer.zipcode = zipcode
+            #     customer.save()
+            #     messages.success(request, 'Zip code updated successfully!')
+            #     return redirect('settings')
+        
+        context = {
+            'allow_username_edit': allow_username_edit,
+        }
+        return render(request, 'settings.html', context)
+        
+    except AttributeError:
+        messages.error(request, 'Customer profile not found. Please contact support.')
+        return redirect('home')
 
 
     
 @login_required
 def update_info(request):
     try:
-        # Get the customer profile associated with the user
-        customer = Customer.objects.get(user=request.user)
+        customer = request.user.customer
         
         if request.method == 'POST':
-            user_form = UserUpdateForm(request.POST, instance=request.user)
-            profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.customer)
             
-            if user_form.is_valid() and profile_form.is_valid():
-                user_form.save()
-                profile_form.save()
-                messages.success(request, 'Your profile has been updated successfully!')
-                return redirect('update_info')
-        else:
-            user_form = UserUpdateForm(instance=request.user)
-            profile_form = ProfileUpdateForm(instance=customer)
+            
+            request.user.first_name = request.POST.get('first_name', '')
+            request.user.last_name = request.POST.get('last_name', '')
+            request.user.save()
+            
+            # Update customer profile information
+            customer.phone = request.POST.get('phone', '')
+            customer.address = request.POST.get('address', '')
+            customer.city = request.POST.get('city', '')
+            customer.country = request.POST.get('country', '')
+
+            if request.FILES.get('image'):
+                customer.image = request.FILES.get('image')
+            
+            customer.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('update_info')
         
-        context = {
-            'user_form': user_form,
-            'profile_form': profile_form,
-        }
+        return render(request, 'update_info.html')
         
-        return render(request, 'update_info.html', context)
-    
-    except Customer.DoesNotExist:
-        # Handle the case where a Customer doesn't exist for this user
+    except AttributeError:
         messages.error(request, 'Customer profile not found. Please contact support.')
         return redirect('settings')
+
 
 @login_required
 def toggle_save_product(request, product_id):
@@ -893,3 +934,45 @@ def delete_messages(request):
     return redirect('inbox')
 
 
+def close_account(request):
+    if request.method == 'POST':
+        user = request.user
+        confirmation = request.POST.get('confirm', '')
+        
+        if confirmation != 'DELETE':
+            messages.error(request, "Please type 'DELETE' to confirm account deletion.")
+            return render(request, 'confirm_account_deletion.html')
+            
+        if user.is_authenticated:
+            try:
+                # Get Firebase UID for the user
+                firebase_user = FirebaseUser.objects.get(user=user)
+                
+                # Delete user from Firebase
+                firebase_auth.delete_user(firebase_user.firebase_uid)
+                
+                # Log the user out
+                logout(request)
+                
+                # Delete Django user (will cascade to Customer due to OneToOneField)
+                user.delete()
+                
+                messages.success(request, "Your account has been successfully deleted.")
+                return redirect('home')  # Redirect to home page
+                
+            except FirebaseUser.DoesNotExist:
+                # If no Firebase user exists, just delete the Django user
+                logout(request)
+                user.delete()
+                messages.success(request, "Your account has been successfully deleted.")
+                return redirect('home')
+                
+            except Exception as e:
+                messages.error(request, f"Error deleting account: {str(e)}")
+                return redirect('settings')
+        else:
+            messages.error(request, "You must be logged in to delete your account.")
+            return redirect('login')
+    else:
+        # Display confirmation page for GET requests
+        return render(request, 'confirm_account_deletion.html')

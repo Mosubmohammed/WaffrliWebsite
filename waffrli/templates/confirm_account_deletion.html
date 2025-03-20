@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<link href="{% static 'css/settings.css' %}" rel="stylesheet" />
+
+<div class="SettingContainer">
+  <div class="main-content">
+    <h1>Close Your Account</h1>
+
+    <div class="section">
+      <div class="alert warning">
+        <span class="alert-icon">⚠️</span>
+        <strong>Warning:</strong> This action cannot be undone. Your account,
+        profile data, and saved items will be permanently deleted.
+      </div>
+
+      <div class="confirmation-text">
+        <p>Are you sure you want to close your account? This will:</p>
+        <ul>
+          <li>Delete your user profile and all personal information</li>
+          <li>Remove your account from our database</li>
+          <li>Delete your authentication information from our services</li>
+          <li>Remove all your saved items and preferences</li>
+        </ul>
+      </div>
+
+      <form method="POST" action="{% url 'close_account' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="confirm">Please type "DELETE" to confirm</label>
+          <input type="text" id="confirm" name="confirm" required />
+        </div>
+
+        <div class="form-actions">
+          <a href="{% url 'settings' %}" class="cancel-btn">Cancel</a>
+          <button type="submit" id="delete-btn" class="danger-btn" disabled>
+            Close My Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const confirmInput = document.getElementById("confirm");
+    const deleteButton = document.getElementById("delete-btn");
+
+    confirmInput.addEventListener("input", () => {
+      deleteButton.disabled = confirmInput.value !== "DELETE";
+    });
+  });
+</script>
+{% endblock %}

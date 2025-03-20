@@ -18,15 +18,7 @@
                 <p>Enter your credentials to continue</p>
             </div>
             
-            {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+
             
             <form id="login" class="signIn-form" method="post" action="{% url 'login' %}">
                 {% csrf_token %}
