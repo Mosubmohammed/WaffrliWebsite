@@ -1,7 +1,5 @@
-{% extends 'base.html' %} {% load static %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/sent_items_styles.css' %}" />
 <link rel="stylesheet" href="{% static 'css/settings.css' %}" />
 
 <link
@@ -15,241 +13,165 @@
 />
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<div class="container">
-  <nav class="navbar">
-    <div class="nav-profile">
-      {% if user.customer and user.customer.image %}
-      <img
-        src="{{ user.customer.image.url }}"
-        alt="Profile-Picture"
-        class="profile-pic"
-      />
-      {% else %}
-      <img
-        src="{% static 'images/default-profile.png' %}"
-        alt="Profile-Picture"
-        class="profile-pic"
-      />
-      {% endif %}
-        <div class="profile-info">
-            <h2 class="username">{{ user.username }} <span class="badge">DEAL HUNTER</span></h2>
-        </div>
+
+<nav class="navbar">
+  <div class="nav-profile">
+    {% if user.customer and user.customer.image %}
+    <img
+      src="{{ user.customer.image.url }}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% else %}
+    <img
+      src="{% static 'images/default-profile.png' %}"
+      alt="Profile-Picture"
+      class="profile-pic"
+    />
+    {% endif %}
+    <div class="profile-info">
+      <h2 class="username">
+        {{ user.username }} <span class="badge">DEAL HUNTER</span>
+      </h2>
     </div>
-    <ul>
-        <li><a href="{% url 'user_profile' user.id %}">My Profile</a></li>
-        <li><a href="{% url 'inbox' %}">Inbox</a></li>
-        <li class="active"><a href="{% url 'saved_items' %}">Saved Items</a></li>
-        <li><a href="{% url 'settings' %}">Settings & Options</a></li>
+  </div>
+  <ul>
+    <li><a href="{% url 'user_profile' user.id %}">My Profile</a></li>
+    <li><a href="{% url 'inbox' %}">Inbox</a></li>
+    <li class="active"><a href="{% url 'saved_items' %}">Saved Items</a></li>
+    <li><a href="{% url 'settings' %}">Settings & Options</a></li>
+  </ul>
+</nav>
+
+<div class="SettingContainer">
+  <div class="SettingSidebar">
+    <ul class="nav-menu">
+      <li class="active">
+        <a href="{% url 'inbox' %}">Messages ({{ total_messages }})</a>
+      </li>
+      <li>
+        <a href="{% url 'inbox' %}"
+          ><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a
+        >
+      </li>
+      <li>
+        <a href="{% url 'sent_items' %}"
+          ><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a
+        >
+      </li>
     </ul>
-  </nav> 
-  
-  <div class="SettingContainer">
-    <div class="SettingSidebar">
-      <ul class="nav-menu">
-        <li><strong>Notifications</strong></li>
-          <li class="active"><a href="{% url 'inbox' %}">Messages Messages ({{ total_messages }})</a></li>
-          <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
-          <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
-      </ul>
-    </div>
-  
-    <div class="inbox-container">
-      <div class="inbox-header">
-          <h1>Inbox</h1>
-          <div class="action-buttons">
-              <a href="{% url 'send_message' %}" class="action-btn compose-btn">
-                  <i class="fas fa-pen"></i>
-                  send a Message
-              </a>
-          </div>
-      </div>
-      <div class="messages-section">
-          <div class="messages-header">
-              <h2>Messages</h2>
-          </div>
-          <div class="message-list">
-              <div class="empty-state">
-                  <i class="fas fa-inbox"></i>
-                  <p>You have {{ messages|length }} items in your Inbox</p>
-                  <span class="empty-state-hint">New messages will appear here</span>
-              </div>
-          </div>
-      </div>
-  
+  </div>
+</div>
+<div class="inbox-container">
+  <div class="inbox-header">
+    <h1>Messages</h1>
+    <div class="action-buttons">
+      <a href="inputMsg.html" class="action-btn compose-btn">
+        <i class="fas fa-pen"></i>
+        Send a Message
+      </a>
     </div>
   </div>
 
+  <div class="sent-items-container">
+    <div class="sent-items-header">
+      <h3>You have 2 items in Sent Items</h3>
+    </div>
 
-      <!-- Pagination -->
-      {% if is_paginated %}
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <div>
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination">
-            <li
-              class="page-item {% if not page_obj.has_previous %}disabled{% endif %}"
-            >
-              <a
-                class="page-link"
-                href="{% if page_obj.has_previous %}?page=1{% else %}#{% endif %}"
-                aria-label="First"
-              >
-                <span aria-hidden="true">&laquo;&laquo;</span>
-              </a>
-            </li>
-            <li
-              class="page-item {% if not page_obj.has_previous %}disabled{% endif %}"
-            >
-              <a
-                class="page-link"
-                href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
-                aria-label="Previous"
-              >
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-            <li class="page-item active">
-              <span class="page-link">{{ page_obj.number }}</span>
-            </li>
-            <li
-              class="page-item {% if not page_obj.has_next %}disabled{% endif %}"
-            >
-              <a
-                class="page-link"
-                href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
-                aria-label="Next"
-              >
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-            <li
-              class="page-item {% if not page_obj.has_next %}disabled{% endif %}"
-            >
-              <a
-                class="page-link"
-                href="{% if page_obj.has_next %}?page={{ page_obj.paginator.num_pages }}{% else %}#{% endif %}"
-                aria-label="Last"
-              >
-                <span aria-hidden="true">&raquo;&raquo;</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
+    <table class="sent-items-table">
+      <tbody>
+        <tr>
+          <td class="action-cell">
+            <button class="delete-btn">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+          <td class="sender-cell">
+            <div class="sender-info">
+              <div class="user-avatar">
+                <div class="user-avatar-placeholder">M</div>
+              </div>
+              mosab22
+            </div>
+          </td>
+          <td class="message-cell">hellllllllllo!</td>
+          <td class="time-cell">5:34 PM</td>
+        </tr>
+        <tr>
+          <td class="action-cell">
+            <button class="delete-btn">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+          <td class="sender-cell">
+            <div class="sender-info">
+              <div class="user-avatar">
+                <div class="user-avatar-placeholder">M</div>
+              </div>
+              mosab22
+            </div>
+          </td>
+          <td class="message-cell">hello</td>
+          <td class="time-cell">3/18/25</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <div class="page-info">Page 1 of 1</div>
+      <div class="pagination-controls">
+        <button title="First page">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button title="Previous page"><i class="fas fa-angle-left"></i></button>
+        <button class="active">1</button>
+        <button title="Next page"><i class="fas fa-angle-right"></i></button>
+        <button title="Last page">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
       </div>
-      {% else %}
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <div>Page 1 of 1</div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination">
-            <li class="page-item disabled">
-              <a class="page-link" href="#" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-              </a>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-            <li class="page-item active">
-              <span class="page-link">1</span>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      {% endif %}
     </div>
   </div>
 </div>
 
 <!-- JavaScript for message actions -->
-{% block extra_js %}
 <script>
+  function deleteMessage(messageId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+      var form = $("<form></form>");
+      form.attr("method", "post");
+      form.attr("action", '{% url "delete_messages" %}');
 
-    // Select all messages
-    $("#selectAll").click(function (e) {
-      e.preventDefault();
-      $(".message-checkbox").prop("checked", true);
-    });
-
-    // Deselect all messages
-    $("#selectNone").click(function (e) {
-      e.preventDefault();
-      $(".message-checkbox").prop("checked", false);
-    });
-
-    // Delete selected messages
-    $("#deleteSelected").click(function (e) {
-      e.preventDefault();
-
-      var selectedMessages = $(".message-checkbox:checked")
-        .map(function () {
-          return $(this).val();
+      // Add CSRF token
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "csrfmiddlewaretoken",
+          value: "{{ csrf_token }}",
         })
-        .get();
+      );
 
-      if (selectedMessages.length === 0) {
-        alert("No messages selected");
-        return;
-      }
+      // Add message ID
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "message_ids",
+          value: messageId,
+        })
+      );
 
-      if (
-        confirm(
-          "Are you sure you want to delete " +
-            selectedMessages.length +
-            " message(s)?"
-        )
-      ) {
-        // Submit form to delete messages
-        var form = $("<form></form>");
-        form.attr("method", "post");
-        form.attr("action", '{% url "delete_messages" %}');
+      // Add current folder
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "folder",
+          value: "sent",
+        })
+      );
 
-        // Add CSRF token
-        form.append(
-          $("<input>").attr({
-            type: "hidden",
-            name: "csrfmiddlewaretoken",
-            value: "{{ csrf_token }}",
-          })
-        );
-
-        // Add message IDs
-        $.each(selectedMessages, function (i, messageId) {
-          form.append(
-            $("<input>").attr({
-              type: "hidden",
-              name: "message_ids",
-              value: messageId,
-            })
-          );
-        });
-
-        // Add current folder
-        form.append(
-          $("<input>").attr({
-            type: "hidden",
-            name: "folder",
-            value: "sent",
-          })
-        );
-
-        $("body").append(form);
-        form.submit();
-      }
-    });
-  });
+      $("body").append(form);
+      form.submit();
+    }
+  }
 </script>
-{% endblock %} {% endblock %}
+{% endblock %}

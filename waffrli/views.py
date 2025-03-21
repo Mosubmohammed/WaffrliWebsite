@@ -945,6 +945,11 @@ def reply_message(request, message_id):
     return redirect('view_message', message_id=message_id)
 
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Message
+from django.utils import timezone
+
 @login_required
 def sent_items(request):
     sent_messages = Message.objects.filter(sender=request.user).order_by('-date_sent')
@@ -955,7 +960,8 @@ def sent_items(request):
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
         'messages': sent_messages,
-        'active_tab': 'sent'
+        'active_tab': 'sent',
+        'now': timezone.now(),  # Add current time for display logic
     }
     
     return render(request, 'sent_items.html', context)

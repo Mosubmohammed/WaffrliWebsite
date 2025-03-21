@@ -6,4 +6,5 @@ admin.site.register(Category)
 admin.site.register(Customer)
 admin.site.register(Follow)
 admin.site.register(Comment)
+admin.site.register(Message)
 
