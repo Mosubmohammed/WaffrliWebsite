@@ -209,6 +209,52 @@
                 <button type="submit" id="post-comment-btn" class="btn btn-primary">Post Comment</button>
             </form>
         </div>
+      </div>
+
+
+      
+      
+      <section class="related-deals">
+        <h2 class="section-title">Related Deals</h2>
+        <div class="related-deals-slider">
+          {% for related_product in related_products %}
+            <div class="related-deal-card">
+              <div class="deal-image">
+                <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}" style="width:20%;">
+                {% if related_product.is_popular %}
+                  <span class="tag popular">Popular</span>
+                {% endif %}
+              </div>
+              <div class="deal-info">
+                <div class="deal-header">
+                  <p class="deal-source">
+                    Found by <strong>{{ related_product.user.username|default:"Unknown" }}</strong>
+                    <span class="deal-time">{{ related_product.create_at|timesince }} ago</span>
+                  </p>
+                </div>
+                <h3 class="deal-title">{{ related_product.Name }}</h3>
+                <div class="price-container">
+                  <span class="current-price">${{ related_product.sale_price }}</span>
+                  <span class="original-price">${{ related_product.Price }}</span>
+                  <br/>
+                  {% if related_product.discount_percentage %}
+                    <span class="discount">{{ related_product.discount_percentage }}% Off</span>
+                  {% endif %}
+                </div>
+                <div class="deal-footer">
+                  <span class="deal-store">{{ related_product.store }}</span>
+                  <div class="stats">
+                    <span class="likes"><i class="far fa-thumbs-up"></i> {{ related_product.likes.count }}</span>
+                    <span class="comments"><i class="far fa-comment"></i> {{ related_product.comments.count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="no-deals">No related deals found.</p>
+          {% endfor %}
+        </div>
+      </section>
         
         
     

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
@@ -21,7 +22,7 @@ def home(request):
     return render(request, 'home.html',{'products':products})
 
 
-# Category view - Display products of a specific category
+
 def category(request, foo):
     foo = foo.replace('-', ' ').strip()
     try:
@@ -30,8 +31,20 @@ def category(request, foo):
         
         # Get unique store names from products in this category
         stores = Product.objects.filter(category=category).values_list('store', flat=True).distinct()
+        
+        # Get unique city names (instead of location)
+        cities = Product.objects.filter(category=category).values_list('city', flat=True).distinct()
+        
+        # Get unique brand names
+        brands = Product.objects.filter(category=category).values_list('brand', flat=True).distinct()
 
-        return render(request, 'category.html', {'products': products, 'category': category, 'stores': stores})
+        return render(request, 'category.html', {
+            'products': products, 
+            'category': category, 
+            'stores': stores,
+            'locations': cities,  # Pass cities as locations for the template
+            'brands': brands
+        })
     except Category.DoesNotExist:
         messages.error(request, 'That category does not exist')
     except Exception as e:
@@ -50,42 +63,57 @@ def filter_products(request, foo):
     try:
         category = get_object_or_404(Category, name__iexact=foo)
         
+        # Get filter parameters
         store_names = request.GET.get("stores", "").split(",") if request.GET.get("stores") else []
+        location_names = request.GET.get("locations", "").split(",") if request.GET.get("locations") else []
+        brand_names = request.GET.get("brands", "").split(",") if request.GET.get("brands") else []
         min_price = request.GET.get("min_price", 0)
         max_price = request.GET.get("max_price", 999999)
-        rating_filter = request.GET.get("ratings", "").split(",") if request.GET.get("ratings") else []
-
+        rating_filter = request.GET.get("ratings", "0")
+        
         # Convert to numbers to prevent errors
         try:
             min_price = float(min_price)
             max_price = float(max_price)
-            rating_filter = [int(r) for r in rating_filter if r.isdigit()]
         except ValueError:
-            return JsonResponse({"error": "Invalid filters"}, status=400)
-
-        # Start filtering by category and **sale_price**
+            return JsonResponse({"error": "Invalid price filters"}, status=400)
+        
+        # Start filtering by category and sale_price
         products = Product.objects.filter(category=category, sale_price__gte=min_price, sale_price__lte=max_price)
-
+        
         # Apply store filtering only if stores are selected
         if store_names and store_names[0] != "":
             products = products.filter(store__in=store_names)
-
+        
+        # Apply city filtering (instead of location) only if cities are selected
+        if location_names and location_names[0] != "":
+            products = products.filter(city__in=location_names)
+        
+        # Apply brand filtering only if brands are selected
+        if brand_names and brand_names[0] != "":
+            products = products.filter(brand__in=brand_names)
+        
         # Apply rating (likes) filtering
-        if rating_filter:
-            query = Q()
-            for rating in rating_filter:
-                query |= Q(likes__gte=rating)  # Filter products with at least X likes
-            products = products.filter(query)
-
+        if rating_filter and rating_filter != "0":
+            try:
+                min_rating = int(rating_filter)
+                # Using annotation to count likes for proper filtering
+                from django.db.models import Count
+                products = products.annotate(likes_count=Count('likes')).filter(likes_count__gte=min_rating)
+            except ValueError:
+                pass
+        
         # Ensure distinct products
         products = products.distinct()
-
+        
         data = {
             "products": [
                 {
                     "id": p.id,
                     "name": p.Name,
                     "store": p.store,
+                    "city": p.city,  # Change location to city in response
+                    "brand": p.brand,
                     "price": str(p.Price),
                     "sale_price": str(p.sale_price) if p.sale_price else None,
                     "description": p.Description,
@@ -101,7 +129,7 @@ def filter_products(request, foo):
             ]
         }
         return JsonResponse(data)
-
+    
     except Category.DoesNotExist:
         return JsonResponse({"error": "Category not found"}, status=404)
 
@@ -144,10 +172,40 @@ def product(request, pk):
         # Retrieve all comments for this product
         comments = product.comments.all()
         
+        # Get related products (products in the same category, excluding current product)
+        related_products = Product.objects.filter(
+            category=product.category
+        ).exclude(
+            id=product.id
+        ).order_by(
+            '-create_at'  # Sort by newest first
+        )[:6]  # Limit to 6 products
+        
+        # Calculate discount percentage for product and related products
+        if product.Price and product.sale_price:
+            product.discount_percentage = round(((product.Price - product.sale_price) / product.Price) * 100)
+        else:
+            product.discount_percentage = 0
+            
+        # Calculate discount for related products
+        for related_product in related_products:
+            if related_product.Price and related_product.sale_price:
+                discount = ((related_product.Price - related_product.sale_price) / related_product.Price) * 100
+                related_product.discount_percentage = round(discount)
+            else:
+                related_product.discount_percentage = 0
+                
+            # Add a flag for popular products (e.g., products with high views or likes)
+            related_product.is_popular = related_product.views > 100 or related_product.likes.count() > 10
+            
+            # Add time ago for display
+            related_product.time_ago = related_product.create_at
+        
         # Create context with all necessary data
         context = {
             'product': product,
             'comments': comments,
+            'related_products': related_products,
             'user': request.user,  # Ensure user is in context
         }
         
@@ -156,7 +214,6 @@ def product(request, pk):
     except Product.DoesNotExist:
         messages.error(request, 'That product does not exist.')
         return redirect('home')
-
 
 
 
@@ -976,3 +1033,131 @@ def close_account(request):
     else:
         # Display confirmation page for GET requests
         return render(request, 'confirm_account_deletion.html')
+    
+    
+
+
+def hot_deals(request):
+    # Get all products that have a sale price
+    products = Product.objects.filter(sale_price__isnull=False).select_related('category', 'user', 'customer_pic_id')
+    
+    # Calculate and filter products with discount >= 70%
+    hot_deals = []
+    for product in products:
+        if product.Price > 0 and product.sale_price is not None:
+            discount_percentage = ((product.Price - product.sale_price) / product.Price) * 100
+            
+            if discount_percentage >= 70:
+                # Add discount_percentage as attribute for display
+                product.discount_percentage = round(discount_percentage, 2)
+                hot_deals.append(product)
+    
+    # Start with all hot deals
+    filtered_deals = hot_deals.copy()
+    
+    # Get data for filter dropdowns
+    all_stores = Product.objects.values_list('store', flat=True).distinct()
+    all_cities = Product.objects.values_list('city', flat=True).distinct()
+    all_brands = Product.objects.values_list('brand', flat=True).distinct()
+    
+    context = {
+        'products': filtered_deals,
+        'stores': all_stores,
+        'locations': all_cities,
+        'brands': all_brands,
+    }
+    
+    return render(request, 'hot_deals.html', context)
+
+def filter_hot_deals(request):
+    # Get all products that have a sale price
+    products = Product.objects.filter(sale_price__isnull=False).select_related('category', 'user', 'customer_pic_id')
+    
+    # Calculate and filter products with discount >= 70%
+    hot_deals = []
+    for product in products:
+        if product.Price > 0 and product.sale_price is not None:
+            discount_percentage = ((product.Price - product.sale_price) / product.Price) * 100
+            
+            if discount_percentage >= 70:
+                # Add discount_percentage as attribute for display
+                product.discount_percentage = round(discount_percentage, 2)
+                hot_deals.append(product)
+    
+    # Start with all hot deals
+    filtered_deals = hot_deals.copy()
+    
+    # Get filter parameters
+    stores = request.GET.get('stores', '')
+    locations = request.GET.get('locations', '')
+    brands = request.GET.get('brands', '')
+    min_price = request.GET.get('min_price', '0')
+    max_price = request.GET.get('max_price', '1000')
+    ratings = request.GET.get('ratings', '0')
+    
+    # Apply store filter
+    if stores and stores != '':
+        store_list = stores.split(',')
+        filtered_deals = [deal for deal in filtered_deals 
+                          if deal.store in store_list]
+    
+    # Apply city/location filter
+    if locations and locations != '':
+        location_list = locations.split(',')
+        filtered_deals = [deal for deal in filtered_deals 
+                         if deal.city in location_list]
+    
+    # Apply brand filter
+    if brands and brands != '':
+        brand_list = brands.split(',')
+        filtered_deals = [deal for deal in filtered_deals 
+                         if deal.brand in brand_list]
+    
+    # Apply price range filters
+    if min_price:
+        min_price_val = float(min_price)
+        filtered_deals = [deal for deal in filtered_deals if float(deal.sale_price) >= min_price_val]
+    
+    if max_price:
+        max_price_val = float(max_price)
+        filtered_deals = [deal for deal in filtered_deals if float(deal.sale_price) <= max_price_val]
+    
+    # Apply rating filter (thumbs/likes)
+    if ratings and ratings != '0':
+        rating_threshold = int(ratings)
+        filtered_deals = [deal for deal in filtered_deals if deal.number_of_likes() >= rating_threshold]
+    
+    # Prepare JSON response
+    products_data = []
+    for product in filtered_deals:
+        # Get customer pic URL if available
+        customer_pic_url = None
+        if product.customer_pic_id and product.customer_pic_id.image:
+            customer_pic_url = product.customer_pic_id.image.url
+        
+        # Get comment count (adjust if your model has a different way to count comments)
+        comment_count = 0  # Replace with actual comment count if available
+        
+        # Check if the current user has liked this product
+        liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
+        
+        products_data.append({
+            'id': product.id,
+            'name': product.Name,
+            'price': str(product.Price),
+            'sale_price': str(product.sale_price),
+            'description': product.Description,
+            'store': product.store,
+            'city': product.city,
+            'category_name': product.category.name,
+            'image_url': product.image.url if product.image else None,
+            'username': product.user.username if product.user else "Unknown",
+            'create_at': product.create_at.strftime('%d-%m'),
+            'customer_pic_url': customer_pic_url,
+            'discount_percentage': product.discount_percentage,
+            'likes_count': product.number_of_likes(),
+            'comment_count': comment_count,
+            'liked_by_user': liked_by_user,
+        })
+    
+    return JsonResponse({'products': products_data})

@@ -63,22 +63,44 @@ class Product(models.Model):
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     Price = models.DecimalField(max_digits=10, decimal_places=2)
     Description = models.TextField()
-    store = models.CharField(max_length=255)
+    store = models.CharField(max_length=55)
+    brand = models.CharField(max_length=55)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
     city = models.CharField(max_length=255)
     image = models.ImageField(upload_to='uploads/product/', null=True, blank=True)
-    customer_pic_id = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, default=None)
-    likes=models.ManyToManyField(User, related_name="Product_like",blank=True)
-    views  = models.IntegerField(default=0)
+    customer_pic_id = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True, default=None)
+    likes = models.ManyToManyField(User, related_name="Product_like", blank=True)
+    views = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
 
     def increment_views(self):
         self.views += 1
         self.save()
+        
     def __str__(self) -> str:
         return self.Name
+    
     def number_of_likes(self):
         return self.likes.count()
+    
+    # New methods for hot deals functionality
+    def get_discount_percentage(self):
+        """Calculate discount percentage if sale_price exists"""
+        if not self.sale_price or self.Price == 0:
+            return 0
+        
+        discount = ((self.Price - self.sale_price) / self.Price) * 100
+        return round(discount, 2)
+    
+    def is_hot_deal(self):
+        """Check if product qualifies as a hot deal (discount >= 70%)"""
+        return self.get_discount_percentage() >= 70
+    
+    def get_savings_amount(self):
+        """Calculate amount saved"""
+        if not self.sale_price:
+            return 0
+        return self.Price - self.sale_price
 
 
 

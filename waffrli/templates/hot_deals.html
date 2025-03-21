@@ -3,8 +3,11 @@
 {% block content %}
 <link href="{% static 'css/Sub-categories.css' %}" rel="stylesheet" />
 <div class="container">
+    <h1 class="text-center mb-4 hot-deals-title"><span class="hot-emoji">🔥</span> Hot Deals <span class="hot-emoji">🔥</span></h1>
+    <p class="text-center">Products with 70% or more discount</p>
 
     <div class="main-content">
+        <!-- Sidebar Filters -->
         <aside class="filters">
             <h2>Filters</h2>
         
@@ -64,150 +67,92 @@
             </div>
         </aside>
 
+        <!-- Products Grid -->
         <main class="products">
-            {% comment %} <div class="sort-bar">
-                <select id="sortBy">
-                    <option value="popular">Most Popular</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
-                </select>
-            </div> {% endcomment %}
-
-            <div  id="productGrid">
-
-            
-
-                <div id="product-list">
-                {% for product in products %}
-                    <div class="product-card">
-                        <div class="card-header">
-                            <div class="user-info">
-                                {% if product.customer_pic_id and product.customer_pic_id.image %}
-                                <img style="width: 20px; height: 24px" 
-                                     src="{{ product.customer_pic_id.image.url }}" 
-                                     alt="User Icon" 
-                                     class="profile-pic" 
-                                     width="30" 
-                                     height="30" />
-                                {% else %}
-                                <img style="width: 20px; height: 24px" 
-                                     src="{% static 'images/default-profile.png' %}" 
-                                     alt="Default User" 
-                                     class="profile-pic" 
-                                     width="30" 
-                                     height="30" />
-                                {% endif %}
-                                <div class="user-details">
-                                    <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-                                    <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+            <div id="product-list">
+                {% if products %}
+                    {% for product in products %}
+                        <div class="product-card">
+                            <div class="card-header">
+                                <div class="user-info">
+                                    {% if product.customer_pic_id and product.customer_pic_id.image %}
+                                    <img style="width: 20px; height: 24px" 
+                                         src="{{ product.customer_pic_id.image.url }}" 
+                                         alt="User Icon" 
+                                         class="profile-pic" 
+                                         width="30" 
+                                         height="30" />
+                                    {% else %}
+                                    <img style="width: 20px; height: 24px" 
+                                         src="{% static 'images/default-profile.png' %}" 
+                                         alt="Default User" 
+                                         class="profile-pic" 
+                                         width="30" 
+                                         height="30" />
+                                    {% endif %}
+                                    <div class="user-details">
+                                        <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+                                        <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+                                    </div>
+                                </div>
+                                <!-- Discount Badge -->
+                                <div class="discount-tag">
+                                    <span>{{ product.discount_percentage }}% OFF</span>
                                 </div>
                             </div>
-                            
-                        </div>
-            
-                        <img src="{{ product.image.url }}" alt="Product" />
-            
-                        <div class="product-info">
-                            <h3>{{ product.Name }}</h3>
-                            <p class="description">{{ product.Description }}</p>
-            
-                            <div class="price-container">
-                                <span class="current-price">${{ product.sale_price }}</span>
-                                <span class="original-price">${{ product.Price }}</span>
+                
+                            <img src="{{ product.image.url }}" alt="{{ product.Name }}" />
+                
+                            <div class="product-info">
+                                <h3>{{ product.Name }}</h3>
+                                <p class="description">{{ product.Description|truncatechars:100 }}</p>
+                
+                                <div class="price-container">
+                                    <span class="current-price">${{ product.sale_price }}</span>
+                                    <span class="original-price">${{ product.Price }}</span>
+                                </div>
+                                
+                                <div class="store-details">
+                                    <span class="store-badge">{{ product.store }}</span>
+                                    <span class="store-badge">{{ product.city }}</span>
+                                    <span class="store-badge">{{ product.category.name }}</span>
+                                </div>
                             </div>
-            
-
+                
+                            <div class="card-footer">
+                                <button class="like-btn" data-product-id="{{ product.id }}">
+                                    <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+                                    <span class="like-count">{{ product.number_of_likes }}</span>
+                                </button>
+                                <a href="{{ product.Dealurl }}" class="get-deal-btn" target="_blank">
+                                    Get Deal
+                                </a>
+                            </div>
                         </div>
-            
-                        <div class="card-footer">
-                            <button class="like-btn" data-product-id="{{ product.id }}">
-                                <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-                                <span class="like-count">{{ product.likes.count }}</span>
-                            </button>
-                            <button class="comment-btn">
-                                <i class="far fa-comment"></i> {{ product.comment_count }}
-                            </button>
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <p class="no-results">No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+                {% endif %}
             </div>
-        
-            
-
-        
         </main>
     </div>
 </div>
 
-
-
-
 <script>
-
-    // slider of the price 
-    const priceRange = document.getElementById("priceRange");
-    const minPrice = document.getElementById("minPrice");
-    const maxPrice = document.getElementById("maxPrice");
-
-    priceRange.addEventListener("input", function () {
-        minPrice.value = this.min;
-        maxPrice.value = this.value;
-    });
-
-    minPrice.addEventListener("input", function () {
-        if (parseInt(minPrice.value) >= parseInt(maxPrice.value)) {
-            minPrice.value = maxPrice.value - 1;
-        }
-    });
-
-    maxPrice.addEventListener("input", function () {
-        if (parseInt(maxPrice.value) <= parseInt(minPrice.value)) {
-            maxPrice.value = parseInt(minPrice.value) + 1;
-        }
-        priceRange.value = maxPrice.value;
-    });
-
-
-    // brands filter
     document.addEventListener("DOMContentLoaded", function () {
-        const brandHeader = document.querySelector(".toggle-brands");
-        const brandList = document.querySelector(".brand-list");
-        const icon = document.querySelector(".brand-toggle-icon");
-
-        brandHeader.addEventListener("click", function () {
-
-            if (brandList.style.display === "none" || brandList.style.display === "") {
-                brandList.style.display = "block";
-                icon.classList.add("rotate");
-            } else {
-                brandList.style.display = "none";
-                icon.classList.remove("rotate");
-            }
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
+        // Price slider functionality
         const priceRange = document.getElementById("priceRange");
         const minPriceInput = document.getElementById("minPrice");
         const maxPriceInput = document.getElementById("maxPrice");
-        const storeCheckboxes = document.querySelectorAll('input[name="store"]');
-        const locationCheckboxes = document.querySelectorAll('input[name="location"]');
-        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
-        const ratingRadios = document.querySelectorAll('input[name="rating"]');
     
-        // Update min/max price based on slider
         priceRange.addEventListener("input", function () {
             maxPriceInput.value = this.value;
-            fetchFilteredProducts();
         });
     
-        // Prevent min price from exceeding max price
         minPriceInput.addEventListener("input", function () {
             if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
                 minPriceInput.value = maxPriceInput.value - 1;
             }
-            fetchFilteredProducts();
         });
     
         maxPriceInput.addEventListener("input", function () {
@@ -215,29 +160,36 @@
                 maxPriceInput.value = parseInt(minPriceInput.value) + 1;
             }
             priceRange.value = maxPriceInput.value;
-            fetchFilteredProducts();
         });
     
         // Brand Filter Toggle
         const brandHeader = document.querySelector(".toggle-brands");
         const brandList = document.querySelector(".brand-list");
-        const icon = document.querySelector(".brand-toggle-icon");
     
         if (brandHeader) {
             brandHeader.addEventListener("click", function () {
                 const isHidden = brandList.style.display === "none" || brandList.style.display === "";
                 brandList.style.display = isHidden ? "block" : "none";
-                icon.classList.toggle("rotate", isHidden);
             });
         }
     
         // Add event listeners for all filter inputs
+        const storeCheckboxes = document.querySelectorAll('input[name="store"]');
+        const locationCheckboxes = document.querySelectorAll('input[name="location"]');
+        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
+        const ratingRadios = document.querySelectorAll('input[name="rating"]');
+    
         storeCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
         locationCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
         brandCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
         ratingRadios.forEach(radio => radio.addEventListener("change", fetchFilteredProducts));
+        
+        // Add listeners for price inputs
+        minPriceInput.addEventListener("change", fetchFilteredProducts);
+        maxPriceInput.addEventListener("change", fetchFilteredProducts);
+        priceRange.addEventListener("change", fetchFilteredProducts);
     
-        // Define fetchFilteredProducts function in the same scope
+        // Define fetchFilteredProducts function
         function fetchFilteredProducts() {
             // Get selected stores
             let selectedStores = [...document.querySelectorAll('input[name="store"]:checked')]
@@ -258,9 +210,6 @@
             const minPrice = minPriceInput.value;
             const maxPrice = maxPriceInput.value;
     
-            // Get category slug dynamically
-            const categorySlug = "{{ category.name|slugify }}";
-    
             // Add console logs for debugging
             console.log("Filtering with:", {
                 stores: selectedStores,
@@ -272,7 +221,7 @@
             });
     
             // Build the URL with all filters
-            const url = `/category/${categorySlug}/filter-products/?` + 
+            const url = `/hot-deals/filter/?` + 
                         `stores=${selectedStores.join(",")}&` +
                         `locations=${selectedLocations.join(",")}&` +
                         `brands=${selectedBrands.join(",")}&` +
@@ -315,14 +264,22 @@
                                             <span class="deal-time">${product.create_at}</span>
                                         </div>
                                     </div>
+                                    <div class="discount-tag">
+                                        <span>${product.discount_percentage}% OFF</span>
+                                    </div>
                                 </div>
-                                <img src="${product.image_url}" alt="Product" />
+                                <img src="${product.image_url}" alt="${product.name}" />
                                 <div class="product-info">
                                     <h3>${product.name}</h3>
                                     <p class="description">${product.description}</p>
                                     <div class="price-container">
-                                        <span class="current-price">$${product.sale_price ? product.sale_price : product.price}</span>
+                                        <span class="current-price">$${product.sale_price}</span>
                                         <span class="original-price">$${product.price}</span>
+                                    </div>
+                                    <div class="store-details">
+                                        <span class="store-badge">${product.store}</span>
+                                        <span class="store-badge">${product.city}</span>
+                                        <span class="store-badge">${product.category_name}</span>
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -330,11 +287,19 @@
                                         <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
                                         <span class="like-count">${product.likes_count}</span>
                                     </button>
-                                    <button class="comment-btn">
-                                        <i class="far fa-comment"></i> ${product.comment_count}
-                                    </button>
+                                    <a href="/product/${product.id}" class="get-deal-btn" target="_blank">
+                                        Get Deal
+                                    </a>
                                 </div>
                             </div>`;
+                    });
+                    
+                    // Re-attach event listeners to new like buttons
+                    document.querySelectorAll('.like-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const productId = this.getAttribute('data-product-id');
+                            likeProduct(productId, this);
+                        });
                     });
                 })
                 .catch(error => {
@@ -343,16 +308,57 @@
                     productList.innerHTML = "<p class='error'>Error loading products. Please try again.</p>";
                 });
         }
+        
+        // Like button functionality
+        function likeProduct(productId, button) {
+            fetch(`/like-product/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const likeIcon = button.querySelector('i');
+                const likeCount = button.querySelector('.like-count');
+                
+                if (data.liked) {
+                    likeIcon.classList.remove('far');
+                    likeIcon.classList.add('fas');
+                } else {
+                    likeIcon.classList.remove('fas');
+                    likeIcon.classList.add('far');
+                }
+                
+                likeCount.textContent = data.likes_count;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Initialize event listeners for like buttons
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                likeProduct(productId, this);
+            });
+        });
     });
-
-// Add event listeners for the new filters
-document.querySelectorAll('input[name="location"]').forEach(cb => 
-    cb.addEventListener("change", fetchFilteredProducts)
-);
-document.querySelectorAll('input[name="brand"]').forEach(cb => 
-    cb.addEventListener("change", fetchFilteredProducts)
-);
-    
-    
 </script>
-{%endblock%}
+{% endblock %}
