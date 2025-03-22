@@ -1181,7 +1181,7 @@ def popular_deals(request):
     ).order_by('-popularity_score')
     
     # Set up pagination
-    paginator = Paginator(products_list, 12)  # Show 12 deals per page
+    paginator = Paginator(products_list, 2)  # Show 12 deals per page
     page = request.GET.get('page')
     
     try:
@@ -1199,3 +1199,57 @@ def popular_deals(request):
     }
     
     return render(request, 'popular_deals.html', context)
+
+
+@login_required
+def edit_deal(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+
+    if request.method == "POST":
+        try:
+            product.Name = request.POST.get('Name')
+            product.Description = request.POST.get('Description')
+            product.Price = request.POST.get('Price')
+            product.sale_price = request.POST.get('sale_price')
+            product.Dealurl = request.POST.get('Dealurl')
+            product.store = request.POST.get('store')
+            
+            if 'image' in request.FILES:
+                product.image = request.FILES['image']
+
+            product.save()
+            
+            messages.success(request, "Your deal has been updated successfully!")
+            return redirect('product', pk=product_id) 
+            
+        except Exception as e:
+            print(f"Error updating deal: {str(e)}")
+            messages.error(request, "An error occurred while updating the deal. Please try again.")
+            context = {'product': product}
+            return render(request, 'edit_deal.html', context)
+    
+    # Add this part to handle GET requests
+    else:
+        context = {'product': product}
+        return render(request, 'edit_deal.html', context)
+        
+        
+        
+@login_required
+def delete_deal(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.user != product.user:
+        messages.error(request, "You don't have permission to delete this deal.")
+        return redirect('product', pk=product_id)
+    
+    try:
+        product.delete()
+        messages.success(request, f"Your deal '{product.Name}' has been successfully deleted.")
+        return redirect('home') 
+        
+    except Exception as e:
+        print(f"Error deleting deal: {str(e)}")
+        messages.error(request, "An error occurred while deleting the deal. Please try again.")
+        return redirect('product', pk=product_id)

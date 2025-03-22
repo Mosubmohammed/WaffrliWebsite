@@ -1,0 +1,149 @@
+{% extends "base.html" %} 
+{% load static %} 
+
+{% block content %}
+<link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
+<link href="{% static 'css/EditDealStyle.css' %}" rel="stylesheet" />
+
+<div class="container">
+  <div class="content-wrapper">
+    <main class="main">
+      <div class="edit-deal-container">
+        <div class="page-header">
+          <h1>Edit Your Deal</h1>
+          <div class="breadcrumbs">
+            <a href="{% url 'home' %}">Home</a> &gt; 
+            <a href="{% url 'product' product.id %}">{{ product.Name }}</a> &gt; 
+            <span>Edit Deal</span>
+          </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="edit-form-container">
+          <form id="edit-deal-form" method="POST" action="{% url 'edit_deal' product.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-section">
+              <h3>Basic Information</h3>
+              
+              <div class="form-group">
+                <label for="deal-name">Deal Title</label>
+                <input type="text" id="deal-name" name="Name" value="{{ product.Name }}" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="deal-description">Description</label>
+                <textarea id="deal-description" name="Description" rows="4" required>{{ product.Description }}</textarea>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Pricing</h3>
+              
+              <div class="form-row">
+                <div class="form-group half">
+                  <label for="deal-price">Original Price ($)</label>
+                  <input type="number" id="deal-price" name="Price" step="0.01" value="{{ product.Price }}" required>
+                </div>
+                <div class="form-group half">
+                  <label for="deal-sale-price">Sale Price ($)</label>
+                  <input type="number" id="deal-sale-price" name="sale_price" step="0.01" value="{{ product.sale_price }}" required>
+                </div>
+                <div class="discount-preview" id="discount-preview">
+                  Discount: <span>{{ discount_percentage|default:"0" }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Deal Source</h3>
+              
+              <div class="form-group">
+                <label for="deal-url">Deal URL</label>
+                <input type="url" id="deal-url" name="Dealurl" value="{{ product.Dealurl }}" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="deal-store">Store</label>
+                <input type="text" id="deal-store" name="store" value="{{ product.store }}" required>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Deal Image</h3>
+              
+              <div class="form-group">
+                <div class="current-image">
+                  <img src="{{ product.image.url }}" alt="Current product image" class="preview-image">
+                  <p>Current image</p>
+                </div>
+                <label for="deal-image">Upload New Image (optional)</label>
+                <input type="file" id="deal-image" name="image" accept="image/*">
+                <small>Leave empty to keep current image</small>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <a href="{% url 'product' product.id %}" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Calculate discount percentage when price inputs change
+    const originalPriceInput = document.getElementById('deal-price');
+    const salePriceInput = document.getElementById('deal-sale-price');
+    const discountPreview = document.getElementById('discount-preview').querySelector('span');
+    
+    function calculateDiscount() {
+      const originalPrice = parseFloat(originalPriceInput.value);
+      const salePrice = parseFloat(salePriceInput.value);
+      
+      if (originalPrice > 0 && salePrice >= 0 && originalPrice >= salePrice) {
+        const discount = ((originalPrice - salePrice) / originalPrice) * 100;
+        discountPreview.textContent = discount.toFixed(1) + '%';
+      } else {
+        discountPreview.textContent = '0%';
+      }
+    }
+    
+    // Calculate on input change
+    originalPriceInput.addEventListener('input', calculateDiscount);
+    salePriceInput.addEventListener('input', calculateDiscount);
+    
+    // Calculate initially
+    calculateDiscount();
+    
+    // Preview uploaded image
+    const imageInput = document.getElementById('deal-image');
+    const previewImage = document.querySelector('.preview-image');
+    
+    imageInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          previewImage.src = e.target.result;
+        }
+        
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  });
+</script>
+{% endblock %}

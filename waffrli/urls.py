@@ -34,6 +34,8 @@ urlpatterns = [
     path('hot_deals/', hot_deals, name='hot_deals'),
     path('hot-deals/filter/', filter_hot_deals, name='filter_hot_deals'),
     path('popular_deals/', popular_deals, name='popular_deals'),
+    path('product/<int:product_id>/edit/', edit_deal, name='edit_deal'),
+    path('product/<int:product_id>/delete/', delete_deal, name='delete_deal'),
     
 
 ]

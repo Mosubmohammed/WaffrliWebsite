@@ -605,6 +605,85 @@ textarea:focus {
   font-size: 1.2rem;
   color: #6c757d;
 }
+.edit-deal-btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #3498db;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-deal-btn:hover {
+  background-color: #2980b9;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edit-deal-btn i {
+  margin-right: 5px;
+}
+
+/* Add these styles to your DealDetailsStyle.css file */
+
+.deal-owner-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+}
+
+.delete-deal-btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e74c3c;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-deal-btn:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.delete-deal-btn i {
+  margin-right: 5px;
+}
+
+/* Make it responsive */
+@media (max-width: 768px) {
+  .deal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .deal-owner-actions {
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+    margin-left: 0;
+  }
+
+  .edit-deal-btn,
+  .delete-deal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
 
 @keyframes fadeIn {
   from {
@@ -629,6 +708,16 @@ textarea:focus {
 
   .deal-card .card-img-top {
     height: 180px;
+  }
+  .deal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .edit-deal-btn {
+    margin-left: 0;
+    margin-top: 5px;
   }
 }
 
