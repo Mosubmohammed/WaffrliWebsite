@@ -454,6 +454,184 @@ textarea:focus {
   right: 12rem;
 }
 
+.popular-deals-header {
+  background: linear-gradient(135deg, #ff7e5f, #feb47b);
+  color: white;
+  padding: 40px 0;
+  margin-bottom: 30px;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.popular-deals-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.popular-deals-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.deal-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-out forwards;
+  position: relative;
+}
+
+.deal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.deal-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.deal-card .card-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  height: 2.8rem;
+  overflow: hidden;
+}
+
+.deal-card .price-section {
+  margin: 10px 0;
+}
+
+.deal-card .original-price {
+  text-decoration: line-through;
+  color: #6c757d;
+  margin-left: 5px;
+}
+
+.deal-card .sale-price {
+  font-weight: 700;
+  color: #dc3545;
+  font-size: 1.2rem;
+}
+
+.deal-card .regular-price {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.deal-card .discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+.deal-card .store-info {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.deal-card .stats {
+  display: flex;
+  justify-content: space-between;
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.deal-card .button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deal-card .view-btn {
+  background-color: #007bff;
+  border-color: #007bff;
+  width: 100%;
+}
+
+.deal-card .like-btn {
+  background-color: white;
+  color: #dc3545;
+  border-color: #dc3545;
+  width: 100%;
+}
+
+.deal-card .like-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.deal-card .like-btn.liked {
+  background-color: #dc3545;
+  color: white;
+}
+
+.pagination {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.pagination .page-item .page-link {
+  color: #333;
+  border-radius: 5px;
+  margin: 0 3px;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ff7e5f;
+  border-color: #ff7e5f;
+}
+
+.empty-deals {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 40px;
+  border-radius: 10px;
+  text-align: center;
+  margin: 30px 0;
+}
+
+.empty-deals p {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .popular-deals-header {
+    padding: 30px 0;
+  }
+
+  .popular-deals-header h1 {
+    font-size: 2rem;
+  }
+
+  .deal-card .card-img-top {
+    height: 180px;
+  }
+}
+
 @media (max-width: 768px) {
   .ads {
     flex: 0 0 100%;

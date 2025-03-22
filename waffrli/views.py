@@ -1,4 +1,4 @@
-from datetime import timedelta
+
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
@@ -8,13 +8,10 @@ from django.db.models import Q
 import firebase_admin
 from .models import *
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.db.models import Count
-import json
-from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
 from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
-from .forms import UserUpdateForm, ProfileUpdateForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def home(request):
@@ -531,43 +528,43 @@ def post_deal(request):
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
-
+    
     if request.method == "POST":
-
-
         # Fetch image
-        pic = request.FILES.get('pic')
+        pic = request.FILES.get('image')  # FIXED: Changed from 'pic' to 'image' to match template
         if not pic:
             messages.error(request, "Please upload an image.")
             return redirect('post_deal')
-
+        
         # Fetch form data
-        name = request.POST.get('name')
-        url = request.POST.get('url')
-        sale_price = request.POST.get('sale_price')
-        price = request.POST.get('price')
+        name = request.POST.get('deal-title')  # FIXED: Changed from 'name' to 'deal-title' to match template
+        url = request.POST.get('deal-url')  # FIXED: Changed from 'url' to 'deal-url' to match template
+        sale_price = request.POST.get('sale-price')  # FIXED: Changed from 'sale_price' to 'sale-price' to match template
+        price = request.POST.get('list-price')  # FIXED: Changed from 'price' to 'list-price' to match template
         description = request.POST.get('description')
         store = request.POST.get('store')
+        brand = request.POST.get('brand')  # ADDED: Get brand from form
         category_id = request.POST.get('category')
         location = request.POST.get('location')
-
+        
         # Validate required fields
         if not name or not store or not category_id or not location:
             messages.error(request, "Please fill in all required fields.")
             return redirect('post_deal')
-
+        
         # Fetch category
         try:
             category = Category.objects.get(id=int(category_id))
-        except Category.DoesNotExist:
+        except (Category.DoesNotExist, ValueError):
+            # FIXED: Added ValueError to catch if category_id is not a valid integer
             messages.error(request, "Invalid category selected.")
             return redirect('post_deal')
-
+        
         # Check if URL already exists
         if Product.objects.filter(Dealurl=url).exists():
             messages.error(request, "A product with this URL already exists.")
             return redirect('post_deal')
-
+        
         # Convert price fields to Decimal safely
         try:
             sale_price = Decimal(sale_price) if sale_price else Decimal("0.00")
@@ -575,26 +572,25 @@ def post_deal(request):
         except (ValueError, InvalidOperation):
             messages.error(request, "Invalid price format.")
             return redirect('post_deal')
-
+        
         # Create and save the product
         deal = Product.objects.create(
-            user=request.user,  # Corrected: Assign the user directly
+            user=request.user,
             Dealurl=url,
             Name=name,
             sale_price=sale_price,
             Price=price,
             Description=description,
             store=store,
+            brand=brand,  # ADDED: Store brand value
             image=pic,
             category=category,
             city=location,
         )
-
+        
         messages.success(request, "Deal posted successfully!")
         return redirect('home')
-
-    print("GET request received")  # Debugging output
-
+    
     # Fetch categories to display in the form
     categories = Category.objects.all()
     return render(request, "post_deal.html", {'categories': categories})
@@ -945,10 +941,7 @@ def reply_message(request, message_id):
     return redirect('view_message', message_id=message_id)
 
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Message
-from django.utils import timezone
+
 
 @login_required
 def sent_items(request):
@@ -1167,3 +1160,42 @@ def filter_hot_deals(request):
         })
     
     return JsonResponse({'products': products_data})
+
+
+def popular_deals(request):
+    """
+    Function to display popular deals based on a combination of likes and views.
+    """
+    # Get all products and annotate them with like count
+    products_list = Product.objects.annotate(
+        like_count=Count('likes')
+    )
+    
+    # Create a weighted popularity score (likes * 3 + views)
+    # but don't display the score to the user
+    products_list = products_list.annotate(
+        popularity_score=ExpressionWrapper(
+            (F('like_count') * 3) + F('views'),  # Likes are weighted 3x more than views
+            output_field=FloatField()
+        )
+    ).order_by('-popularity_score')
+    
+    # Set up pagination
+    paginator = Paginator(products_list, 12)  # Show 12 deals per page
+    page = request.GET.get('page')
+    
+    try:
+        popular_products = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        popular_products = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        popular_products = paginator.page(paginator.num_pages)
+    
+    context = {
+        'popular_deals': popular_products,
+        'title': 'Popular Deals'
+    }
+    
+    return render(request, 'popular_deals.html', context)

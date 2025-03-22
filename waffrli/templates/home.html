@@ -34,7 +34,7 @@
                 <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
               </div>
             </div>
-            <div class="sale-tag">-70%</div>
+            <div class="sale-tag">{{ product.get_discount_percentage }}%</div>
           </div>
     
           <!-- Product image with link -->

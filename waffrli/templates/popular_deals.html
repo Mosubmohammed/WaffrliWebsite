@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
+<div class="popular-deals-header">
+    <div class="container">
+        <h1>{{ title }}</h1>
+        <p>Discover the most popular deals based on likes and views</p>
+    </div>
+</div>
+
+<div class="container">
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        {% for product in popular_deals %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card deal-card">
+                    {% if product.get_discount_percentage > 0 %}
+                        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+                    {% endif %}
+                    
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.Name }}">
+                    {% else %}
+                        <div class="placeholder-img text-center p-4 bg-light">No Image</div>
+                    {% endif %}
+                    
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ product.Name }}</h5>
+                        
+                        <div class="price-section">
+                            {% if product.sale_price %}
+                                <span class="sale-price">${{ product.sale_price }}</span>
+                                <span class="original-price">${{ product.Price }}</span>
+                            {% else %}
+                                <span class="regular-price">${{ product.Price }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="store-info">{{ product.store }} - {{ product.city }}</p>
+                        
+                        <div class="stats">
+                            <span><i class="fas fa-heart"></i> {{ product.number_of_likes }} likes</span>
+                            <span><i class="fas fa-eye"></i> {{ product.views }} views</span>
+                        </div>
+                        
+                        <div class="button-group mt-auto">
+                            <a href="{% url 'product' product.id %}" class="btn btn-primary view-btn">View Deal</a>
+                            
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'like_product' product.id %}" 
+                                   class="btn like-btn {% if user in product.likes.all %}liked{% endif %}">
+                                    <i class="fas fa-heart"></i> 
+                                    {% if user in product.likes.all %}Unlike{% else %}Like{% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="empty-deals">
+                    <p>No popular deals available at the moment.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% if popular_deals.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if popular_deals.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.previous_page_number }}">Previous</a></li>
+            {% endif %}
+
+            {% for i in popular_deals.paginator.page_range %}
+                {% if popular_deals.number == i %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                {% elif i > popular_deals.number|add:'-3' and i < popular_deals.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if popular_deals.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.paginator.num_pages }}">Last &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

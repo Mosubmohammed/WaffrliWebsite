@@ -11,51 +11,18 @@
 />
 <!-- Your custom CSS -->
 <link rel="stylesheet" href="{% static 'css/message_styles.css' %}" />
+<link rel="stylesheet" href="{% static 'css/settings.css' %}" />
 <!-- At the bottom of your base.html, before closing body tag -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <div class="container">
   <div class="row">
-    <div class="col-md-3">
-      <!-- User profile sidebar -->
-      <div class="user-profile text-center mb-4">
-        {% comment %}
-        <img
-          src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
-          class="avatar rounded-circle"
-          alt="{{ user.username }}"
-        />
-        {% endcomment %}
-        <h4 class="mt-2">{{ user.username }}</h4>
-      </div>
-
-
-      <!-- Message counts -->
-      <div class="sidebar-section">
-        <h5>Notifications</h5>
-        <hr />
-        <h6>Messages ({{ inbox_count|add:sent_count }})</h6>
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a
-              class="nav-link {% if active_tab == 'inbox' %}active{% endif %}"
-              href="{% url 'inbox' %}"
-            >
-              Inbox ({{ inbox_count }})
-              <i class="fas fa-chevron-right float-right"></i>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a
-              class="nav-link {% if active_tab == 'sent' %}active{% endif %}"
-              href=""
-            >
-              Sent Items ({{ sent_count }})
-              <i class="fas fa-chevron-right float-right"></i>
-            </a>
-          </li>
-        </ul>
-      </div>
+    <div class="SettingSidebar">
+      <ul class="nav-menu">
+          <li class="active"><a href="{% url 'inbox' %}">Messages Messages ({{ total_messages }})</a></li>
+          <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
+          <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
+      </ul>
     </div>
 
     <!-- Main content area -->
@@ -97,12 +64,8 @@
         </div>
 
         <div class="card-body">
-          <!-- Warning message if applicable -->
           {% if message.is_flagged %}
-          <div
-            class="alert alert-warning alert-dismissible fade show"
-            role="alert"
-          >
+          <div class="alert alert-warning alert-dismissible fade show" role="alert">
             <p class="mb-0">
               Please help us prevent spam and PM abuse. If this PM looks like
               spam to you, please
@@ -110,19 +73,24 @@
               Posting a deal on behalf of a merchant is not allowed, and may
               result in your account being warned and/or banned.
             </p>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="alert"
-              aria-label="Close"
-            >
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           {% endif %}
-
-          <!-- Message content -->
-          <div class="message-content">{{ message.content|safe }}</div>
+        
+          <!-- Message content with proper HTML tags -->
+          <div class="message-content">
+            {% if message.content %}
+              <div class="message-text p-3 border rounded bg-white">
+                {{ message.content|safe|linebreaksbr }}
+              </div>
+            {% else %}
+              <div class="message-text p-3 border rounded bg-light text-muted">
+                <em>No message content</em>
+              </div>
+            {% endif %}
+          </div>
         </div>
 
         <div class="card-footer d-flex justify-content-end">
@@ -268,14 +236,7 @@
 
             <div class="form-group">
               <button type="submit" class="btn btn-primary">Send Reply</button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-toggle="modal"
-                data-target="#advancedOptionsModal"
-              >
-                Advanced Options
-              </button>
+
             </div>
           </form>
         </div>
@@ -284,64 +245,4 @@
   </div>
 </div>
 
-<!-- Advanced Options Modal -->
-<div
-  class="modal fade"
-  id="advancedOptionsModal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="advancedOptionsModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="advancedOptionsModalLabel">
-          Advanced Options
-        </h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <!-- Advanced options form fields would go here -->
-        <div class="form-group">
-          <div class="custom-control custom-checkbox">
-            <input
-              type="checkbox"
-              class="custom-control-input"
-              id="saveToSent"
-            />
-            <label class="custom-control-label" for="saveToSent"
-              >Save to Sent Items</label
-            >
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="custom-control custom-checkbox">
-            <input
-              type="checkbox"
-              class="custom-control-input"
-              id="requestReadReceipt"
-            />
-            <label class="custom-control-label" for="requestReadReceipt"
-              >Request Read Receipt</label
-            >
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          Close
-        </button>
-        <button type="button" class="btn btn-primary">Apply</button>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}

@@ -1,10 +1,10 @@
-{% extends "base.html" %}{% load static %}  {% block content %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
 <link href="{% static 'css/post_deal.css' %}" rel="stylesheet" />
 
 <div class="container">
-
-
-
   <div class="progress-pie-chart" data-percent="0">
       <div class="ppc-progress">
           <div class="ppc-progress-fill"></div>
@@ -16,17 +16,17 @@
       </div>
   </div>
 
-
-  <form class="form-section" id="deal-form">
+  <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" action="{% url 'post_deal' %}">
+      {% csrf_token %}
+      
       <div class="form-grid">
           <div class="form-group floating-label">
-              <input type="url" id="deal-url" placeholder=" " required>
+              <input type="url" id="deal-url" name="deal-url" placeholder=" " required>
               <label for="deal-url">Deal URL</label>
               <div class="error-message" id="url-error">Please enter a valid URL.</div>
           </div>
           <div class="form-group floating-label">
-              <input type="text" id="deal-title" pattern="[A-Za-z ]+" title="Letters only" placeholder=" "
-                  required>
+              <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
               <label for="deal-title">Deal Title</label>
               <div class="error-message" id="title-error">Please enter a valid title using only letters.</div>
           </div>
@@ -34,18 +34,32 @@
 
       <div class="form-grid">
           <div class="form-group floating-label">
-              <input type="number" id="sale-price" placeholder=" ">
+              <input type="text" id="store" name="store" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
+              <label for="store">Store</label>
+              <div class="error-message" id="store-error">Please enter a valid store name using only letters.</div>
+          </div>
+
+          <div class="form-group floating-label">
+              <input type="text" id="brand" name="brand" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
+              <label for="brand">Brand</label>
+              <div class="error-message" id="brand-error">Please enter a valid brand using only letters.</div>
+          </div>
+      </div>
+
+      <div class="form-grid">
+          <div class="form-group floating-label">
+              <input type="number" id="sale-price" name="sale-price" placeholder=" " step="0.01">
               <label for="sale-price">Sale Price ($)</label>
           </div>
           <div class="form-group floating-label">
-              <input type="number" id="list-price" placeholder=" ">
+              <input type="number" id="list-price" name="list-price" placeholder=" " step="0.01">
               <label for="list-price">List Price ($)</label>
           </div>
       </div>
 
       <div class="form-grid">
           <div class="form-group floating-label">
-              <select id="location" required>
+              <select id="location" name="location" required>
                   <option value="" disabled selected></option>
                   <option value="Amman">Amman</option>
                   <option value="Zarqa">Zarqa</option>
@@ -56,13 +70,11 @@
               <label for="location">Deal Location</label>
           </div>
           <div class="form-group floating-label">
-              <select id="category" required>
+              <select id="category" name="category" required>
                   <option value="" disabled selected></option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Fashion">Fashion</option>
-                  <option value="Home">Home</option>
-                  <option value="Travel">Travel</option>
-                  <option value="Food">Food</option>
+                  {% for category in categories %}
+                      <option value="{{ category.id }}">{{ category.name }}</option>
+                  {% endfor %}
               </select>
               <label for="category">Category</label>
               <div class="error-message" id="category-error">Please select a category.</div>
@@ -70,33 +82,14 @@
       </div>
 
       <div class="form-group floating-label">
-          <textarea id="description" placeholder=" " required></textarea>
+          <textarea id="description" name="description" placeholder=" " required></textarea>
           <label for="description">Deal Description</label>
           <div class="error-message" id="description-error">Please provide a description for the deal.</div>
       </div>
 
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <input type="text" id="store" placeholder=" " required>
-              <label for="store">Store</label>
-              <div class="error-message" id="store-error">Please enter a valid store name.</div>
-          </div>
-          <div class="form-group">
-              <label for="image">Upload Image</label>
-              <input type="file" id="image" accept="image/*">
-          </div>
-      </div>
-
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <input type="date" id="deal-expiration" required>
-              <label for="deal-expiration">Expiration Date</label>
-              <div class="error-message" id="expiration-error">Please select an expiration date.</div>
-          </div>
-          <div class="form-group floating-label">
-              <input type="date" id="deal-posted" readonly>
-              <label for="deal-posted">Posted Date</label>
-          </div>
+      <div class="form-group">
+          <label for="image">Upload Image</label>
+          <input type="file" id="image" name="image" accept="image/*" required>
       </div>
 
       <div class="form-actions">
@@ -104,27 +97,16 @@
           <button type="submit">Post Deal</button>
       </div>
   </form>
-
-
 </div>
-
 
 <div id="notification-container"></div>
 
-
 <script>
-
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('deal-form');
     const steps = document.querySelectorAll('.progress-step');
     const fields = Array.from(form.querySelectorAll('input, select, textarea'));
     const archiveButton = document.getElementById('archive-btn');
-    const dealPostedInput = document.getElementById("deal-posted");
-  
-    // Set today's date in "Posted Date" field
-    if (dealPostedInput) {
-      dealPostedInput.value = new Date().toISOString().split('T')[0];
-    }
   
     // Function to show notification messages
     const showNotification = (message, type = 'success') => {
@@ -150,9 +132,11 @@
       let firstInvalidIndex = fields.findIndex(field => field.value.trim() === '' || !field.checkValidity());
       firstInvalidIndex = firstInvalidIndex === -1 ? fields.length : firstInvalidIndex;
       
-      steps.forEach((step, index) => {
-        step.classList.toggle('completed', index < firstInvalidIndex);
-      });
+      if (steps) {
+        steps.forEach((step, index) => {
+          step.classList.toggle('completed', index < firstInvalidIndex);
+        });
+      }
     };
   
     const showErrorMessage = (field, messageId) => {
@@ -175,7 +159,8 @@
         'description': 'description-error',
         'category': 'category-error',
         'store': 'store-error',
-        'deal-expiration': 'expiration-error'
+        'brand': 'brand-error',
+        'image': 'image-error'
       };
   
       if (fieldErrorMap[target.id]) {
@@ -185,84 +170,46 @@
       updateProgress();
     });
   
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-  
-      let allValid = true;
-      fields.forEach(field => {
-        if (!field.checkValidity() || field.value.trim() === '') {
-          field.classList.add('invalid');
-          allValid = false;
-        } else {
-          field.classList.remove('invalid');
-        }
-      });
-  
-      if (allValid) {
-        showNotification('Deal posted successfully!');
-        form.reset();
-        updateProgress();
-      } else {
-        showNotification('Please fill out all required fields correctly.', 'error');
-      }
-    });
-  
+    // Only use JS validation for immediate feedback, let the form submit for backend validation
     archiveButton.addEventListener('click', () => {
       if (confirm('Are you sure you want to archive this deal?')) {
         showNotification('Deal archived successfully!');
       }
     });
+    
+    // Function to update the progress bar
+    function updateProgressBar() {
+      let totalFields = 9; // Updated to match required fields
+      let filledFields = 0;
+      
+      document.querySelectorAll('input, textarea, select').forEach(field => {
+        if (field.value.trim() !== "") {
+          filledFields++;
+        }
+      });
+      
+      let percent = Math.round((filledFields / totalFields) * 100);
+      
+      let progressBar = document.querySelector('.progress-pie-chart');
+      progressBar.setAttribute('data-percent', percent);
+      
+      let progressFill = progressBar.querySelector('.ppc-progress-fill');
+      progressFill.style.background = `conic-gradient(#81CE97 ${percent}%, #E5E5E5 0%)`;
+      
+      // Update the text display
+      let percentText = progressBar.querySelector('.ppc-percents span');
+      if (percentText) {
+        percentText.textContent = percent + "%";
+      }
+    }
+    
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      field.addEventListener('input', updateProgressBar);
+      field.addEventListener('change', updateProgressBar);
+      field.addEventListener('focusout', updateProgressBar);
+    });
+    
+    updateProgressBar();
   });
-  
-  
-  
-  
-  
-  
-  
-          // Function to update the progress bar
-          function updateProgressBar() {
-              let totalFields = 11;
-              let filledFields = 0;
-  
-              document.querySelectorAll('input, textarea, select').forEach(field => {
-                  if (field.value.trim() !== "") {
-                      filledFields++;
-                  }
-              });
-  
-              let percent = Math.round((filledFields / totalFields) * 100);
-  
-              let progressBar = document.querySelector('.progress-pie-chart');
-              progressBar.setAttribute('data-percent', percent);
-  
-              let progressFill = progressBar.querySelector('.ppc-progress-fill');
-              progressFill.style.background = `conic-gradient(#81CE97 ${percent}%, #E5E5E5 0%)`;
-              progressBar.querySelector('.ppc-percents').textContent = percent + "%";
-          }
-          document.querySelectorAll('input, textarea, select').forEach(field => {
-              field.addEventListener('input', updateProgressBar);  // Trigger update on input
-              field.addEventListener('change', updateProgressBar); // Trigger update on change
-              field.addEventListener('focusout', updateProgressBar); // Trigger update when the field loses focus
-          });
-  
-          updateProgressBar();
-  
-          // Reset progress when the "Post Deal" button is clicked
-          document.querySelector('form').addEventListener('submit', function (event) {
-              event.preventDefault();  // Prevent form submission to handle custom logic
-  
-  
-              let progressBar = document.querySelector('.progress-pie-chart');
-              progressBar.setAttribute('data-percent', 0);
-  
-              let progressFill = progressBar.querySelector('.ppc-progress-fill');
-              progressFill.style.background = `conic-gradient(#E5E5E5 0%, #E5E5E5 0%)`;
-  
-              progressBar.querySelector('.ppc-percents').textContent = "0%";
-  
-          });
-  
-      </script>
+</script>
 {% endblock %}
-

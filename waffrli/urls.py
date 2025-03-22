@@ -33,5 +33,7 @@ urlpatterns = [
     path('close-account/', close_account, name='close_account'),
     path('hot_deals/', hot_deals, name='hot_deals'),
     path('hot-deals/filter/', filter_hot_deals, name='filter_hot_deals'),
+    path('popular_deals/', popular_deals, name='popular_deals'),
+    
 
 ]

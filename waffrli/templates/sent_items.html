@@ -61,7 +61,7 @@
       </li>
     </ul>
   </div>
-</div>
+
 <div class="inbox-container">
   <div class="inbox-header">
     <h1>Messages</h1>
@@ -72,67 +72,50 @@
       </a>
     </div>
   </div>
-
-  <div class="sent-items-container">
-    <div class="sent-items-header">
-      <h3>You have 2 items in Sent Items</h3>
-    </div>
-
-    <table class="sent-items-table">
-      <tbody>
+  {% if messages %}
+  <table class="sent-items-table">
+    <tbody>
+      {% for message in messages %}
         <tr>
-          <td class="action-cell">
-            <button class="delete-btn">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </td>
-          <td class="sender-cell">
-            <div class="sender-info">
-              <div class="user-avatar">
-                <div class="user-avatar-placeholder">M</div>
-              </div>
-              mosab22
-            </div>
-          </td>
-          <td class="message-cell">hellllllllllo!</td>
-          <td class="time-cell">5:34 PM</td>
+            <td class="action-cell">
+                <button class="delete-btn" onclick="deleteMessage({{ message.id }})">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+            <td class="sender-cell">
+                <div class="sender-info">
+                    <div class="user-avatar">
+                      {% if message.recipient.customer and message.recipient.customer.image %}
+                      <img src="{{ message.recipient.customer.image.url }}" alt="Avatar" class="user-avatar-img">
+                      {% else %}
+                      <div class="user-avatar-placeholder">{{ message.recipient.username|first|upper }}</div>
+                      {% endif %}
+                    </div>
+                    {{ message.recipient.username }}
+                </div>
+            </td>
+            <td class="message-cell">{{ message.content }}</td>
+            <td class="time-cell">                                
+              {% if message.date_sent.date == now.date %}
+                  {{ message.date_sent|time:"g:i A" }}
+              {% else %}
+                  {{ message.date_sent|date:"n/j/y" }}
+              {% endif %}
+            </td>
         </tr>
-        <tr>
-          <td class="action-cell">
-            <button class="delete-btn">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </td>
-          <td class="sender-cell">
-            <div class="sender-info">
-              <div class="user-avatar">
-                <div class="user-avatar-placeholder">M</div>
-              </div>
-              mosab22
-            </div>
-          </td>
-          <td class="message-cell">hello</td>
-          <td class="time-cell">3/18/25</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="pagination">
-      <div class="page-info">Page 1 of 1</div>
-      <div class="pagination-controls">
-        <button title="First page">
-          <i class="fas fa-angle-double-left"></i>
-        </button>
-        <button title="Previous page"><i class="fas fa-angle-left"></i></button>
-        <button class="active">1</button>
-        <button title="Next page"><i class="fas fa-angle-right"></i></button>
-        <button title="Last page">
-          <i class="fas fa-angle-double-right"></i>
-        </button>
-      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>You have {{ messages|length }} items in your Inbox</p>
+        <span class="empty-state-hint">New messages will appear here</span>
     </div>
-  </div>
-</div>
+  {% endif %}
+</div></div>
+
+
 
 <!-- JavaScript for message actions -->
 <script>
