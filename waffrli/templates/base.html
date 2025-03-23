@@ -35,7 +35,7 @@
     <!-- Navigation-->
     <!-- Navigation-->
     {% include 'navbar.html'%} 
-  {% comment %} {% if messages %} {% for messge in messages%}
+ {% if messages %} {% for messge in messages%}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
       {{messge}}
       <button
@@ -45,7 +45,7 @@
         aria-label="Close"
       ></button>
     </div>
-    {%endfor%} {%endif%}  {% endcomment %}
+    {%endfor%} {%endif%}  
     
     {% block content %} {% endblock %}
 

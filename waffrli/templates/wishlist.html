@@ -18,29 +18,39 @@
     <input id="maxPrice" type="number" placeholder="Max price" />
     <select id="category">
       <option value="">Select Category</option>
-      <option value="electronics">Electronics</option>
-      <option value="fashion">Fashion</option>
-      <option value="home">Home & Garden</option>
-      <option value="toys">Toys & Games</option>
-      <option value="sports">Sports & Outdoors</option>
-      <option value="other">Other</option>
+      {% for category in categories %}
+        <option value="{{ category.id }}">{{ category.name }}</option>
+      {% endfor %}
     </select>
-  </div>
-  <div class="notification-options">
-    <span>Notification Method:</span>
-    <label class="notification-option">
-      <input type="checkbox" id="notifyEmail" checked /> Email
-    </label>
-    <label class="notification-option">
-      <input type="checkbox" id="notifyWebsite" checked /> Website
-    </label>
   </div>
   <div class="input-group">
     <button onclick="addWishlistItem()">+ Add Alert</button>
   </div>
 
   <div class="section-header">Your Wishlist:</div>
-  <div id="wishlist" class="wishlist-list"></div>
+  <div id="wishlist" class="wishlist-list">
+    {% if wishlist_items %}
+      {% for item in wishlist_items %}
+        <div class="wishlist-item" data-id="{{ item.id }}">
+          <div class="wishlist-item-info">
+            <div><strong>{{ item.keyword }}</strong></div>
+            <div class="wishlist-item-details">
+              Price range: ${{ item.min_price }} - ${{ item.max_price }}<br>
+              Category: {{ item.category.name }}
+            </div>
+          </div>
+          <div class="wishlist-item-actions">
+            <button class="edit-btn" onclick="editWishlistItem(this)">Edit</button>
+            <button class="remove-btn" onclick="removeWishlistItem(this)">Remove</button>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state" id="empty-wishlist">
+        <p>You don't have any wishlist items yet. Add one above!</p>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
 <!-- Edit Modal -->
@@ -53,22 +63,10 @@
       <input id="editMaxPrice" type="number" placeholder="Max price" />
       <select id="editCategory">
         <option value="">Select Category</option>
-        <option value="electronics">Electronics</option>
-        <option value="fashion">Fashion</option>
-        <option value="home">Home & Garden</option>
-        <option value="toys">Toys & Games</option>
-        <option value="sports">Sports & Outdoors</option>
-        <option value="other">Other</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
       </select>
-    </div>
-    <div class="notification-options">
-      <span>Notification Method:</span>
-      <label class="notification-option">
-        <input type="checkbox" id="editNotifyEmail" /> Email
-      </label>
-      <label class="notification-option">
-        <input type="checkbox" id="editNotifyWebsite" /> Website
-      </label>
     </div>
     <div class="input-group">
       <button onclick="saveEdit()">Save Changes</button>
@@ -82,148 +80,252 @@
 <script>
     const wishlistContainer = document.getElementById("wishlist");
     const editModal = document.getElementById("editModal");
+    const emptyWishlist = document.getElementById("empty-wishlist");
     let currentEditingItem = null;
     
-    function addWishlistItem() {
-      const keyword = document.getElementById("keyword").value.trim();
-      const minPrice = document.getElementById("minPrice").value.trim();
-      const maxPrice = document.getElementById("maxPrice").value.trim();
-      const category = document.getElementById("category").value;
-      const notifyEmail = document.getElementById("notifyEmail").checked;
-      const notifyWebsite = document.getElementById("notifyWebsite").checked;
-    
-      if (!keyword || !minPrice || !maxPrice || !category) {
-        alert("Please fill out all fields.");
-        return;
-      }
-    
-      if (!notifyEmail && !notifyWebsite) {
-        alert("Please select at least one notification method.");
-        return;
-      }
-    
-      const item = document.createElement("div");
-      item.classList.add("wishlist-item");
-      item.innerHTML = `
-        <div class="wishlist-item-info">
-          <div><strong>${keyword}</strong></div>
-          <div class="wishlist-item-details">
-            Price range: $${minPrice} - $${maxPrice}<br>
-            Category: ${category}<br>
-            Notifications: ${getNotificationText(notifyEmail, notifyWebsite)}
-          </div>
-        </div>
-        <div class="wishlist-item-actions">
-          <button class="edit-btn" onclick="editWishlistItem(this)">Edit</button>
-          <button class="remove-btn" onclick="removeWishlistItem(this)">Remove</button>
-        </div>
-      `;
-    
-      // Store the data for editing later
-      item.dataset.keyword = keyword;
-      item.dataset.minPrice = minPrice;
-      item.dataset.maxPrice = maxPrice;
-      item.dataset.category = category;
-      item.dataset.notifyEmail = notifyEmail;
-      item.dataset.notifyWebsite = notifyWebsite;
-    
-      wishlistContainer.appendChild(item);
-    
-      // Clear inputs
-      clearInputs();
+    // Get CSRF token for AJAX requests
+    function getCsrfToken() {
+        return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
     }
     
-    function getNotificationText(email, website) {
-      const methods = [];
-      if (email) methods.push("Email");
-      if (website) methods.push("Website");
-      return methods.join(" & ");
+    function addWishlistItem() {
+        const keyword = document.getElementById("keyword").value.trim();
+        const minPrice = document.getElementById("minPrice").value.trim();
+        const maxPrice = document.getElementById("maxPrice").value.trim();
+        const category = document.getElementById("category").value;
+        
+        if (!keyword || !minPrice || !maxPrice || !category) {
+            alert("Please fill out all fields.");
+            return;
+        }
+        
+        // Prepare the data
+        const data = {
+            keyword: keyword,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            category: category
+        };
+        
+        // Send request to the server
+        fetch('{% url "add_wishlist_item" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.status === 'success') {
+                // Create the new item element
+                const item = document.createElement("div");
+                item.classList.add("wishlist-item");
+                item.dataset.id = responseData.id;
+                
+                item.innerHTML = `
+                  <div class="wishlist-item-info">
+                    <div><strong>${keyword}</strong></div>
+                    <div class="wishlist-item-details">
+                      Price range: $${minPrice} - $${maxPrice}<br>
+                      Category: ${responseData.category_name}
+                    </div>
+                  </div>
+                  <div class="wishlist-item-actions">
+                    <button class="edit-btn" onclick="editWishlistItem(this)">Edit</button>
+                    <button class="remove-btn" onclick="removeWishlistItem(this)">Remove</button>
+                  </div>
+                `;
+                
+                // Add to the DOM
+                wishlistContainer.appendChild(item);
+                
+                // Hide empty state if visible
+                if (emptyWishlist) {
+                    emptyWishlist.style.display = 'none';
+                }
+                
+                // Clear inputs
+                clearInputs();
+                
+                // Update notification count after a short delay
+                setTimeout(updateNotificationCounter, 500);
+            } else {
+                alert('Error adding wishlist item: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding wishlist item:', error);
+            alert('Error adding wishlist item. Please try again.');
+        });
     }
     
     function editWishlistItem(button) {
-      currentEditingItem = button.closest(".wishlist-item");
+        const itemElement = button.closest(".wishlist-item");
+        currentEditingItem = itemElement.dataset.id;
     
-      // Fill the edit form with current values
-      document.getElementById("editKeyword").value =
-        currentEditingItem.dataset.keyword;
-      document.getElementById("editMinPrice").value =
-        currentEditingItem.dataset.minPrice;
-      document.getElementById("editMaxPrice").value =
-        currentEditingItem.dataset.maxPrice;
-      document.getElementById("editCategory").value =
-        currentEditingItem.dataset.category;
-      document.getElementById("editNotifyEmail").checked =
-        currentEditingItem.dataset.notifyEmail === "true";
-      document.getElementById("editNotifyWebsite").checked =
-        currentEditingItem.dataset.notifyWebsite === "true";
+        // Get the current values
+        const keyword = itemElement.querySelector("strong").textContent;
+        const details = itemElement.querySelector(".wishlist-item-details").innerHTML;
+        
+        // Extract price range using regex
+        const priceMatch = details.match(/\$(\d+(\.\d+)?) - \$(\d+(\.\d+)?)/);
+        const minPrice = priceMatch ? priceMatch[1] : "";
+        const maxPrice = priceMatch ? priceMatch[3] : "";
+        
+        // Extract category name
+        const categoryMatch = details.match(/Category: ([^<]+)/);
+        const categoryName = categoryMatch ? categoryMatch[1].trim() : "";
+        
+        // Find category id from name (this requires converting category name to ID)
+        // For simplicity, let the user select the category again
+        const categorySelect = document.getElementById("editCategory");
+        
+        // Fill the edit form
+        document.getElementById("editKeyword").value = keyword;
+        document.getElementById("editMinPrice").value = minPrice;
+        document.getElementById("editMaxPrice").value = maxPrice;
+        
+        // Try to find and select the matching category
+        for (let i = 0; i < categorySelect.options.length; i++) {
+            if (categorySelect.options[i].text === categoryName) {
+                categorySelect.selectedIndex = i;
+                break;
+            }
+        }
     
-      // Show the modal
-      editModal.style.display = "flex";
+        // Show the modal
+        editModal.style.display = "flex";
     }
     
     function saveEdit() {
-      const keyword = document.getElementById("editKeyword").value.trim();
-      const minPrice = document.getElementById("editMinPrice").value.trim();
-      const maxPrice = document.getElementById("editMaxPrice").value.trim();
-      const category = document.getElementById("editCategory").value;
-      const notifyEmail = document.getElementById("editNotifyEmail").checked;
-      const notifyWebsite = document.getElementById("editNotifyWebsite").checked;
-    
-      if (!keyword || !minPrice || !maxPrice || !category) {
-        alert("Please fill out all fields.");
-        return;
-      }
-    
-      if (!notifyEmail && !notifyWebsite) {
-        alert("Please select at least one notification method.");
-        return;
-      }
-    
-      // Update the item's display
-      currentEditingItem.querySelector(".wishlist-item-info").innerHTML = `
-        <div><strong>${keyword}</strong></div>
-        <div class="wishlist-item-details">
-          Price range: $${minPrice} - $${maxPrice}<br>
-          Category: ${category}<br>
-          Notifications: ${getNotificationText(notifyEmail, notifyWebsite)}
-        </div>
-      `;
-    
-      // Update the stored data
-      currentEditingItem.dataset.keyword = keyword;
-      currentEditingItem.dataset.minPrice = minPrice;
-      currentEditingItem.dataset.maxPrice = maxPrice;
-      currentEditingItem.dataset.category = category;
-      currentEditingItem.dataset.notifyEmail = notifyEmail;
-      currentEditingItem.dataset.notifyWebsite = notifyWebsite;
-    
-      closeEditModal();
+        const keyword = document.getElementById("editKeyword").value.trim();
+        const minPrice = document.getElementById("editMinPrice").value.trim();
+        const maxPrice = document.getElementById("editMaxPrice").value.trim();
+        const category = document.getElementById("editCategory").value;
+        
+        if (!keyword || !minPrice || !maxPrice || !category) {
+            alert("Please fill out all fields.");
+            return;
+        }
+        
+        // Prepare the data
+        const data = {
+            keyword: keyword,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            category: category
+        };
+        
+        // Send update request to the server
+        fetch(`/wishlist/update/${currentEditingItem}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.status === 'success') {
+                // Update the DOM element
+                const itemElement = document.querySelector(`.wishlist-item[data-id="${currentEditingItem}"]`);
+                itemElement.querySelector(".wishlist-item-info").innerHTML = `
+                  <div><strong>${keyword}</strong></div>
+                  <div class="wishlist-item-details">
+                    Price range: $${minPrice} - $${maxPrice}<br>
+                    Category: ${responseData.category_name}
+                  </div>
+                `;
+                
+                closeEditModal();
+            } else {
+                alert('Error updating wishlist item: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating wishlist item:', error);
+            alert('Error updating wishlist item. Please try again.');
+        });
     }
     
     function closeEditModal() {
-      editModal.style.display = "none";
-      currentEditingItem = null;
+        editModal.style.display = "none";
+        currentEditingItem = null;
     }
     
     function removeWishlistItem(button) {
-      const item = button.closest(".wishlist-item");
-      wishlistContainer.removeChild(item);
+        const itemElement = button.closest(".wishlist-item");
+        const itemId = itemElement.dataset.id;
+        
+        if (confirm("Are you sure you want to remove this wishlist item?")) {
+            // Send delete request to the server
+            fetch(`/wishlist/delete/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.status === 'success') {
+                    // Remove from DOM
+                    wishlistContainer.removeChild(itemElement);
+                    
+                    // Show empty state if no items left
+                    if (wishlistContainer.children.length === 0 && emptyWishlist) {
+                        emptyWishlist.style.display = 'block';
+                    }
+                    
+                    // Update notification count after a short delay
+                    setTimeout(updateNotificationCounter, 500);
+                } else {
+                    alert('Error removing wishlist item: ' + responseData.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error removing wishlist item:', error);
+                alert('Error removing wishlist item. Please try again.');
+            });
+        }
     }
     
     function clearInputs() {
-      document.getElementById("keyword").value = "";
-      document.getElementById("minPrice").value = "";
-      document.getElementById("maxPrice").value = "";
-      document.getElementById("category").value = "";
-      document.getElementById("notifyEmail").checked = true;
-      document.getElementById("notifyWebsite").checked = true;
+        document.getElementById("keyword").value = "";
+        document.getElementById("minPrice").value = "";
+        document.getElementById("maxPrice").value = "";
+        document.getElementById("category").value = "";
+    }
+    
+    // Update notification counter
+    function updateNotificationCounter() {
+        fetch('{% url "get_notification_count" %}')
+            .then(response => response.json())
+            .then(data => {
+                const counter = document.querySelector('.cart-badge');
+                if (counter) {
+                    counter.textContent = data.count;
+                    
+                    if (data.count > 0) {
+                        counter.style.display = 'block';
+                    } else {
+                        counter.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching notification count:', error));
     }
     
     // Close modal when clicking outside
-    window.onclick = function (event) {
-      if (event.target === editModal) {
-        closeEditModal();
-      }
+    window.onclick = function(event) {
+        if (event.target === editModal) {
+            closeEditModal();
+        }
     };
-     </script>
-{%endblock%}
+</script>
+
+<!-- CSRF Token for AJAX Requests -->
+{% csrf_token %}
+{% endblock %}

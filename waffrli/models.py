@@ -141,3 +141,84 @@ class Message(models.Model):
     
     def __str__(self):
         return f"{self.subject} - From: {self.sender} To: {self.recipient}"
+    
+class WishlistItem(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    keyword = models.CharField(max_length=100)
+    min_price = models.DecimalField(max_digits=10, decimal_places=2)
+    max_price = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.keyword} - {self.user.username}"
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class Notification(models.Model):
+
+    NOTIFICATION_TYPES = (
+        ('deal', 'Deal Match'),
+        ('info', 'Information'),
+        ('alert', 'Alert'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='info')
+    wishlist_item = models.ForeignKey(WishlistItem, on_delete=models.SET_NULL, null=True, blank=True)
+    related_object_type = models.CharField(max_length=50, blank=True)
+    related_object_id = models.IntegerField(null=True, blank=True)
+    url = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+# @receiver(post_save, sender=Product)
+# def check_for_matching_wishlist_items(sender, instance, created, **kwargs):
+#     """
+#     Signal handler to check for matching wishlist items whenever a new Product is created
+#     """
+#     if created:  # Only run when a new product is created, not on updates
+#         # Import here to avoid circular imports
+#         from .utils import improved_keyword_matching
+        
+#         # Don't match wishlist items from the same user who posted the deal
+#         all_wishlist_items = WishlistItem.objects.exclude(user=instance.user)
+        
+#         matching_items = []
+#         for item in all_wishlist_items:
+#             # Check if there's a keyword match using improved algorithm
+#             keyword_match = improved_keyword_matching(instance.Name, item.keyword)
+            
+#             # If keywords match, also check price range and category
+#             if keyword_match:
+#                 # Price match (using sale_price)
+#                 price_match = (
+#                     float(item.min_price) <= float(instance.sale_price) <= float(item.max_price)
+#                 )
+                
+#                 # Category match
+#                 category_match = (item.category.id == instance.category.id)
+                
+#                 if price_match and category_match:
+#                     # Create notification
+#                     Notification.objects.create(
+#                         user=item.user,
+#                         title=f"Deal Match: {item.keyword}",
+#                         message=f"We found a deal matching your wishlist: {instance.Name} for ${instance.sale_price}",
+#                         notification_type='deal',
+#                         wishlist_item=item,
+#                         related_object_id=instance.id,
+#                         related_object_type='deal',
+#                         url=f"/product/{instance.id}",
+#                     )

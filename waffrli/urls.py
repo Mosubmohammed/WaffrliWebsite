@@ -19,6 +19,9 @@ urlpatterns = [
     path("follow/<int:user_id>/", follow, name="follow"),
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path('wishlist/', wishlist, name='wishlist'),
+    path('wishlist/add/', add_wishlist_item, name='add_wishlist_item'),
+    path('wishlist/update/<int:item_id>/', update_wishlist_item, name='update_wishlist_item'),
+    path('wishlist/delete/<int:item_id>/', delete_wishlist_item, name='delete_wishlist_item'),
     path('like/<int:product_id>/', like_product, name='like_product'),
     path('settings/', settings, name='settings'),
     path('settings/update_info/', update_info, name='update_info'),
@@ -36,6 +39,9 @@ urlpatterns = [
     path('popular_deals/', popular_deals, name='popular_deals'),
     path('product/<int:product_id>/edit/', edit_deal, name='edit_deal'),
     path('product/<int:product_id>/delete/', delete_deal, name='delete_deal'),
-    
-
+    path('notifications/',notifications_view, name='notifications'),
+    path('notifications/mark-read/<int:notification_id>/',mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/',mark_all_read, name='mark_all_read'),
+    path('notifications/delete/<int:notification_id>/',delete_notification, name='delete_notification'),
+    path('notifications/count/',get_notification_count, name='get_notification_count'),
 ]

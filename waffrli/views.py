@@ -12,7 +12,7 @@ from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
 from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from .utils import check_deal_against_wishlist
 
 def home(request):
     products = Product.objects.all()
@@ -531,19 +531,19 @@ def post_deal(request):
     
     if request.method == "POST":
         # Fetch image
-        pic = request.FILES.get('image')  # FIXED: Changed from 'pic' to 'image' to match template
+        pic = request.FILES.get('image')
         if not pic:
             messages.error(request, "Please upload an image.")
             return redirect('post_deal')
         
         # Fetch form data
-        name = request.POST.get('deal-title')  # FIXED: Changed from 'name' to 'deal-title' to match template
-        url = request.POST.get('deal-url')  # FIXED: Changed from 'url' to 'deal-url' to match template
-        sale_price = request.POST.get('sale-price')  # FIXED: Changed from 'sale_price' to 'sale-price' to match template
-        price = request.POST.get('list-price')  # FIXED: Changed from 'price' to 'list-price' to match template
+        name = request.POST.get('deal-title')
+        url = request.POST.get('deal-url')
+        sale_price = request.POST.get('sale-price')
+        price = request.POST.get('list-price')
         description = request.POST.get('description')
         store = request.POST.get('store')
-        brand = request.POST.get('brand')  # ADDED: Get brand from form
+        brand = request.POST.get('brand')
         category_id = request.POST.get('category')
         location = request.POST.get('location')
         
@@ -556,7 +556,6 @@ def post_deal(request):
         try:
             category = Category.objects.get(id=int(category_id))
         except (Category.DoesNotExist, ValueError):
-            # FIXED: Added ValueError to catch if category_id is not a valid integer
             messages.error(request, "Invalid category selected.")
             return redirect('post_deal')
         
@@ -567,8 +566,8 @@ def post_deal(request):
         
         # Convert price fields to Decimal safely
         try:
-            sale_price = Decimal(sale_price) if sale_price else Decimal("0.00")
-            price = Decimal(price) if price else Decimal("0.00")
+            sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
+            price_decimal = Decimal(price) if price else Decimal("0.00")
         except (ValueError, InvalidOperation):
             messages.error(request, "Invalid price format.")
             return redirect('post_deal')
@@ -578,23 +577,71 @@ def post_deal(request):
             user=request.user,
             Dealurl=url,
             Name=name,
-            sale_price=sale_price,
-            Price=price,
+            sale_price=sale_price_decimal,
+            Price=price_decimal,
             Description=description,
             store=store,
-            brand=brand,  # ADDED: Store brand value
+            brand=brand,
             image=pic,
             category=category,
             city=location,
         )
         
-        messages.success(request, "Deal posted successfully!")
-        return redirect('home')
+        # Import notification matching tools
+        from .utils import improved_keyword_matching
+
+        # Don't match wishlist items from the same user who posted the deal
+        all_wishlist_items = WishlistItem.objects.exclude(user=request.user)
+
+        match_count = 0
+        for item in all_wishlist_items:
+            # Check if there's a keyword match using improved algorithm
+            keyword_match = improved_keyword_matching(deal.Name, item.keyword)
+            
+            # If keywords match, also check price range and category
+            if keyword_match:
+                # Price match (using sale_price)
+                try:
+                    price_match = (
+                        float(item.min_price) <= float(deal.sale_price) <= float(item.max_price)
+                    )
+                except (TypeError, ValueError):
+                    price_match = False
+                
+                # Category match - handle both cases where category might be a string or an object
+                try:
+                    if isinstance(item.category, str):
+                        category_match = (item.category == deal.category.name)
+                    else:
+                        category_match = (item.category.id == deal.category.id)
+                except AttributeError:
+                    category_match = False
+                
+                if price_match and category_match:
+                    # Create notification
+                    Notification.objects.create(
+                        user=item.user,
+                        title=f"Deal Match: {item.keyword}",
+                        message=f"We found a deal matching your wishlist: {deal.Name} for ${deal.sale_price}",
+                        notification_type='deal',
+                        wishlist_item=item,
+                        related_object_id=deal.id,
+                        related_object_type='deal',
+                        url=f"/product/{deal.id}",
+                    )
+                    match_count += 1
+
+        # Success message based on notification count
+        if match_count > 0:
+            messages.success(request, f"Deal posted successfully! {match_count} users have been notified about this deal.")
+        else:
+            messages.success(request, "Deal posted successfully!")
+            
+        return redirect('product', pk=deal.id)
     
-    # Fetch categories to display in the form
+    # For GET requests - just display the form
     categories = Category.objects.all()
     return render(request, "post_deal.html", {'categories': categories})
-
 
 
 
@@ -678,8 +725,138 @@ def user_profile(request, identifier):
 
 
 
+
+@login_required
 def wishlist(request):
-    return render(request, "wishlist.html", {})
+    """
+    Display the wishlist page with the user's wishlist items
+    """
+    # Get the user's wishlist items
+    wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Get all categories from the database
+    categories = Category.objects.all()
+    
+    # Get unread notification count for the navbar
+    unread_notification_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    context = {
+        'wishlist_items': wishlist_items,
+        'categories': categories,
+        'unread_notification_count': unread_notification_count,
+    }
+    
+    return render(request, 'wishlist.html', context)
+
+@login_required
+def add_wishlist_item(request):
+    """
+    Add a new wishlist item
+    """
+    try:
+        # Parse the JSON data from the request
+        data = json.loads(request.body)
+        
+        # Get the category instance
+        try:
+            category = Category.objects.get(id=data.get('category'))
+        except Category.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Category not found'}, status=404)
+        
+        # Create a new wishlist item
+        wishlist_item = WishlistItem(
+            user=request.user,
+            keyword=data.get('keyword'),
+            min_price=data.get('minPrice'),
+            max_price=data.get('maxPrice'),
+            category=category
+        )
+        wishlist_item.save()
+        
+        # Create a notification for the new wishlist item
+        notification = Notification(
+            user=request.user,
+            title="Wishlist Alert Created",
+            message=f"You've created a new wishlist alert for \"{data.get('keyword')}\" in the {category.name} category.",
+            notification_type='info',
+            wishlist_item=wishlist_item
+        )
+        notification.save()
+        
+        # Return the wishlist item data with the ID
+        return JsonResponse({
+            'status': 'success',
+            'id': wishlist_item.id,
+            'category_name': category.name,
+            'created_at': wishlist_item.created_at.isoformat(),
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@login_required
+def update_wishlist_item(request, item_id):
+    """
+    Update a wishlist item
+    """
+    try:
+        # Get the wishlist item
+        wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
+        
+        # Parse the JSON data from the request
+        data = json.loads(request.body)
+        
+        # Get the category instance
+        try:
+            category = Category.objects.get(id=data.get('category'))
+        except Category.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Category not found'}, status=404)
+        
+        # Update the wishlist item
+        wishlist_item.keyword = data.get('keyword')
+        wishlist_item.min_price = data.get('minPrice')
+        wishlist_item.max_price = data.get('maxPrice')
+        wishlist_item.category = category
+        wishlist_item.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'category_name': category.name
+        })
+    except WishlistItem.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Wishlist item not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@login_required
+def delete_wishlist_item(request, item_id):
+    """
+    Delete a wishlist item
+    """
+    try:
+        # Get the wishlist item
+        wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
+        
+        # Store the keyword and category for the notification
+        keyword = wishlist_item.keyword
+        category_name = wishlist_item.category.name
+        
+        # Delete the wishlist item
+        wishlist_item.delete()
+        
+        # Create a notification for the deleted wishlist item
+        notification = Notification(
+            user=request.user,
+            title="Wishlist Alert Removed",
+            message=f"You've removed the wishlist alert for \"{keyword}\" in the {category_name} category.",
+            notification_type='info'
+        )
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except WishlistItem.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Wishlist item not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
@@ -1253,3 +1430,59 @@ def delete_deal(request, product_id):
         print(f"Error deleting deal: {str(e)}")
         messages.error(request, "An error occurred while deleting the deal. Please try again.")
         return redirect('product', pk=product_id)
+    
+    
+
+
+
+# Assuming you have a Notification model
+# If not, you'll need to create one based on the example below
+
+
+@login_required
+def notifications_view(request):
+
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Count unread notifications
+    unread_count = notifications.filter(is_read=False).count()
+    
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    }
+    
+    return render(request, 'notifications.html', context)
+
+@login_required
+def mark_notification_read(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+@login_required
+def mark_all_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'success'})
+
+@login_required
+def delete_notification(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+# Ajax endpoint to get the unread notification count
+@login_required
+def get_notification_count(request):
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'count': count})
+
+
+
