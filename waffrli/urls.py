@@ -40,8 +40,8 @@ urlpatterns = [
     path('product/<int:product_id>/edit/', edit_deal, name='edit_deal'),
     path('product/<int:product_id>/delete/', delete_deal, name='delete_deal'),
     path('notifications/',notifications_view, name='notifications'),
-    path('notifications/mark-read/<int:notification_id>/',mark_notification_read, name='mark_notification_read'),
-    path('notifications/mark-all-read/',mark_all_read, name='mark_all_read'),
-    path('notifications/delete/<int:notification_id>/',delete_notification, name='delete_notification'),
-    path('notifications/count/',get_notification_count, name='get_notification_count'),
+    path('mark_notification_read/<int:notification_id>/',mark_notification_read, name='mark_notification_read'),
+    path('mark_all_read/',mark_all_read, name='mark_all_read'),
+    path('delete_notification/<int:notification_id>/',delete_notification, name='delete_notification'),
+    path('get_notification_count/',get_notification_count, name='get_notification_count'),
 ]

@@ -12,7 +12,7 @@ from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
 from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .utils import check_deal_against_wishlist
+from .utils import *
 
 def home(request):
     products = Product.objects.all()
@@ -502,9 +502,6 @@ def password_reset_callback(request):
     return redirect('login')
 
 
-
-
-# Search functionality
 def search(request):
     if request.method == "POST":
         searched = request.POST['searched']
@@ -560,7 +557,7 @@ def post_deal(request):
             return redirect('post_deal')
         
         # Check if URL already exists
-        if Product.objects.filter(Dealurl=url).exists():
+        if url and Product.objects.filter(Dealurl=url).exists():
             messages.error(request, "A product with this URL already exists.")
             return redirect('post_deal')
         
@@ -586,56 +583,12 @@ def post_deal(request):
             category=category,
             city=location,
         )
-        
-        # Import notification matching tools
-        from .utils import improved_keyword_matching
 
-        # Don't match wishlist items from the same user who posted the deal
-        all_wishlist_items = WishlistItem.objects.exclude(user=request.user)
+        # Check for wishlist matches and create notifications
+        check_deal_against_wishlist(deal)
 
-        match_count = 0
-        for item in all_wishlist_items:
-            # Check if there's a keyword match using improved algorithm
-            keyword_match = improved_keyword_matching(deal.Name, item.keyword)
-            
-            # If keywords match, also check price range and category
-            if keyword_match:
-                # Price match (using sale_price)
-                try:
-                    price_match = (
-                        float(item.min_price) <= float(deal.sale_price) <= float(item.max_price)
-                    )
-                except (TypeError, ValueError):
-                    price_match = False
-                
-                # Category match - handle both cases where category might be a string or an object
-                try:
-                    if isinstance(item.category, str):
-                        category_match = (item.category == deal.category.name)
-                    else:
-                        category_match = (item.category.id == deal.category.id)
-                except AttributeError:
-                    category_match = False
-                
-                if price_match and category_match:
-                    # Create notification
-                    Notification.objects.create(
-                        user=item.user,
-                        title=f"Deal Match: {item.keyword}",
-                        message=f"We found a deal matching your wishlist: {deal.Name} for ${deal.sale_price}",
-                        notification_type='deal',
-                        wishlist_item=item,
-                        related_object_id=deal.id,
-                        related_object_type='deal',
-                        url=f"/product/{deal.id}",
-                    )
-                    match_count += 1
 
-        # Success message based on notification count
-        if match_count > 0:
-            messages.success(request, f"Deal posted successfully! {match_count} users have been notified about this deal.")
-        else:
-            messages.success(request, "Deal posted successfully!")
+        messages.success(request, "Deal posted successfully!")
             
         return redirect('product', pk=deal.id)
     
@@ -773,15 +726,6 @@ def add_wishlist_item(request):
         )
         wishlist_item.save()
         
-        # Create a notification for the new wishlist item
-        notification = Notification(
-            user=request.user,
-            title="Wishlist Alert Created",
-            message=f"You've created a new wishlist alert for \"{data.get('keyword')}\" in the {category.name} category.",
-            notification_type='info',
-            wishlist_item=wishlist_item
-        )
-        notification.save()
         
         # Return the wishlist item data with the ID
         return JsonResponse({
@@ -1432,12 +1376,6 @@ def delete_deal(request, product_id):
         return redirect('product', pk=product_id)
     
     
-
-
-
-# Assuming you have a Notification model
-# If not, you'll need to create one based on the example below
-
 
 @login_required
 def notifications_view(request):

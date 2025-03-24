@@ -19,7 +19,7 @@
   <div id="notifications-list" class="notifications-list">
     {% if notifications %}
       {% for notification in notifications %}
-        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}" data-read="{{ notification.is_read|yesno:'true,false' }}">
           <div class="notification-content" onclick="openNotification({{ notification.id }}, '{{ notification.url }}')">
             <div class="notification-header">
               <h3>{{ notification.title }}</h3>
@@ -38,7 +38,7 @@
         </div>
       {% endfor %}
     {% else %}
-      <div class="empty-state" id="empty-notifications" style="display: flex;">
+      <div class="empty-state" id="empty-notifications">
         <i class="fa-solid fa-bell-slash"></i>
         <p>No notifications to display</p>
       </div>
@@ -46,109 +46,16 @@
   </div>
 </div>
 
-{% endblock %}
+{% csrf_token %}
 
 <script>
   // Get notification list container
   const notificationsContainer = document.getElementById("notifications-list");
   const emptyState = document.getElementById("empty-notifications");
-  let notifications = [];
   let currentTab = 'all';
-  
-  // Fetch notifications on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    loadNotifications();
-  });
-
-  // Load notifications (in a real app this would fetch from server)
-  function loadNotifications() {
-    // This is example data - in a real implementation, you'd fetch this from your backend
-    notifications = [
-      {
-        id: 1, 
-        title: "New deal for 'PlayStation 5'",
-        message: "A new deal matching your wishlist was posted: PlayStation 5 for $399.99",
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        isRead: false,
-        wishlistItemId: 1,
-        dealUrl: "/deals/123"
-      },
-      {
-        id: 2,
-        title: "Price drop alert: 'Nintendo Switch'",
-        message: "A price drop was detected for Nintendo Switch: Now $249.99",
-        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        isRead: false,
-        wishlistItemId: 2,
-        dealUrl: "/deals/456"
-      }
-    ];
-    
-    // Update notification counter in navbar (this would update the counter you mentioned)
-    updateNotificationCounter();
-    
-    // Display notifications
-    renderNotifications();
-  }
+  const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
   
   // Display notifications based on current tab
-  function renderNotifications() {
-    // Clear current notifications
-    notificationsContainer.innerHTML = '';
-    
-    // Filter notifications based on current tab
-    let filteredNotifications;
-    if (currentTab === 'unread') {
-      filteredNotifications = notifications.filter(n => !n.isRead);
-    } else if (currentTab === 'read') {
-      filteredNotifications = notifications.filter(n => n.isRead);
-    } else {
-      filteredNotifications = notifications;
-    }
-    
-    // Check if we have any notifications to show
-    if (filteredNotifications.length === 0) {
-      emptyState.style.display = 'flex';
-      return;
-    } else {
-      emptyState.style.display = 'none';
-    }
-    
-    // Create and append notification elements
-    filteredNotifications.forEach(notification => {
-      const notificationElement = document.createElement('div');
-      notificationElement.classList.add('notification-item');
-      if (!notification.isRead) {
-        notificationElement.classList.add('unread');
-      }
-      
-      // Format timestamp
-      const timestamp = new Date(notification.timestamp);
-      const timeAgo = getTimeAgo(timestamp);
-      
-      notificationElement.innerHTML = `
-        <div class="notification-content" onclick="openNotification(${notification.id}, '${notification.dealUrl}')">
-          <div class="notification-header">
-            <h3>${notification.title}</h3>
-            <span class="notification-time">${timeAgo}</span>
-          </div>
-          <p>${notification.message}</p>
-        </div>
-        <div class="notification-actions">
-          <button class="mark-read-btn" onclick="event.stopPropagation(); toggleReadStatus(${notification.id})">
-            ${notification.isRead ? 'Mark as unread' : 'Mark as read'}
-          </button>
-          <button class="delete-btn" onclick="event.stopPropagation(); deleteNotification(${notification.id})">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      `;
-      
-      notificationsContainer.appendChild(notificationElement);
-    });
-  }
-  
-  // Show notifications based on tab
   function showTab(tab) {
     currentTab = tab;
     
@@ -158,90 +65,185 @@
     });
     event.target.classList.add('active');
     
-    // Render notifications for this tab
-    renderNotifications();
+    // Filter notifications based on current tab
+    const allNotifications = document.querySelectorAll('.notification-item');
+    
+    allNotifications.forEach(notification => {
+      const isRead = notification.getAttribute('data-read') === 'true';
+      
+      if (tab === 'all') {
+        notification.style.display = 'flex';
+      } else if (tab === 'unread' && !isRead) {
+        notification.style.display = 'flex';
+      } else if (tab === 'read' && isRead) {
+        notification.style.display = 'flex';
+      } else {
+        notification.style.display = 'none';
+      }
+    });
+    
+    // Check if we have any visible notifications
+    const visibleNotifications = document.querySelectorAll('.notification-item[style="display: flex;"]');
+    if (visibleNotifications.length === 0) {
+      emptyState.style.display = 'flex';
+    } else {
+      emptyState.style.display = 'none';
+    }
   }
   
   // Open notification and mark as read
-  function openNotification(id, dealUrl) {
+  function openNotification(id, url) {
     markAsRead(id);
-    // Navigate to the deal page
-    window.location.href = dealUrl;
+    // Navigate to the URL
+    if (url && url !== 'None') {
+      window.location.href = url;
+    }
   }
   
   // Toggle read status
   function toggleReadStatus(id) {
-    const notification = notifications.find(n => n.id === id);
-    if (notification) {
-      notification.isRead = !notification.isRead;
-      renderNotifications();
-      updateNotificationCounter();
+    const notification = document.querySelector(`.notification-item[data-id="${id}"]`);
+    const isCurrentlyRead = notification.getAttribute('data-read') === 'true';
+    
+    if (isCurrentlyRead) {
+      // Mark as unread (not implemented in your view, so we'll just mark as read again)
+      markAsRead(id);
+    } else {
+      markAsRead(id);
     }
   }
   
   // Mark notification as read
   function markAsRead(id) {
-    const notification = notifications.find(n => n.id === id);
-    if (notification && !notification.isRead) {
-      notification.isRead = true;
-      renderNotifications();
-      updateNotificationCounter();
-    }
+    const notification = document.querySelector(`.notification-item[data-id="${id}"]`);
+    
+    fetch(`/mark_notification_read/${id}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Update UI
+        notification.classList.remove('unread');
+        notification.setAttribute('data-read', 'true');
+        notification.querySelector('.mark-read-btn').textContent = 'Mark as unread';
+        
+        // Update notification counter
+        updateNotificationCounter();
+        
+        // Handle tab display
+        if (currentTab === 'unread') {
+          notification.style.display = 'none';
+          // Check if we have any visible notifications
+          const visibleNotifications = document.querySelectorAll('.notification-item[style="display: flex;"]');
+          if (visibleNotifications.length === 0) {
+            emptyState.style.display = 'flex';
+          }
+        }
+      }
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
   }
   
   // Mark all notifications as read
   function markAllAsRead() {
-    notifications.forEach(notification => {
-      notification.isRead = true;
-    });
-    renderNotifications();
-    updateNotificationCounter();
+    fetch('/mark_all_read/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Update UI for all notifications
+        document.querySelectorAll('.notification-item').forEach(notification => {
+          notification.classList.remove('unread');
+          notification.setAttribute('data-read', 'true');
+          notification.querySelector('.mark-read-btn').textContent = 'Mark as unread';
+        });
+        
+        // Update notification counter
+        updateNotificationCounter();
+        
+        // Handle tab display
+        if (currentTab === 'unread') {
+          document.querySelectorAll('.notification-item').forEach(notification => {
+            notification.style.display = 'none';
+          });
+          emptyState.style.display = 'flex';
+        }
+      }
+    })
+    .catch(error => console.error('Error marking all notifications as read:', error));
   }
   
   // Delete a notification
   function deleteNotification(id) {
-    notifications = notifications.filter(n => n.id !== id);
-    renderNotifications();
-    updateNotificationCounter();
+    if (confirm('Are you sure you want to delete this notification?')) {
+      fetch(`/delete_notification/${id}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Remove notification from DOM
+          const notification = document.querySelector(`.notification-item[data-id="${id}"]`);
+          notification.remove();
+          
+          // Update notification counter
+          updateNotificationCounter();
+          
+          // Check if we have any visible notifications
+          const visibleNotifications = document.querySelectorAll('.notification-item[style="display: flex;"]');
+          if (visibleNotifications.length === 0) {
+            emptyState.style.display = 'flex';
+          }
+        }
+      })
+      .catch(error => console.error('Error deleting notification:', error));
+    }
   }
   
   // Update notification counter in navbar
   function updateNotificationCounter() {
-    const unreadCount = notifications.filter(n => !n.isRead).length;
-    
-    // Update the bell icon counter (this would update your counter)
-    const counter = document.querySelector('.cart-badge');
-    if (counter) {
-      counter.textContent = unreadCount;
-      
-      // Hide the counter if there are no unread notifications
-      if (unreadCount === 0) {
-        counter.style.display = 'none';
-      } else {
-        counter.style.display = 'block';
+    fetch('/get_notification_count/', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Update the bell icon counter
+      const counter = document.querySelector('.cart-badge');
+      if (counter) {
+        counter.textContent = data.count;
+        
+        // Hide the counter if there are no unread notifications
+        if (data.count === 0) {
+          counter.style.display = 'none';
+        } else {
+          counter.style.display = 'block';
+        }
+      }
+    })
+    .catch(error => console.error('Error updating notification count:', error));
   }
   
-  // Helper function to format time ago
-  function getTimeAgo(date) {
-    const now = new Date();
-    const diffMs = now - date;
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-    
-    if (diffSec < 60) {
-      return 'Just now';
-    } else if (diffMin < 60) {
-      return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-    } else if (diffHour < 24) {
-      return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-    } else if (diffDay < 30) {
-      return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  }
+  // Initialize the view
+  document.addEventListener('DOMContentLoaded', function() {
+    // Show the 'all' tab initially
+    showTab('all');
+  });
 </script>
+{% endblock %}
