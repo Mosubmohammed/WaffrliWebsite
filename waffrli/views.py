@@ -16,6 +16,7 @@ from .utils import *
 
 def home(request):
     products = Product.objects.all()
+
     return render(request, 'home.html',{'products':products})
 
 
@@ -713,6 +714,7 @@ def add_wishlist_item(request):
         # Get the category instance
         try:
             category = Category.objects.get(id=data.get('category'))
+            category_name = category.name  # Get the name from the Category object
         except Category.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Category not found'}, status=404)
         
@@ -722,16 +724,15 @@ def add_wishlist_item(request):
             keyword=data.get('keyword'),
             min_price=data.get('minPrice'),
             max_price=data.get('maxPrice'),
-            category=category
+            category=category_name  # Store the name, not the object
         )
         wishlist_item.save()
-        
         
         # Return the wishlist item data with the ID
         return JsonResponse({
             'status': 'success',
             'id': wishlist_item.id,
-            'category_name': category.name,
+            'category_name': category_name,
             'created_at': wishlist_item.created_at.isoformat(),
         })
     except Exception as e:
@@ -752,6 +753,7 @@ def update_wishlist_item(request, item_id):
         # Get the category instance
         try:
             category = Category.objects.get(id=data.get('category'))
+            category_name = category.name  # Get the name from the Category object
         except Category.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Category not found'}, status=404)
         
@@ -759,12 +761,12 @@ def update_wishlist_item(request, item_id):
         wishlist_item.keyword = data.get('keyword')
         wishlist_item.min_price = data.get('minPrice')
         wishlist_item.max_price = data.get('maxPrice')
-        wishlist_item.category = category
+        wishlist_item.category = category_name  # Store the name, not the object
         wishlist_item.save()
         
         return JsonResponse({
             'status': 'success',
-            'category_name': category.name
+            'category_name': category_name
         })
     except WishlistItem.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Wishlist item not found'}, status=404)
@@ -782,7 +784,7 @@ def delete_wishlist_item(request, item_id):
         
         # Store the keyword and category for the notification
         keyword = wishlist_item.keyword
-        category_name = wishlist_item.category.name
+        category_name = wishlist_item.category  # This is already a string
         
         # Delete the wishlist item
         wishlist_item.delete()

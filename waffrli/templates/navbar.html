@@ -80,14 +80,10 @@
 
               <a href="{% url 'notifications' %}" class="icon-button" title="Alerts">
                 <i class="fa-solid fa-bell"></i>
-                {% if unread_notification_count > 0 %}
-                    <span class="cart-badge">{{ unread_notification_count }}</span>
-                {% else %}
-                    <span class="cart-badge" style="display: none;">0</span>
-                {% endif %}
+                <span class="cart-badge" style="display: none;">0</span>
                 <span>Alert</span>
             </a>
-
+            
           <div class="dropdown">
             <button class="icon-button" title="Account">
                 <i class="fa-solid fa-user-gear"></i>
@@ -117,35 +113,41 @@
   </div>
 </header>
 <script>
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.body.classList.toggle('sidebar-open');
-}
-// Function to update the notification counter periodically
-function updateNotificationCounter() {
-    fetch('/notifications/count/')
-        .then(response => response.json())
-        .then(data => {
-            const counter = document.querySelector('.cart-badge');
-            if (counter) {
-                counter.textContent = data.count;
-                
-                if (data.count > 0) {
-                    counter.style.display = 'block';
-                } else {
-                    counter.style.display = 'none';
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching notification count:', error));
-}
-
-// Update the counter every minute
-document.addEventListener('DOMContentLoaded', function() {
-    // Initial update
-    updateNotificationCounter();
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.body.classList.toggle('sidebar-open');
+    }
     
-    // Set interval for updates (every 60 seconds)
-    setInterval(updateNotificationCounter, 60000);
-});
+    // Function to update the notification counter periodically
+    function updateNotificationCounter() {
+        fetch('/get_notification_count/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const counter = document.querySelector('.cart-badge');
+                if (counter) {
+                    counter.textContent = data.count;
+                    
+                    if (data.count > 0) {
+                        counter.style.display = 'block';
+                    } else {
+                        counter.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching notification count:', error));
+    }
+    
+    // Update the counter when page loads and periodically afterward
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial update
+        updateNotificationCounter();
+        
+        // Set interval for updates (every 60 seconds)
+        setInterval(updateNotificationCounter, 60000);
+    });
 </script>
