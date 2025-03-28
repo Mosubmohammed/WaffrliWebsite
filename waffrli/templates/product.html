@@ -6,71 +6,78 @@
     <main class="main">
       <div class="Detailed-deal">
         <div class="Detailed-deal-image">
+            {% if product.image_url %}
             <img
-            src="{{ product.image.url }}"
+            src="{{ product.image_url }}"
             class="img-fluid rounded-start"
             alt="Product Image"
           />
+            {% else %}
+            <img
+            src="{% static 'images/default-product.png' %}"
+            class="img-fluid rounded-start"
+            alt="No Product Image"
+          />
+            {% endif %}
         </div>
         <div class="Detailed-deal-content">
           <div class="deal-tags">
             <span class="tag tag-popular">Popular</span>
             <span class="deal-score"
-              >Posted by: <strong>@{{ product.user.username }}</strong></span
+              >Posted by: <strong>@{{ product.username|default:"Unknown" }}</strong></span
             >
-            {% if user == product.user %}
+            {% if request.session.firebase_uid == product.user_id %}
             <div class="deal-owner-actions">
-              <a href="{% url 'edit_deal' product.id %}" class="edit-deal-btn">
+              <a href="{% url 'edit_deal' product_id %}" class="edit-deal-btn">
                 <i class="fas fa-edit"></i> Edit Deal
               </a>
-              <button class="delete-deal-btn" onclick="confirmDelete({{ product.id }})">
+              <button class="delete-deal-btn" onclick="confirmDelete('{{ product_id }}')">
                 <i class="fas fa-trash-alt"></i> Delete Deal
               </button>
             </div>
             {% endif %}
           </div>
 
-          <h2>{{ product.Name }}</h2>
+          <h2>{{ product.name }}</h2>
           <div class="price-container">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="original-price">${{ product.Price }}</span>
+            <span class="current-price">${{ product.sale_price|default:"0.00" }}</span>
+            <span class="original-price">${{ product.price|default:"0.00" }}</span>
             <span class="discount">
-              {% if product.Price > 0 %}
-                {{ discount_percentage|default:36 }}% Off
+              {% if product.price > 0 %}
+                {{ product.discount_percentage|default:0 }}% Off
               {% endif %}
             </span>
           </div>
           <p class="description">
-            {{ product.Description }}
+            {{ product.description }}
           </p>
           <div class="deal-actions">
             
             <a
               class="deal-actions"
-              href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+              href="{% if product.url|slice:':4' != 'http' %}https://{{ product.url }}{% else %}{{ product.url }}{% endif %}"
               target="_blank"
               rel="noopener noreferrer"
               style="color:blue"
             >
-            Get Deal at {{product.store}}
+            Get Deal at {{ product.store|default:"Store" }}
             </a>
 
           <div class="vote-buttons">
-            <button class="like-btn" data-product-id="{{ product.id }}">
-              <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-              <span class="like-count">{{ product.likes.count }}</span>
+            <button class="like-btn" data-product-id="{{ product_id }}">
+              <i class="{% if user_liked %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+              <span class="like-count">{{ product.likes_count|default:0 }}</span>
             </button>
 
-
-            <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-              <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+            <button class="save-btn" data-product-id="{{ product_id }}" title="{% if user_saved %}Unsave{% else %}Save{% endif %} this item">
+              <i class="{% if user_saved %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
             </button>
 
             <div>
               <a href="#comment-section">
-                <span class="comments"><i class="fa-regular fa-comment"></i> 166 Comments</span>
+                <span class="comments"><i class="fa-regular fa-comment"></i> {{ product.comments_count|default:0 }} Comments</span>
               </a>
-              <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
+              <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views|default:0 }} Views</span>
             </div>
           </div>
           </div>

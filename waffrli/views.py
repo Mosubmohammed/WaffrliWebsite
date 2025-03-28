@@ -13,6 +13,9 @@ from django.contrib.auth.models import User
 from firebase_admin import auth as firebase_auth
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils import *
+import os
+from waffrliApp.settings import db
+from firebase_admin import firestore
 
 def home(request):
     products = Product.objects.all()
@@ -228,7 +231,7 @@ def register(request):
         city = request.POST.get('city')
         image = request.FILES.get('image')
         
-        # Generate username from email (or use a field in your form for username)
+        # Generate username from email
         username = email.split('@')[0]
         
         # Basic validation
@@ -236,83 +239,78 @@ def register(request):
             messages.error(request, "Passwords don't match")
             return render(request, 'register.html')
         
-        if User.objects.filter(username=username).exists():
-            # Make username unique if it already exists
-            base_username = username
-            counter = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{counter}"
-                counter += 1
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists")
-            return render(request, 'register.html')
-        
         try:
-            # Create user in Firebase
+            # Step 1: Create user in Firebase Auth
             firebase_user = firebase_auth.create_user(
                 email=email,
                 password=password,
                 display_name=f"{first_name} {last_name}",
-                email_verified=False  # Explicitly set as not verified
+                email_verified=False
             )
             firebase_uid = firebase_user.uid
             
-            # Generate and send verification email - store the link for debugging
+            # Step 2: Try to store in Firestore, but handle potential failure
+            try:
+                # Store user data in Firestore
+                user_data = {
+                    'uid': firebase_uid,
+                    'username': username,
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone': phone,
+                    'gender': gender,
+                    'address': address,
+                    'city': city,
+                    'email_verified': False,
+                    'created_at': firestore.SERVER_TIMESTAMP
+                }
+                
+                # Add user document to Firestore
+                db.collection('users').document(firebase_uid).set(user_data)
+                firestore_success = True
+            except Exception as firestore_error:
+                print(f"Firestore error: {str(firestore_error)}")
+                messages.warning(request, "Account created in authentication but profile data couldn't be saved to the database. You can still login, but please contact support.")
+                firestore_success = False
+            
+            # Step 3: Try to send verification email
             try:
                 verification_link = firebase_auth.generate_email_verification_link(
                     email, 
-                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                    action_code_settings=firebase_auth.ActionCodeSettings(
                         url="http://localhost:8000/verified/",
                         handle_code_in_app=False
                     )
                 )
-                # Print link to console for debugging
                 print(f"Verification link generated: {verification_link}")
-            
+                email_success = True
             except Exception as email_error:
-                # Log the specific email sending error
                 print(f"Email verification error: {str(email_error)}")
                 messages.warning(request, "Account created but verification email could not be sent. Please contact support.")
+                email_success = False
             
-            # Create Django User
+            # Step 4: Create Django User for authentication
             django_user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                is_active=True  # User can still log in to your site, but you can check verification status
+                is_active=True
             )
             
-            # Link Django User to Firebase
-            FirebaseUser.objects.create(
-                user=django_user,
-                firebase_uid=firebase_uid,
-                email_verified=False  # Track verification status in your database
-            )
-            
-            # Create Customer profile
-            customer = Customer.objects.create(
-                user=django_user,
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                email=email,
-                password=password,  # Note: This is redundant since Django User already stores password
-                gender=gender,
-                address=address,
-                City=city,
-            )
-            
-            # Add image if provided
-            if image:
-                customer.image = image
-                customer.save()
-            
+            # Login the user
             login(request, django_user)
             
-            messages.success(request, "Registration successful! Please check your email to verify your account.")
+            # Provide appropriate success message based on what worked
+            if firestore_success and email_success:
+                messages.success(request, "Registration successful! Please check your email to verify your account.")
+            elif firestore_success:
+                messages.success(request, "Registration successful! However, verification email could not be sent.")
+            else:
+                messages.success(request, "Basic registration successful, but profile data couldn't be saved.")
+                
             return redirect('home')  
             
         except Exception as e:
@@ -321,6 +319,115 @@ def register(request):
     
     # For GET requests
     return render(request, 'register.html')
+
+
+
+# def register(request):
+#     if request.method == 'POST':
+#         first_name = request.POST.get('first_name')
+#         last_name = request.POST.get('last_name')
+#         email = request.POST.get('email')
+#         phone = request.POST.get('phone')
+#         password = request.POST.get('password')
+#         confirm_password = request.POST.get('confirm_password')
+#         gender = request.POST.get('gender')
+#         address = request.POST.get('address')
+#         city = request.POST.get('city')
+#         image = request.FILES.get('image')
+        
+#         # Generate username from email (or use a field in your form for username)
+#         username = email.split('@')[0]
+        
+#         # Basic validation
+#         if password != confirm_password:
+#             messages.error(request, "Passwords don't match")
+#             return render(request, 'register.html')
+        
+#         if User.objects.filter(username=username).exists():
+#             # Make username unique if it already exists
+#             base_username = username
+#             counter = 1
+#             while User.objects.filter(username=username).exists():
+#                 username = f"{base_username}{counter}"
+#                 counter += 1
+        
+#         if User.objects.filter(email=email).exists():
+#             messages.error(request, "Email already exists")
+#             return render(request, 'register.html')
+        
+#         try:
+#             # Create user in Firebase
+#             firebase_user = firebase_auth.create_user(
+#                 email=email,
+#                 password=password,
+#                 display_name=f"{first_name} {last_name}",
+#                 email_verified=False  # Explicitly set as not verified
+#             )
+#             firebase_uid = firebase_user.uid
+            
+#             # Generate and send verification email - store the link for debugging
+#             try:
+#                 verification_link = firebase_auth.generate_email_verification_link(
+#                     email, 
+#                     action_code_settings=firebase_admin.auth.ActionCodeSettings(
+#                         url="http://localhost:8000/verified/",
+#                         handle_code_in_app=False
+#                     )
+#                 )
+#                 # Print link to console for debugging
+#                 print(f"Verification link generated: {verification_link}")
+            
+#             except Exception as email_error:
+#                 # Log the specific email sending error
+#                 print(f"Email verification error: {str(email_error)}")
+#                 messages.warning(request, "Account created but verification email could not be sent. Please contact support.")
+            
+#             # Create Django User
+#             django_user = User.objects.create_user(
+#                 username=username,
+#                 email=email,
+#                 password=password,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 is_active=True  # User can still log in to your site, but you can check verification status
+#             )
+            
+#             # Link Django User to Firebase
+#             FirebaseUser.objects.create(
+#                 user=django_user,
+#                 firebase_uid=firebase_uid,
+#                 email_verified=False  # Track verification status in your database
+#             )
+            
+#             # Create Customer profile
+#             customer = Customer.objects.create(
+#                 user=django_user,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 phone=phone,
+#                 email=email,
+#                 password=password,  # Note: This is redundant since Django User already stores password
+#                 gender=gender,
+#                 address=address,
+#                 City=city,
+#             )
+            
+#             # Add image if provided
+#             if image:
+#                 customer.image = image
+#                 customer.save()
+            
+#             login(request, django_user)
+            
+#             messages.success(request, "Registration successful! Please check your email to verify your account.")
+#             return redirect('home')  
+            
+#         except Exception as e:
+#             messages.error(request, f"Registration failed: {str(e)}")
+#             return render(request, 'register.html')
+    
+#     # For GET requests
+#     return render(request, 'register.html')
 
 
 def check_email_verification(request):
@@ -346,53 +453,117 @@ def verify_email_status(request):
     return False
 
 
+
 def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
         
         try:
-            # Try Django authentication first - trying email as username
-            user = authenticate(request, username=email, password=password)
-            
-            # If that fails, try finding the user by email and then authenticate with their username
-            if user is None:
-                try:
-                    django_user = User.objects.get(email=email)
-                    user = authenticate(request, username=django_user.username, password=password)
-                except User.DoesNotExist:
-                    user = None
-                    
-            if user is not None:
-                # User authenticated successfully with Django
-                login(request, user)
+            # First, check if the user exists in Firebase
+            try:
+                firebase_user = firebase_auth.get_user_by_email(email)
+                firebase_uid = firebase_user.uid
                 
-                # Check if user has a Firebase profile
-                firebase_profile = FirebaseUser.objects.filter(user=user).first()
-                if firebase_profile:
+                # Check if user exists in Firestore
+                user_doc = db.collection('users').document(firebase_uid).get()
+                
+                # Try Django authentication with email as username
+                django_username = email.split('@')[0]
+                django_user = authenticate(request, username=django_username, password=password)
+                
+                # If that fails, try with the actual username from Firestore if available
+                if django_user is None and user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    if 'username' in user_data:
+                        django_user = authenticate(request, username=user_data['username'], password=password)
+                
+                # If still not authenticated, try finding the Django user by email
+                if django_user is None:
                     try:
-                        # Verify the user exists in Firebase
-                        firebase_auth.get_user(firebase_profile.firebase_uid)
-                    except Exception as firebase_error:
-                        # Firebase verification failed, but still allow Django login
-                        print(f"Firebase verification error: {str(firebase_error)}")
-                        messages.warning(request, "Logged in successfully, but there may be an issue with your account. Some features may be limited.")
-                        return redirect('home')
+                        django_account = User.objects.get(email=email)
+                        django_user = authenticate(request, username=django_account.username, password=password)
+                    except User.DoesNotExist:
+                        pass
                 
-                # All good
-                messages.success(request, "Login successful!")
-                return redirect('home')
-            else:
-                # Authentication failed
-                messages.error(request, "Invalid email or password.")
-                return render(request, 'login.html')
-                
+                if django_user is not None:
+                    # User authenticated with Django, log them in
+                    login(request, django_user)
+                    
+                    # Store Firebase UID in session for middleware use
+                    request.session['firebase_uid'] = firebase_uid
+                    
+                    # Store user profile data in session if needed
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        request.session['user_profile'] = {
+                            'name': f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}",
+                            'email': user_data.get('email', ''),
+                            'phone': user_data.get('phone', '')
+                        }
+                    
+                    messages.success(request, "Login successful!")
+                    return redirect('home')
+                else:
+                    messages.error(request, "Invalid email or password.")
+            except firebase_auth.UserNotFoundError:
+                messages.error(request, "Account not found. Please register first.")
+            
         except Exception as e:
             messages.error(request, f"Login error: {str(e)}")
-            return render(request, 'login.html')
-            
+        
+        return render(request, 'login.html')
+    
     # For GET requests
     return render(request, 'login.html')
+
+# def login_view(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+        
+#         try:
+#             # Try Django authentication first - trying email as username
+#             user = authenticate(request, username=email, password=password)
+            
+#             # If that fails, try finding the user by email and then authenticate with their username
+#             if user is None:
+#                 try:
+#                     django_user = User.objects.get(email=email)
+#                     user = authenticate(request, username=django_user.username, password=password)
+#                 except User.DoesNotExist:
+#                     user = None
+                    
+#             if user is not None:
+#                 # User authenticated successfully with Django
+#                 login(request, user)
+                
+#                 # Check if user has a Firebase profile
+#                 firebase_profile = FirebaseUser.objects.filter(user=user).first()
+#                 if firebase_profile:
+#                     try:
+#                         # Verify the user exists in Firebase
+#                         firebase_auth.get_user(firebase_profile.firebase_uid)
+#                     except Exception as firebase_error:
+#                         # Firebase verification failed, but still allow Django login
+#                         print(f"Firebase verification error: {str(firebase_error)}")
+#                         messages.warning(request, "Logged in successfully, but there may be an issue with your account. Some features may be limited.")
+#                         return redirect('home')
+                
+#                 # All good
+#                 messages.success(request, "Login successful!")
+#                 return redirect('home')
+#             else:
+#                 # Authentication failed
+#                 messages.error(request, "Invalid email or password.")
+#                 return render(request, 'login.html')
+                
+#         except Exception as e:
+#             messages.error(request, f"Login error: {str(e)}")
+#             return render(request, 'login.html')
+            
+#     # For GET requests
+#     return render(request, 'login.html')
 
 def logout_user(request):
     logout(request)
@@ -521,18 +692,18 @@ def search(request):
     return render(request, "home.html")
 
 
-
+@login_required
 def post_deal(request):
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
     
     if request.method == "POST":
-        # Fetch image
-        pic = request.FILES.get('image')
-        if not pic:
-            messages.error(request, "Please upload an image.")
-            return redirect('post_deal')
+        # Get Firebase UID from session
+        firebase_uid = request.session.get('firebase_uid')
+        if not firebase_uid:
+            messages.error(request, "Authentication issue. Please log out and log in again.")
+            return redirect('home')
         
         # Fetch form data
         name = request.POST.get('deal-title')
@@ -544,58 +715,202 @@ def post_deal(request):
         brand = request.POST.get('brand')
         category_id = request.POST.get('category')
         location = request.POST.get('location')
+        pic = request.FILES.get('image')
         
         # Validate required fields
         if not name or not store or not category_id or not location:
             messages.error(request, "Please fill in all required fields.")
             return redirect('post_deal')
         
-        # Fetch category
+        # Fetch category name from Django model (you can move categories to Firestore later)
         try:
             category = Category.objects.get(id=int(category_id))
+            category_name = category.name
         except (Category.DoesNotExist, ValueError):
             messages.error(request, "Invalid category selected.")
             return redirect('post_deal')
         
-        # Check if URL already exists
-        if url and Product.objects.filter(Dealurl=url).exists():
-            messages.error(request, "A product with this URL already exists.")
-            return redirect('post_deal')
+        # Check if URL already exists in Firestore
+        if url:
+            existing_deals = db.collection('products').where('url', '==', url).get()
+            if len(existing_deals) > 0:
+                messages.error(request, "A product with this URL already exists.")
+                return redirect('post_deal')
         
-        # Convert price fields to Decimal safely
+        # Convert price fields to float safely
         try:
-            sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
-            price_decimal = Decimal(price) if price else Decimal("0.00")
-        except (ValueError, InvalidOperation):
+            sale_price_float = float(sale_price) if sale_price else 0.0
+            price_float = float(price) if price else 0.0
+        except ValueError:
             messages.error(request, "Invalid price format.")
             return redirect('post_deal')
         
-        # Create and save the product
-        deal = Product.objects.create(
-            user=request.user,
-            Dealurl=url,
-            Name=name,
-            sale_price=sale_price_decimal,
-            Price=price_decimal,
-            Description=description,
-            store=store,
-            brand=brand,
-            image=pic,
-            category=category,
-            city=location,
-        )
-
-        # Check for wishlist matches and create notifications
-        check_deal_against_wishlist(deal)
-
-
-        messages.success(request, "Deal posted successfully!")
+        # Handle image upload - store in Django media first
+        image_url = None
+        if pic:
+            import os
+            from django.conf import settings
             
-        return redirect('product', pk=deal.id)
+            # Create a unique filename with user ID and timestamp
+            import time
+            timestamp = int(time.time())
+            filename = f"{firebase_uid}_{timestamp}_{pic.name}"
+            
+            # Ensure the upload directory exists
+            upload_path = os.path.join(settings.MEDIA_ROOT, 'product_images')
+            os.makedirs(upload_path, exist_ok=True)
+            
+            # Save the image file
+            with open(os.path.join(upload_path, filename), 'wb+') as destination:
+                for chunk in pic.chunks():
+                    destination.write(chunk)
+            
+            # Set the image URL for storage in Firestore
+            image_url = f"/media/product_images/{filename}"
+        
+        # Create product data for Firestore
+        product_data = {
+            'user_id': firebase_uid,
+            'name': name,
+            'url': url,
+            'sale_price': sale_price_float,
+            'price': price_float,
+            'description': description,
+            'store': store,
+            'brand': brand,
+            'image_url': image_url,
+            'category': category_name,
+            'category_id': category_id,
+            'city': location,
+            'views': 0,
+            'likes_count': 0,
+            'created_at': firestore.SERVER_TIMESTAMP,
+            'username': request.user.username,  # Store the username for easy reference
+        }
+        
+        # Add to Firestore
+        new_product_ref = db.collection('products').add(product_data)
+        product_id = new_product_ref[1].id
+        
+        # Check for wishlist matches in Firestore
+        wishlist_items = db.collection('wishlist').get()
+        
+        for item in wishlist_items:
+            wishlist_data = item.to_dict()
+            wishlist_user_id = wishlist_data.get('user_id')
+            
+            # Skip the current user's wishlist items
+            if wishlist_user_id == firebase_uid:
+                continue
+                
+            keyword = wishlist_data.get('keyword', '').lower()
+            wishlist_category = wishlist_data.get('category', '')
+            min_price = float(wishlist_data.get('min_price', 0))
+            max_price = float(wishlist_data.get('max_price', 999999))
+            
+            # Check if this product matches the wishlist criteria
+            if ((keyword in name.lower() or keyword in description.lower()) and
+                (not wishlist_category or wishlist_category == category_name) and
+                (sale_price_float >= min_price and sale_price_float <= max_price)):
+                
+                # Create a notification for the wishlist owner
+                notification_data = {
+                    'user_id': wishlist_user_id,
+                    'title': 'Wishlist Match Found!',
+                    'message': f'A new deal for "{name}" matches your wishlist alert for "{keyword}".',
+                    'notification_type': 'wishlist_match',
+                    'related_product_id': product_id,
+                    'is_read': False,
+                    'created_at': firestore.SERVER_TIMESTAMP
+                }
+                
+                db.collection('notifications').add(notification_data)
+        
+        messages.success(request, "Deal posted successfully!")
+        
+        # Return to the product page - you'll need to update your URL patterns and product view
+        return redirect('product', pk=product_id)
     
     # For GET requests - just display the form
     categories = Category.objects.all()
     return render(request, "post_deal.html", {'categories': categories})
+
+
+
+# def post_deal(request):
+#     if not request.user.is_authenticated:
+#         messages.error(request, "You must be logged in to post a deal.")
+#         return redirect('login')
+    
+#     if request.method == "POST":
+#         # Fetch image
+#         pic = request.FILES.get('image')
+#         if not pic:
+#             messages.error(request, "Please upload an image.")
+#             return redirect('post_deal')
+        
+#         # Fetch form data
+#         name = request.POST.get('deal-title')
+#         url = request.POST.get('deal-url')
+#         sale_price = request.POST.get('sale-price')
+#         price = request.POST.get('list-price')
+#         description = request.POST.get('description')
+#         store = request.POST.get('store')
+#         brand = request.POST.get('brand')
+#         category_id = request.POST.get('category')
+#         location = request.POST.get('location')
+        
+#         # Validate required fields
+#         if not name or not store or not category_id or not location:
+#             messages.error(request, "Please fill in all required fields.")
+#             return redirect('post_deal')
+        
+#         # Fetch category
+#         try:
+#             category = Category.objects.get(id=int(category_id))
+#         except (Category.DoesNotExist, ValueError):
+#             messages.error(request, "Invalid category selected.")
+#             return redirect('post_deal')
+        
+#         # Check if URL already exists
+#         if url and Product.objects.filter(Dealurl=url).exists():
+#             messages.error(request, "A product with this URL already exists.")
+#             return redirect('post_deal')
+        
+#         # Convert price fields to Decimal safely
+#         try:
+#             sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
+#             price_decimal = Decimal(price) if price else Decimal("0.00")
+#         except (ValueError, InvalidOperation):
+#             messages.error(request, "Invalid price format.")
+#             return redirect('post_deal')
+        
+#         # Create and save the product
+#         deal = Product.objects.create(
+#             user=request.user,
+#             Dealurl=url,
+#             Name=name,
+#             sale_price=sale_price_decimal,
+#             Price=price_decimal,
+#             Description=description,
+#             store=store,
+#             brand=brand,
+#             image=pic,
+#             category=category,
+#             city=location,
+#         )
+
+#         # Check for wishlist matches and create notifications
+#         check_deal_against_wishlist(deal)
+
+
+#         messages.success(request, "Deal posted successfully!")
+            
+#         return redirect('product', pk=deal.id)
+    
+#     # For GET requests - just display the form
+#     categories = Category.objects.all()
+#     return render(request, "post_deal.html", {'categories': categories})
 
 
 
@@ -622,59 +937,157 @@ def like_product(request, product_id):
 
 @login_required
 def user_profile(request, identifier):
-    profile_user = get_object_or_404(User, Q(id=identifier) | Q(username=identifier))
-
-    is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
-    followers = profile_user.followers.all()
-    following = profile_user.following.all()
-
-    deal_count = Product.objects.filter(user=profile_user).count()
-    comment_count = Comment.objects.filter(customer=profile_user.customer).count()
-
-    # Find the best deal (highest likes) and annotate with comment count
-    best_deal = (
-        Product.objects.filter(user=profile_user)
-        .annotate(comment_count=Count("comments"))
-        .order_by("-likes")
-        .first()
-    )
-
-    if profile_user != request.user:
+    try:
+        # First, try to get the Firebase user by UID
         try:
-            customer_profile = profile_user.customer
-            customer_profile.view_count += 1
-            customer_profile.save()
-            view_count = customer_profile.view_count
-        except Customer.DoesNotExist:
-            view_count = 0
-    else:
-        view_count = 0
+            firebase_user = firebase_auth.get_user(identifier)
+            user_id = firebase_user.uid
+        except:
+            # If that fails, try to get by email
+            try:
+                # Check if it's an email
+                if '@' in identifier:
+                    firebase_user = firebase_auth.get_user_by_email(identifier)
+                    user_id = firebase_user.uid
+                else:
+                    # If not UID or email, check if it's a Django User ID
+                    django_user = get_object_or_404(User, id=identifier)
+                    firebase_user_record = FirebaseUser.objects.get(user=django_user)
+                    user_id = firebase_user_record.firebase_uid
+            except:
+                return redirect('home')
+        
+        # Get the user profile from Firestore
+        user_doc = db.collection('users').document(user_id).get()
+        
+        if not user_doc.exists:
+            messages.error(request, "User profile not found")
+            return redirect('home')
+            
+        profile_data = user_doc.to_dict()
+        
+        # Get all deals (products) posted by this user from Firestore
+        products_ref = db.collection('products').where('user_id', '==', user_id).get()
+        user_products = [doc.to_dict() for doc in products_ref]
+        
+        # Calculate stats for the user (deal count, comments, etc.)
+        deal_count = len(user_products)
+        
+        # Get likes and views data 
+        total_likes_received = sum([product.get('likes_count', 0) for product in user_products])
+        total_views = sum([product.get('views', 0) for product in user_products])
+        
+        # Find the best deal (highest likes)
+        best_deal = None
+        highest_likes = 0
+        for product in user_products:
+            if product.get('likes_count', 0) > highest_likes:
+                highest_likes = product.get('likes_count', 0)
+                best_deal = product
+        
+        # Calculate reputation points
+        reputation_points = total_likes_received * 5
+        
+        # Check if the current user is following this user
+        is_following = False
+        if request.user.is_authenticated:
+            # Check followers collection
+            follower_ref = db.collection('followers').document(f"{request.user.username}_{profile_data.get('username')}")
+            is_following = follower_ref.get().exists
+        
+        # Get followers and following counts
+        followers_ref = db.collection('followers').where('following_id', '==', user_id).get()
+        followers = [doc.to_dict() for doc in followers_ref]
+        
+        following_ref = db.collection('followers').where('follower_id', '==', user_id).get()
+        following = [doc.to_dict() for doc in following_ref]
+        
+        # Increment profile views if not viewing your own profile
+        if request.user.is_authenticated and request.session.get('firebase_uid') != user_id:
+            # Update view count in Firestore
+            db.collection('users').document(user_id).update({
+                'view_count': firestore.Increment(1)
+            })
+            view_count = profile_data.get('view_count', 0) + 1
+        else:
+            view_count = profile_data.get('view_count', 0)
+        
+        context = {
+            'user_profile': profile_data,
+            'is_following': is_following,
+            'followers': followers,
+            'following': following,
+            'deal_count': deal_count,
+            'comment_count': profile_data.get('comment_count', 0),
+            'view_count': view_count,
+            'total_views': total_views,
+            'total_likes_received': total_likes_received,
+            'reputation_points': reputation_points,
+            'best_deal': best_deal,
+        }
+        
+        return render(request, 'user_profile.html', context)
+        
+    except Exception as e:
+        print(f"Error in user_profile: {str(e)}")
+        messages.error(request, "An error occurred when retrieving this profile")
+        return redirect('home')
+    
+    
+# def user_profile(request, identifier):
+#     profile_user = get_object_or_404(User, Q(id=identifier) | Q(username=identifier))
 
-    total_views = (
-        Product.objects.filter(user=profile_user).aggregate(Sum("views"))["views__sum"] or 0
-    )
-    total_likes_received = (
-        Product.objects.filter(user=profile_user).aggregate(Sum("likes"))["likes__sum"] or 0
-    )
-    reputation_points = total_likes_received * 5
+#     is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
+#     followers = profile_user.followers.all()
+#     following = profile_user.following.all()
 
-    return render(
-        request,
-        "user_profile.html",
-        {
-            "user_profile": profile_user,
-            "is_following": is_following,
-            "followers": followers,
-            "following": following,
-            "deal_count": deal_count,
-            "comment_count": comment_count,
-            "view_count": view_count,
-            "total_views": total_views,
-            "total_likes_received": total_likes_received,
-            "reputation_points": reputation_points,
-            "best_deal": best_deal,
-        },
-    )
+#     deal_count = Product.objects.filter(user=profile_user).count()
+#     comment_count = Comment.objects.filter(customer=profile_user.customer).count()
+
+#     # Find the best deal (highest likes) and annotate with comment count
+#     best_deal = (
+#         Product.objects.filter(user=profile_user)
+#         .annotate(comment_count=Count("comments"))
+#         .order_by("-likes")
+#         .first()
+#     )
+
+#     if profile_user != request.user:
+#         try:
+#             customer_profile = profile_user.customer
+#             customer_profile.view_count += 1
+#             customer_profile.save()
+#             view_count = customer_profile.view_count
+#         except Customer.DoesNotExist:
+#             view_count = 0
+#     else:
+#         view_count = 0
+
+#     total_views = (
+#         Product.objects.filter(user=profile_user).aggregate(Sum("views"))["views__sum"] or 0
+#     )
+#     total_likes_received = (
+#         Product.objects.filter(user=profile_user).aggregate(Sum("likes"))["likes__sum"] or 0
+#     )
+#     reputation_points = total_likes_received * 5
+
+#     return render(
+#         request,
+#         "user_profile.html",
+#         {
+#             "user_profile": profile_user,
+#             "is_following": is_following,
+#             "followers": followers,
+#             "following": following,
+#             "deal_count": deal_count,
+#             "comment_count": comment_count,
+#             "view_count": view_count,
+#             "total_views": total_views,
+#             "total_likes_received": total_likes_received,
+#             "reputation_points": reputation_points,
+#             "best_deal": best_deal,
+#         },
+#     )
 
 
 
@@ -819,9 +1232,23 @@ def unfollow(request, user_id):
     return redirect('user_profile', user_id=user_id)
 
 
+@login_required
 def settings(request):
     try:
-        customer = request.user.customer
+        # Get Firebase UID from session
+        firebase_uid = request.session.get('firebase_uid')
+        if not firebase_uid:
+            messages.error(request, "Authentication issue. Please log out and log in again.")
+            return redirect('home')
+        
+        # Get user profile from Firestore
+        user_doc = db.collection('users').document(firebase_uid).get()
+        
+        if not user_doc.exists:
+            messages.error(request, "User profile not found. Please contact support.")
+            return redirect('home')
+            
+        user_data = user_doc.to_dict()
         allow_username_edit = False  # Set to True if you want to allow direct username edits
         
         if request.method == 'POST':
@@ -829,71 +1256,211 @@ def settings(request):
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
+                    # Update username in Firebase and Django
+                    db.collection('users').document(firebase_uid).update({
+                        'username': new_username
+                    })
+                    
+                    # Also update Django username for consistency
                     request.user.username = new_username
                     request.user.save()
+                    
                     messages.success(request, 'Username updated successfully!')
                     return redirect('settings')
             
+            # Handle email update
             if 'update_profile' in request.POST:
                 email = request.POST.get('email')
-                if email and email != request.user.email:
+                if email and email != user_data.get('email'):
+                    # Update email in Firebase Auth
+                    firebase_auth.update_user(firebase_uid, email=email)
+                    
+                    # Update email in Firestore
+                    db.collection('users').document(firebase_uid).update({
+                        'email': email,
+                        'email_verified': False
+                    })
+                    
+                    # Update Django user's email for consistency
                     request.user.email = email
                     request.user.save()
-                    # If email changed, you might want to set email_verified to False
-                    customer.email_verified = False
-                    customer.save()
+                    
                     messages.success(request, 'Email updated successfully! Please verify your new email.')
                     return redirect('settings')
-            
-            # # Handle zipcode update
-            # if 'update_zipcode' in request.POST:
-            #     zipcode = request.POST.get('zipcode')
-            #     customer.zipcode = zipcode
-            #     customer.save()
-            #     messages.success(request, 'Zip code updated successfully!')
-            #     return redirect('settings')
         
         context = {
+            'user_profile': user_data,
             'allow_username_edit': allow_username_edit,
         }
         return render(request, 'settings.html', context)
         
-    except AttributeError:
-        messages.error(request, 'Customer profile not found. Please contact support.')
+    except Exception as e:
+        print(f"Error in settings: {str(e)}")
+        messages.error(request, 'An error occurred. Please try again later.')
         return redirect('home')
 
+# def settings(request):
+#     try:
+#         customer = request.user.customer
+#         allow_username_edit = False  # Set to True if you want to allow direct username edits
+        
+#         if request.method == 'POST':
+#             # Handle username change request
+#             if 'request_username' in request.POST:
+#                 new_username = request.POST.get('new_username')
+#                 if new_username:
+#                     request.user.username = new_username
+#                     request.user.save()
+#                     messages.success(request, 'Username updated successfully!')
+#                     return redirect('settings')
+            
+#             if 'update_profile' in request.POST:
+#                 email = request.POST.get('email')
+#                 if email and email != request.user.email:
+#                     request.user.email = email
+#                     request.user.save()
+#                     # If email changed, you might want to set email_verified to False
+#                     customer.email_verified = False
+#                     customer.save()
+#                     messages.success(request, 'Email updated successfully! Please verify your new email.')
+#                     return redirect('settings')
+            
+#             # # Handle zipcode update
+#             # if 'update_zipcode' in request.POST:
+#             #     zipcode = request.POST.get('zipcode')
+#             #     customer.zipcode = zipcode
+#             #     customer.save()
+#             #     messages.success(request, 'Zip code updated successfully!')
+#             #     return redirect('settings')
+        
+#         context = {
+#             'allow_username_edit': allow_username_edit,
+#         }
+#         return render(request, 'settings.html', context)
+        
+#     except AttributeError:
+#         messages.error(request, 'Customer profile not found. Please contact support.')
+#         return redirect('home')
 
-    
-@login_required
+
+
 def update_info(request):
     try:
-        customer = request.user.customer
+        # Get Firebase UID from session
+        firebase_uid = request.session.get('firebase_uid')
+        if not firebase_uid:
+            messages.error(request, "Authentication issue. Please log out and log in again.")
+            return redirect('home')
+        
+        # Get user profile from Firestore
+        user_doc = db.collection('users').document(firebase_uid).get()
+        
+        if not user_doc.exists:
+            messages.error(request, "User profile not found. Please contact support.")
+            return redirect('home')
+            
+        user_data = user_doc.to_dict()
         
         if request.method == 'POST':
+            # Extract form data
+            first_name = request.POST.get('first_name', '')
+            last_name = request.POST.get('last_name', '')
+            phone = request.POST.get('phone', '')
+            address = request.POST.get('address', '')
+            city = request.POST.get('city', '')
+            country = request.POST.get('country', '')
             
+            # Prepare updates
+            update_data = {
+                'first_name': first_name,
+                'last_name': last_name,
+                'phone': phone,
+                'address': address,
+                'city': city,
+                'country': country
+            }
             
-            request.user.first_name = request.POST.get('first_name', '')
-            request.user.last_name = request.POST.get('last_name', '')
+            # Handle image upload if provided
+            if request.FILES.get('image'):
+                import os
+                from django.conf import settings
+                
+                image = request.FILES.get('image')
+                
+                # Create a unique filename
+                import time
+                timestamp = int(time.time())
+                filename = f"{firebase_uid}_{timestamp}_{image.name}"
+                
+                # Ensure upload directory exists
+                upload_path = os.path.join(settings.MEDIA_ROOT, 'user_images', firebase_uid)
+                os.makedirs(upload_path, exist_ok=True)
+                
+                # Save the image
+                with open(os.path.join(upload_path, filename), 'wb+') as destination:
+                    for chunk in image.chunks():
+                        destination.write(chunk)
+                
+                # Set the image URL for Firestore
+                image_path = f"/media/user_images/{firebase_uid}/{filename}"
+                update_data['image_path'] = image_path
+            
+            # Update Firebase Auth display name
+            firebase_auth.update_user(
+                firebase_uid,
+                display_name=f"{first_name} {last_name}"
+            )
+            
+            # Update user profile in Firestore
+            db.collection('users').document(firebase_uid).update(update_data)
+            
+            # Update Django user for consistency
+            request.user.first_name = first_name
+            request.user.last_name = last_name
             request.user.save()
             
-            # Update customer profile information
-            customer.phone = request.POST.get('phone', '')
-            customer.address = request.POST.get('address', '')
-            customer.city = request.POST.get('city', '')
-            customer.country = request.POST.get('country', '')
-
-            if request.FILES.get('image'):
-                customer.image = request.FILES.get('image')
-            
-            customer.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('update_info')
         
-        return render(request, 'update_info.html')
+        # For GET requests, pass user data to the template
+        return render(request, 'update_info.html', {'user_profile': user_data})
         
-    except AttributeError:
-        messages.error(request, 'Customer profile not found. Please contact support.')
+    except Exception as e:
+        print(f"Error in update_info: {str(e)}")
+        messages.error(request, 'An error occurred while updating your profile. Please try again later.')
         return redirect('settings')
+    
+    
+# @login_required
+# def update_info(request):
+#     try:
+#         customer = request.user.customer
+        
+#         if request.method == 'POST':
+            
+            
+#             request.user.first_name = request.POST.get('first_name', '')
+#             request.user.last_name = request.POST.get('last_name', '')
+#             request.user.save()
+            
+#             # Update customer profile information
+#             customer.phone = request.POST.get('phone', '')
+#             customer.address = request.POST.get('address', '')
+#             customer.city = request.POST.get('city', '')
+#             customer.country = request.POST.get('country', '')
+
+#             if request.FILES.get('image'):
+#                 customer.image = request.FILES.get('image')
+            
+#             customer.save()
+#             messages.success(request, 'Profile updated successfully!')
+#             return redirect('update_info')
+        
+#         return render(request, 'update_info.html')
+        
+#     except AttributeError:
+#         messages.error(request, 'Customer profile not found. Please contact support.')
+#         return redirect('settings')
 
 
 @login_required
@@ -1113,6 +1680,8 @@ def delete_messages(request):
     return redirect('inbox')
 
 
+
+@login_required
 def close_account(request):
     if request.method == 'POST':
         user = request.user
@@ -1121,40 +1690,115 @@ def close_account(request):
         if confirmation != 'DELETE':
             messages.error(request, "Please type 'DELETE' to confirm account deletion.")
             return render(request, 'confirm_account_deletion.html')
+        
+        try:
+            # Get Firebase UID from session
+            firebase_uid = request.session.get('firebase_uid')
             
-        if user.is_authenticated:
-            try:
-                # Get Firebase UID for the user
-                firebase_user = FirebaseUser.objects.get(user=user)
+            if not firebase_uid:
+                # Try to get from FirebaseUser model as fallback
+                try:
+                    firebase_user = FirebaseUser.objects.get(user=user)
+                    firebase_uid = firebase_user.firebase_uid
+                except:
+                    messages.error(request, "Could not retrieve your account information. Please contact support.")
+                    return redirect('settings')
+            
+            # Delete user's data from Firestore collections
+            
+            # 1. Delete user's products
+            products_ref = db.collection('products').where('user_id', '==', firebase_uid).stream()
+            for product in products_ref:
+                product.reference.delete()
+            
+            # 2. Delete user's comments
+            comments_ref = db.collection('comments').where('user_id', '==', firebase_uid).stream()
+            for comment in comments_ref:
+                comment.reference.delete()
+            
+            # 3. Delete user's wishlist items
+            wishlist_ref = db.collection('wishlist').where('user_id', '==', firebase_uid).stream()
+            for item in wishlist_ref:
+                item.reference.delete()
+            
+            # 4. Delete user's notifications
+            notifications_ref = db.collection('notifications').where('user_id', '==', firebase_uid).stream()
+            for notification in notifications_ref:
+                notification.reference.delete()
+            
+            # 5. Delete user's follows/followers
+            followers_ref = db.collection('followers').where('follower_id', '==', firebase_uid).stream()
+            for follower in followers_ref:
+                follower.reference.delete()
                 
-                # Delete user from Firebase
-                firebase_auth.delete_user(firebase_user.firebase_uid)
-                
-                # Log the user out
-                logout(request)
-                
-                # Delete Django user (will cascade to Customer due to OneToOneField)
-                user.delete()
-                
-                messages.success(request, "Your account has been successfully deleted.")
-                return redirect('home')  # Redirect to home page
-                
-            except FirebaseUser.DoesNotExist:
-                # If no Firebase user exists, just delete the Django user
-                logout(request)
-                user.delete()
-                messages.success(request, "Your account has been successfully deleted.")
-                return redirect('home')
-                
-            except Exception as e:
-                messages.error(request, f"Error deleting account: {str(e)}")
-                return redirect('settings')
-        else:
-            messages.error(request, "You must be logged in to delete your account.")
-            return redirect('login')
+            following_ref = db.collection('followers').where('following_id', '==', firebase_uid).stream()
+            for following in following_ref:
+                following.reference.delete()
+            
+            # 6. Delete user profile from Firestore
+            db.collection('users').document(firebase_uid).delete()
+            
+            # 7. Delete user from Firebase Auth
+            firebase_auth.delete_user(firebase_uid)
+            
+            # 8. Log the user out and delete Django user
+            logout(request)
+            user.delete()
+            
+            messages.success(request, "Your account has been successfully deleted.")
+            return redirect('home')
+            
+        except Exception as e:
+            print(f"Error deleting account: {str(e)}")
+            messages.error(request, f"Error deleting account: {str(e)}")
+            return redirect('settings')
     else:
         # Display confirmation page for GET requests
         return render(request, 'confirm_account_deletion.html')
+    
+    
+# def close_account(request):
+#     if request.method == 'POST':
+#         user = request.user
+#         confirmation = request.POST.get('confirm', '')
+        
+#         if confirmation != 'DELETE':
+#             messages.error(request, "Please type 'DELETE' to confirm account deletion.")
+#             return render(request, 'confirm_account_deletion.html')
+            
+#         if user.is_authenticated:
+#             try:
+#                 # Get Firebase UID for the user
+#                 firebase_user = FirebaseUser.objects.get(user=user)
+                
+#                 # Delete user from Firebase
+#                 firebase_auth.delete_user(firebase_user.firebase_uid)
+                
+#                 # Log the user out
+#                 logout(request)
+                
+#                 # Delete Django user (will cascade to Customer due to OneToOneField)
+#                 user.delete()
+                
+#                 messages.success(request, "Your account has been successfully deleted.")
+#                 return redirect('home')  # Redirect to home page
+                
+#             except FirebaseUser.DoesNotExist:
+#                 # If no Firebase user exists, just delete the Django user
+#                 logout(request)
+#                 user.delete()
+#                 messages.success(request, "Your account has been successfully deleted.")
+#                 return redirect('home')
+                
+#             except Exception as e:
+#                 messages.error(request, f"Error deleting account: {str(e)}")
+#                 return redirect('settings')
+#         else:
+#             messages.error(request, "You must be logged in to delete your account.")
+#             return redirect('login')
+#     else:
+#         # Display confirmation page for GET requests
+#         return render(request, 'confirm_account_deletion.html')
     
     
 
