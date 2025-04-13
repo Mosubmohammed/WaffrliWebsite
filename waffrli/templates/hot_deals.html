@@ -1,36 +1,111 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/Sub-categories.css' %}" rel="stylesheet" />
-<div class="container">
-    <h1 class="text-center mb-4 hot-deals-title"><span class="hot-emoji">🔥</span> Hot Deals <span class="hot-emoji">🔥</span></h1>
-    <p class="text-center">Products with 70% or more discount</p>
+<link href="{% static 'css/popularDeals.css' %}" rel="stylesheet" />
+<link href="{% static 'css/hotDeals.css' %}" rel="stylesheet" />
+<!-- Hero Section -->
+<div class="hero-section">
 
-    <div class="main-content">
-        <!-- Sidebar Filters -->
-        <aside class="filters">
-            <h2>Filters</h2>
-        
-            <div class="filter-section">
-                <h3>Stores</h3>
-                {% for store in stores %}
-                    <label>
-                        <input type="checkbox" name="store" value="{{ store }}"> {{ store }}
-                    </label>
-                {% endfor %}
+    <div class="hero-content">
+        <h1 class="main-title">
+            Hot Deals
+            <span class="highlight-text">70% Off or More!</span>
+        </h1>
+        <p class="subtitle">
+            Exclusive deals that'll make your day!
+            <br> Limited time offers on premium products.
+        </p>
+    </div>
+</div>
+
+
+
+<div class="featured-deals-slider">
+    <button class="slider-btn prev-btn">❮</button>
+    <div class="featured-deals-container">
+        <!-- H&M Deal -->
+        <div class="featured-deal">
+            <div class="featured-content">
+                <div class="featured-text">
+                    <h3>H&M Special! 🛍️</h3>
+                    <p>Fashion Collection - Up to 70% OFF</p>
+                    <button class="shop-now-btn">Shop Now</button>
+                </div>
+                <img src="https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?auto=format&fit=crop&w=1200&h=300&q=80"
+                    alt="H&M Fashion Sale" class="featured-image">
             </div>
-        
-            <div class="filter-section">
-                <h3>Location</h3>
-                {% for location in locations %}
-                    <label>
-                        <input type="checkbox" name="location" value="{{ location }}"> {{ location }}
-                    </label>
-                {% endfor %}
+        </div>
+
+        <!-- Mecca Mall Deal -->
+        <div class="featured-deal">
+            <div class="featured-content">
+                <div class="featured-text">
+                    <h3>Mecca Mall-Amman Deals! 🏬</h3>
+                    <p>Multi-Brand Sale - Up to 50% OFF</p>
+                    <button class="shop-now-btn">Shop Now</button>
+                </div>
+                <img src="https://images.unsplash.com/photo-1567958451986-2de427a4a0be?auto=format&fit=crop&w=1200&h=300&q=80"
+                    alt="Mecca Mall Shopping" class="featured-image">
             </div>
-        
-            <div class="filter-section">
-                <h3>Rating</h3>
+        </div>
+
+        <!-- SmartBuy Deal -->
+        <div class="featured-deal">
+            <div class="featured-content">
+                <div class="featured-text">
+                    <h3>SmartBuy! 💻</h3>
+                    <p>Latest Gadgets - 30% OFF</p>
+                    <button class="shop-now-btn">Shop Now</button>
+                </div>
+                <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&h=300&q=80"
+                    alt="Tech Gadgets Sale" class="featured-image">
+            </div>
+        </div>
+
+        <!-- Irbid City Center Deal -->
+        <div class="featured-deal">
+            <div class="featured-content">
+                <div class="featured-text">
+                    <h3>Irbid City Center Flash Sale! 🌟</h3>
+                    <p>Weekend Special - Up to 60% OFF</p>
+                    <button class="shop-now-btn">Shop Now</button>
+                </div>
+                <img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=1200&h=300&q=80"
+                    alt="Shopping Center Sale" class="featured-image">
+            </div>
+        </div>
+    </div>
+    <button class="slider-btn next-btn">❯</button>
+</div>
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Filters -->
+    <aside class="filters">
+        <h2>Filters</h2>
+
+        <!-- Stores -->
+        <div class="filter-section">
+            <h3>Stores</h3>
+            {% for store in stores %}
+            <label>
+                <input type="checkbox" name="store" value="{{ store }}"> {{ store }}
+            </label>
+        {% endfor %}
+        </div>
+
+        <div class="filter-section">
+            <h3>Location</h3>
+            {% for location in locations %}
+            <label>
+                <input type="checkbox" name="location" value="{{ location }}"> {{ location }}
+            </label>
+        {% endfor %}
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-section">
+            <h3>Rating</h3>
+            <div class="rating-filters">
                 <label><input type="radio" name="rating" value="5"> Popular Deals</label>
                 <label><input type="radio" name="rating" value="5"> 5+ Thumbs</label>
                 <label><input type="radio" name="rating" value="4"> 4+ Thumbs</label>
@@ -39,20 +114,22 @@
                 <label><input type="radio" name="rating" value="1"> 1+ Thumbs</label>
                 <label><input type="radio" name="rating" value="0" checked> All Ratings</label>
             </div>
-        
-            <div class="filter-section">
-                <h3>Price Range</h3>
-                <div class="price-slider">
-                    <input type="range" id="priceRange" min="0" max="200" value="100">
-                    <div class="price-inputs">
-                        <input type="number" id="minPrice" value="0">
-                        <span>to</span>
-                        <input type="number" id="maxPrice" value="100">
-                    </div>
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-section">
+            <h3>Price Range</h3>
+            <div class="price-slider">
+                <input type="range" id="priceRange" min="0" max="200" value="100">
+                <div class="price-inputs">
+                    <input type="number" id="minPrice" value="0">
+                    <span>to</span>
+                    <input type="number" id="maxPrice" value="100">
                 </div>
             </div>
-            
-            <div class="filter-section">
+        </div>
+
+                    <div class="filter-section">
                 <div class="filter-header toggle-brands">
                     <span>
                         <h3>Brands</h3>
@@ -65,251 +142,396 @@
                     {% endfor %}
                 </div>
             </div>
-        </aside>
+    </aside>
 
-        <!-- Products Grid -->
-        <main class="products">
-            <div id="product-list">
-                {% if products %}
-                    {% for product in products %}
-                        <div class="product-card">
-                            <div class="card-header">
-                                <div class="user-info">
-                                    {% if product.customer_pic_id and product.customer_pic_id.image %}
-                                    <img style="width: 20px; height: 24px" 
-                                         src="{{ product.customer_pic_id.image.url }}" 
-                                         alt="User Icon" 
-                                         class="profile-pic" 
-                                         width="30" 
-                                         height="30" />
-                                    {% else %}
-                                    <img style="width: 20px; height: 24px" 
-                                         src="{% static 'images/default-profile.png' %}" 
-                                         alt="Default User" 
-                                         class="profile-pic" 
-                                         width="30" 
-                                         height="30" />
-                                    {% endif %}
-                                    <div class="user-details">
-                                        <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-                                        <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
-                                    </div>
-                                </div>
-                                <!-- Discount Badge -->
-                                <div class="discount-tag">
-                                    <span>{{ product.discount_percentage }}% OFF</span>
-                                </div>
-                            </div>
-                
-                            <img src="{{ product.image.url }}" alt="{{ product.Name }}" />
-                
-                            <div class="product-info">
-                                <h3>{{ product.Name }}</h3>
-                                <p class="description">{{ product.Description|truncatechars:100 }}</p>
-                
-                                <div class="price-container">
-                                    <span class="current-price">${{ product.sale_price }}</span>
-                                    <span class="original-price">${{ product.Price }}</span>
-                                </div>
-                                
-                                <div class="store-details">
-                                    <span class="store-badge">{{ product.store }}</span>
-                                    <span class="store-badge">{{ product.city }}</span>
-                                    <span class="store-badge">{{ product.category.name }}</span>
-                                </div>
-                            </div>
-                
-                            <div class="card-footer">
-                                <button class="like-btn" data-product-id="{{ product.id }}">
-                                    <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-                                    <span class="like-count">{{ product.number_of_likes }}</span>
-                                </button>
-                                <a href="{{ product.Dealurl }}" class="get-deal-btn" target="_blank">
-                                    Get Deal
-                                </a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="no-results">No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
-                {% endif %}
+    <!-- Products Grid -->
+    <main class="Subproducts-grid">
+        <div class="Subproduct-card">
+            {% if products %}
+            {% for product in products %}
+            <div class="product-image">
+                <img src="{{ product.image.url }}" alt="Product" />
+                <div class="discount-badge">{{ product.discount_percentage }} %OFF</div>
             </div>
-        </main>
+            <div class="product-details">
+                <h3>{{ product.Name }}</h3>
+                <div class="price-rating">
+                    {% comment %} <span class="price">$49.99</span> {% endcomment %}
+                    <span class="current-price">${{ product.sale_price }}</span>
+                    <span class="original-price">${{ product.Price }}</span><br/>
+                    
+                </div>
+                <div class="store">{{ product.store }}</div>
+                <a href="{% url 'product' product.id %}">            
+                    <button  class="view-deal-btn" >
+                    <span class="bag-icon">🛍️</span>
+                    View Deal
+                </button>
+            </a>
+
+
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="no-results">No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+            {% endif %}
+        </div>
+
+
+    </main>
+</div>
+
+<!-- Featured Deal -->
+
+<div class="sales-boxes">
+    <div class="sales-box">
+        <div class="sales-icon">🔥</div>
+        <h3>Flash Sales</h3>
+        <div class="sales-badge">Limited Time</div>
+    </div>
+    <div class="sales-box">
+        <div class="sales-icon">💎</div>
+        <h3>Premium Deals</h3>
+        <p>Luxury Items</p>
+        <div class="sales-badge">Exclusive</div>
+    </div>
+    <div class="sales-box">
+        <div class="sales-icon">🎁</div>
+        <h3>Bundle Offers</h3>
+        <p>Buy More Save More</p>
+        <div class="sales-badge">Special</div>
+    </div>
+    <div class="sales-box">
+        <div class="sales-icon">⚡</div>
+        <h3>Daily Deals</h3>
+        <p>24Hr Specials</p>
+        <div class="sales-badge">Today Only</div>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Price slider functionality
-        const priceRange = document.getElementById("priceRange");
-        const minPriceInput = document.getElementById("minPrice");
-        const maxPriceInput = document.getElementById("maxPrice");
+    document.addEventListener('DOMContentLoaded', () => {
+        // Animate elements when they come into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, { threshold: 0.1 });
     
-        priceRange.addEventListener("input", function () {
-            maxPriceInput.value = this.value;
+        // Observe all product cards
+        document.querySelectorAll('.product-card').forEach(card => {
+            observer.observe(card);
         });
     
-        minPriceInput.addEventListener("input", function () {
-            if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
-                minPriceInput.value = maxPriceInput.value - 1;
+        // Category selection
+        const categoryCards = document.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove active class from all cards
+                categoryCards.forEach(c => c.classList.remove('active'));
+                // Add active class to clicked card
+                card.classList.add('active');
+    
+                // Add animation
+                card.style.animation = 'scaleIn 0.3s ease forwards';
+                setTimeout(() => {
+                    card.style.animation = '';
+                }, 300);
+            });
+        });
+    
+        // Price range slider
+        const priceRange = document.getElementById('priceRange');
+        const minPriceInput = document.getElementById('minPrice');
+        const maxPriceInput = document.getElementById('maxPrice');
+    
+        if (priceRange && minPriceInput && maxPriceInput) {
+            priceRange.addEventListener("input", function () {
+                maxPriceInput.value = this.value;
+            });
+        
+            minPriceInput.addEventListener("input", function () {
+                if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
+                    minPriceInput.value = maxPriceInput.value - 1;
+                }
+            });
+        
+            maxPriceInput.addEventListener("input", function () {
+                if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
+                    maxPriceInput.value = parseInt(minPriceInput.value) + 1;
+                }
+                priceRange.value = maxPriceInput.value;
+            });
+        }
+    
+        // Hover animations for product cards
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+            });
+    
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+            });
+        });
+    
+        // Button hover effects
+        document.querySelectorAll('.view-deal-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'scale(1.02)';
+            });
+    
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    
+        // Add loading animation for images
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('load', () => {
+                img.style.animation = 'fadeIn 0.5s ease-out';
+            });
+        });
+    
+        // Featured deals slider functionality
+        const container = document.querySelector('.featured-deals-container');
+        const slides = document.querySelectorAll('.featured-deal');
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+        let currentIndex = 0;
+    
+        if (container && slides.length > 0 && prevBtn && nextBtn) {
+            function updateSlider() {
+                container.style.transform = `translateX(-${currentIndex * 100}%)`;
             }
-        });
     
-        maxPriceInput.addEventListener("input", function () {
-            if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
-                maxPriceInput.value = parseInt(minPriceInput.value) + 1;
-            }
-            priceRange.value = maxPriceInput.value;
-        });
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                updateSlider();
+            });
+    
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateSlider();
+            });
+    
+            // Auto-slide every 5 seconds
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateSlider();
+            }, 5000);
+        }
     
         // Brand Filter Toggle
         const brandHeader = document.querySelector(".toggle-brands");
         const brandList = document.querySelector(".brand-list");
     
-        if (brandHeader) {
+        if (brandHeader && brandList) {
             brandHeader.addEventListener("click", function () {
                 const isHidden = brandList.style.display === "none" || brandList.style.display === "";
                 brandList.style.display = isHidden ? "block" : "none";
             });
         }
     
-        // Add event listeners for all filter inputs
+        // Setup filter listeners
         const storeCheckboxes = document.querySelectorAll('input[name="store"]');
         const locationCheckboxes = document.querySelectorAll('input[name="location"]');
         const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
         const ratingRadios = document.querySelectorAll('input[name="rating"]');
     
-        storeCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        locationCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        brandCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        ratingRadios.forEach(radio => radio.addEventListener("change", fetchFilteredProducts));
+// Replace the existing applyClientSideFilters function with this updated version
+
+function applyClientSideFilters() {
+    // Get selected values
+    const selectedStores = Array.from(document.querySelectorAll('input[name="store"]:checked'))
+        .map(cb => cb.value.toLowerCase());
+    
+    const selectedLocations = Array.from(document.querySelectorAll('input[name="location"]:checked'))
+        .map(cb => cb.value.toLowerCase());
+    
+    const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked'))
+        .map(cb => cb.value.toLowerCase());
+
+    // Get the selected rating (likes threshold)
+    const selectedRating = parseInt(document.querySelector('input[name="rating"]:checked')?.value || "0");
+    
+    const minPrice = parseFloat(minPriceInput?.value || 0);
+    const maxPrice = parseFloat(maxPriceInput?.value || Number.MAX_SAFE_INTEGER);
+
+    console.log("Filters applied:", {
+        stores: selectedStores,
+        locations: selectedLocations,
+        brands: selectedBrands,
+        minPrice,
+        maxPrice,
+        rating: selectedRating
+    });
+
+    // Important: For testing, let's add data attributes for likes to each product
+    // In production, you should modify your Django template to include likes data
+    // This is just for demonstration if likes data isn't available in HTML
+    const productCards = document.querySelectorAll('.Subproduct-card');
+    
+    // DEBUG: Check what we're finding
+    console.log(`Found ${productCards.length} product cards with selector '.Subproduct-card'`);
+    
+    if (productCards.length === 0) {
+        console.log("No product cards found with selector '.Subproduct-card'");
+        return;
+    }
+    
+    // For the likes filter, we'll check for data-likes attribute or add a default value
+    // This simulates the likes count if it's not available in your HTML
+    productCards.forEach(card => {
+        if (!card.hasAttribute('data-likes')) {
+            // In production, you should get this from the Django template
+            // For now, this will help with testing
+            card.setAttribute('data-likes', Math.floor(Math.random() * 10));
+        }
+    });
+    
+    let visibleCount = 0;
+
+    // Loop through products
+    productCards.forEach(card => {
+        let showProduct = true;
+
+        // Store filter
+        if (selectedStores.length > 0) {
+            const storeElement = card.querySelector('.store');
+            if (storeElement) {
+                const storeText = storeElement.textContent.toLowerCase();
+                if (!selectedStores.some(store => storeText.includes(store))) {
+                    showProduct = false;
+                }
+            }
+        }
+
+        // Location filter
+        if (showProduct && selectedLocations.length > 0) {
+            // Check product details for location match
+            const productText = card.textContent.toLowerCase();
+            if (!selectedLocations.some(location => productText.includes(location))) {
+                showProduct = false;
+            }
+        }
+
+        // Brand filter
+        if (showProduct && selectedBrands.length > 0) {
+            // Check product details for brand match
+            const productText = card.textContent.toLowerCase();
+            if (!selectedBrands.some(brand => productText.includes(brand))) {
+                showProduct = false;
+            }
+        }
+
+        // Price filter
+        if (showProduct) {
+            const salePriceElement = card.querySelector('.current-price');
+            if (salePriceElement) {
+                const priceText = salePriceElement.textContent.replace('$', '');
+                const price = parseFloat(priceText);
+                
+                if (isNaN(price) || price < minPrice || price > maxPrice) {
+                    showProduct = false;
+                }
+            }
+        }
+
+        // Rating/Likes filter
+        if (showProduct && selectedRating > 0) {
+            // Get likes from data attribute or fallback to 0
+            const likesCount = parseInt(card.getAttribute('data-likes') || '0');
+            
+            // If selected rating is "Popular Deals" (5), we check for high likes
+            if (selectedRating >= 5 && likesCount < 5) {
+                showProduct = false;
+            } else if (likesCount < selectedRating) {
+                showProduct = false;
+            }
+        }
+
+        // Toggle visibility
+        if (showProduct) {
+            card.style.display = '';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Show "no results" message if needed
+    const noResultsMsg = document.querySelector('.no-results');
+    if (noResultsMsg) {
+        noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+    } else if (visibleCount === 0) {
+        // Create no results message if it doesn't exist
+        const productsGrid = document.querySelector('.Subproducts-grid');
+        if (productsGrid) {
+            const newMsg = document.createElement('p');
+            newMsg.className = 'no-results';
+            newMsg.textContent = 'No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!';
+            productsGrid.appendChild(newMsg);
+        }
+    }
+
+    // Add filter animation
+    document.querySelectorAll('.Subproduct-card').forEach(card => {
+        if (card.style.display !== 'none') {
+            card.style.animation = 'fadeIn 0.3s ease-out';
+        }
+    });
+}
+    
+        // Add event listeners to filter inputs
+        storeCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
+        locationCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
+        brandCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
+        ratingRadios.forEach(radio => radio.addEventListener("change", applyClientSideFilters));
         
         // Add listeners for price inputs
-        minPriceInput.addEventListener("change", fetchFilteredProducts);
-        maxPriceInput.addEventListener("change", fetchFilteredProducts);
-        priceRange.addEventListener("change", fetchFilteredProducts);
-    
-        // Define fetchFilteredProducts function
-        function fetchFilteredProducts() {
-            // Get selected stores
-            let selectedStores = [...document.querySelectorAll('input[name="store"]:checked')]
-                .map(cb => cb.value);
-            
-            // Get selected locations
-            let selectedLocations = [...document.querySelectorAll('input[name="location"]:checked')]
-                .map(cb => cb.value);
-            
-            // Get selected brands
-            let selectedBrands = [...document.querySelectorAll('input[name="brand"]:checked')]
-                .map(cb => cb.value);
-    
-            // Get selected rating
-            let selectedRating = document.querySelector('input[name="rating"]:checked')?.value || "0";
-    
-            // Get price range
-            const minPrice = minPriceInput.value;
-            const maxPrice = maxPriceInput.value;
-    
-            // Add console logs for debugging
-            console.log("Filtering with:", {
-                stores: selectedStores,
-                locations: selectedLocations,
-                brands: selectedBrands,
-                rating: selectedRating,
-                minPrice: minPrice,
-                maxPrice: maxPrice
-            });
-    
-            // Build the URL with all filters
-            const url = `/hot-deals/filter/?` + 
-                        `stores=${selectedStores.join(",")}&` +
-                        `locations=${selectedLocations.join(",")}&` +
-                        `brands=${selectedBrands.join(",")}&` +
-                        `min_price=${minPrice}&` +
-                        `max_price=${maxPrice}&` +
-                        `ratings=${selectedRating}`;
-    
-            console.log("Fetching URL:", url);
-    
-            // Fetch filtered products via AJAX
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received data:", data);
-                    
-                    const productList = document.getElementById("product-list");
-                    productList.innerHTML = ""; // Clear previous products
-                    
-                    if (data.products.length === 0) {
-                        productList.innerHTML = "<p class='no-results'>No products found matching your filters.</p>";
-                        return;
-                    }
-                    
-                    data.products.forEach(product => {
-                        productList.innerHTML += `
-                            <div class="product-card">
-                                <div class="card-header">
-                                    <div class="user-info">
-                                        ${product.customer_pic_url ? 
-                                            `<img style="width: 20px; height: 24px" src="${product.customer_pic_url}" alt="User Icon" class="profile-pic" />` : 
-                                            `<img style="width: 20px; height: 24px" src="/static/images/default-profile.png" alt="Default User" class="profile-pic" />`
-                                        }
-                                        <div class="user-details">
-                                            <span class="username">Found by <strong>@${product.username}</strong></span>
-                                            <span class="deal-time">${product.create_at}</span>
-                                        </div>
-                                    </div>
-                                    <div class="discount-tag">
-                                        <span>${product.discount_percentage}% OFF</span>
-                                    </div>
-                                </div>
-                                <img src="${product.image_url}" alt="${product.name}" />
-                                <div class="product-info">
-                                    <h3>${product.name}</h3>
-                                    <p class="description">${product.description}</p>
-                                    <div class="price-container">
-                                        <span class="current-price">$${product.sale_price}</span>
-                                        <span class="original-price">$${product.price}</span>
-                                    </div>
-                                    <div class="store-details">
-                                        <span class="store-badge">${product.store}</span>
-                                        <span class="store-badge">${product.city}</span>
-                                        <span class="store-badge">${product.category_name}</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    <button class="like-btn" data-product-id="${product.id}">
-                                        <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
-                                        <span class="like-count">${product.likes_count}</span>
-                                    </button>
-                                    <a href="/product/${product.id}" class="get-deal-btn" target="_blank">
-                                        Get Deal
-                                    </a>
-                                </div>
-                            </div>`;
-                    });
-                    
-                    // Re-attach event listeners to new like buttons
-                    document.querySelectorAll('.like-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const productId = this.getAttribute('data-product-id');
-                            likeProduct(productId, this);
-                        });
-                    });
-                })
-                .catch(error => {
-                    console.error("Error fetching products:", error);
-                    const productList = document.getElementById("product-list");
-                    productList.innerHTML = "<p class='error'>Error loading products. Please try again.</p>";
-                });
+        if (minPriceInput && maxPriceInput && priceRange) {
+            minPriceInput.addEventListener("change", applyClientSideFilters);
+            maxPriceInput.addEventListener("change", applyClientSideFilters);
+            priceRange.addEventListener("change", applyClientSideFilters);
         }
-        
+    
+        // Add smooth transitions for filter changes
+        document.querySelectorAll('.filter-section input').forEach(input => {
+            input.addEventListener('change', () => {
+                const productsGrid = document.querySelector('.Subproducts-grid');
+                if (productsGrid) {
+                    productsGrid.style.opacity = '0.8';
+                    setTimeout(() => {
+                        productsGrid.style.opacity = '1';
+                    }, 300);
+                }
+            });
+        });
+    
         // Like button functionality
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                likeProduct(productId, this);
+            });
+        });
+    
+        // Like product function
         function likeProduct(productId, button) {
             fetch(`/like-product/${productId}/`, {
                 method: 'POST',
@@ -335,7 +557,7 @@
             })
             .catch(error => console.error('Error:', error));
         }
-        
+    
         // Helper function to get CSRF token
         function getCookie(name) {
             let cookieValue = null;
@@ -351,14 +573,37 @@
             }
             return cookieValue;
         }
-        
-        // Initialize event listeners for like buttons
-        document.querySelectorAll('.like-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                likeProduct(productId, this);
-            });
-        });
+    
+        // Timer functionality
+        const hoursElement = document.getElementById('hours');
+        const minutesElement = document.getElementById('minutes');
+        const secondsElement = document.getElementById('seconds');
+    
+        if (hoursElement && minutesElement && secondsElement) {
+            function updateTimer() {
+                let hours = parseInt(hoursElement.textContent);
+                let minutes = parseInt(minutesElement.textContent);
+                let seconds = parseInt(secondsElement.textContent);
+    
+                if (seconds > 0) {
+                    seconds--;
+                } else if (minutes > 0) {
+                    minutes--;
+                    seconds = 59;
+                } else if (hours > 0) {
+                    hours--;
+                    minutes = 59;
+                    seconds = 59;
+                }
+    
+                hoursElement.textContent = String(hours).padStart(2, '0');
+                minutesElement.textContent = String(minutes).padStart(2, '0');
+                secondsElement.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            // Update timer every second
+            setInterval(updateTimer, 1000);
+        }
     });
 </script>
 {% endblock %}

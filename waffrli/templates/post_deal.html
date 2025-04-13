@@ -81,6 +81,28 @@
           </div>
       </div>
 
+      <!-- New Expiration Date Field -->
+      <div class="form-grid">
+          <div class="form-group">
+              <label for="expiration-type">Deal Expires After</label>
+              <div class="expiration-options">
+                  <div>
+                      <input type="radio" id="default-expiration" name="expiration-type" value="default" checked>
+                      <label for="default-expiration">Default (10 days)</label>
+                  </div>
+                  <div>
+                      <input type="radio" id="custom-expiration" name="expiration-type" value="custom">
+                      <label for="custom-expiration">Custom date</label>
+                  </div>
+              </div>
+          </div>
+          <div class="form-group floating-label" id="custom-date-container" style="display: none;">
+              <input type="date" id="expiration-date" name="expiration-date">
+              <label for="expiration-date">Expiration Date</label>
+              <div class="error-message" id="date-error">Please select a valid future date.</div>
+          </div>
+      </div>
+
       <div class="form-group floating-label">
           <textarea id="description" name="description" placeholder=" " required></textarea>
           <label for="description">Deal Description</label>
@@ -107,6 +129,37 @@
     const steps = document.querySelectorAll('.progress-step');
     const fields = Array.from(form.querySelectorAll('input, select, textarea'));
     const archiveButton = document.getElementById('archive-btn');
+    
+    // Expiration date elements
+    const defaultExpiration = document.getElementById('default-expiration');
+    const customExpiration = document.getElementById('custom-expiration');
+    const customDateContainer = document.getElementById('custom-date-container');
+    const expirationDateInput = document.getElementById('expiration-date');
+    
+    // Set minimum date for expiration to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    expirationDateInput.min = tomorrow.toISOString().split('T')[0];
+    
+    // Set default maximum date to 30 days from now
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30);
+    expirationDateInput.max = maxDate.toISOString().split('T')[0];
+    
+    // Toggle custom date field visibility
+    defaultExpiration.addEventListener('change', function() {
+        if (this.checked) {
+            customDateContainer.style.display = 'none';
+            expirationDateInput.required = false;
+        }
+    });
+    
+    customExpiration.addEventListener('change', function() {
+        if (this.checked) {
+            customDateContainer.style.display = 'block';
+            expirationDateInput.required = true;
+        }
+    });
   
     // Function to show notification messages
     const showNotification = (message, type = 'success') => {
@@ -160,7 +213,8 @@
         'category': 'category-error',
         'store': 'store-error',
         'brand': 'brand-error',
-        'image': 'image-error'
+        'image': 'image-error',
+        'expiration-date': 'date-error'
       };
   
       if (fieldErrorMap[target.id]) {
@@ -212,4 +266,9 @@
     updateProgressBar();
   });
 </script>
+
+<style>
+  /* Add styles for the expiration options */
+ 
+</style>
 {% endblock %}

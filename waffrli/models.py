@@ -38,18 +38,21 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1, choices=[
         ('M', 'Male'), ('F', 'Female'), ('O', 'Other'), ('N', 'Prefer not to say')
     ], default='N')
-    address = models.CharField(max_length=100)
     City = models.CharField(max_length=100)
+    # New location fields
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    formatted_address = models.CharField(max_length=255, null=True, blank=True)
     date_modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='uploads/product', null=True, blank=True)
-    likes=models.ManyToManyField(User, related_name="Customer_like",blank=True)
+    likes = models.ManyToManyField(User, related_name="Customer_like", blank=True)
     saved_products = models.ManyToManyField('Product', related_name="saved_by_customers", blank=True)
-
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
+    
     def number_of_likes(self):
-            return self.likes.count()
+        return self.likes.count()
     
     
     
@@ -71,6 +74,7 @@ class Product(models.Model):
     likes = models.ManyToManyField(User, related_name="Product_like", blank=True)
     views = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
+    expires_at=models.DateTimeField(null=True,blank=True)
 
     def increment_views(self):
         self.views += 1

@@ -253,6 +253,28 @@ body {
     no-repeat #b9b4b4a2;
   animation: l5 3s infinite;
 }
+.expiration-options {
+  display: flex;
+  gap: 20px;
+}
+
+.expiration-options div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#custom-date-container {
+  margin-top: 10px;
+}
+
+/* Ensure these elements align nicely */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
 @keyframes l5 {
   0%,
   11% {
