@@ -67,10 +67,18 @@
               </div>
           </div>
           {% endfor %}
+      {% else %}
+          <div class="empty-saved-items">
 
+              <h3>You haven't saved any items yet</h3>
+              <a href="{% url 'home' %}" class="btn btn-primary">Browse Deals</a>
+          </div>
       {% endif %}
   </div>
 </div>
+
+<!-- Add CSRF token for AJAX requests -->
+{% csrf_token %}
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -83,15 +91,39 @@
               const productId = this.getAttribute('data-product-id');
               const savedItem = this.closest('.saved-item');
 
-              // Send AJAX request to toggle save
-              fetch(`/product/${productId}/toggle-save/`, {
+              if (!productId) {
+                  console.error('No product ID found');
+                  showNotification('Error: Could not identify product', 'error');
+                  return;
+              }
+
+              // Get CSRF token
+              const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+              if (!csrfToken) {
+                  console.error('CSRF token not found');
+                  showNotification('Error: CSRF token not found', 'error');
+                  return;
+              }
+
+              // Create form data
+              const formData = new FormData();
+              formData.append('csrfmiddlewaretoken', csrfToken);
+
+              // Send AJAX request to toggle save - FIXED URL
+              fetch(`/toggle-save-product/${productId}/`, {
                   method: 'POST',
                   headers: {
                       'X-Requested-With': 'XMLHttpRequest',
-                      'X-CSRFToken': '{{ csrf_token }}'
-                  }
+                      'X-CSRFToken': csrfToken
+                  },
+                  body: formData
               })
-              .then(response => response.json())
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Network response was not ok');
+                  }
+                  return response.json();
+              })
               .then(data => {
                   // Remove the item
                   savedItem.remove();
@@ -111,7 +143,6 @@
                               <i class="far fa-bookmark"></i>
                           </div>
                           <h3>You haven't saved any items yet</h3>
-                          <p>Items you save will appear here for easy access.</p>
                           <a href="{% url 'home' %}" class="btn btn-primary">Browse Deals</a>
                       `;
                       container.appendChild(emptyState);
@@ -122,7 +153,7 @@
               })
               .catch(error => {
                   console.error('Error:', error);
-                  showNotification('Error removing item', 'error');
+                  showNotification('Error removing item: ' + error.message, 'error');
               });
           });
       });

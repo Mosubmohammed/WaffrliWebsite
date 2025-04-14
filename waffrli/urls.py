@@ -25,7 +25,8 @@ urlpatterns = [
     path('like-product/<int:product_id>/', like_product, name='like_product'),
     path('settings/', settings, name='settings'),
     path('settings/update_info/', update_info, name='update_info'),
-    path('product/<str:product_id>/toggle-save/', toggle_save_product, name='toggle_save_product'),
+
+    path('toggle-save-product/<int:product_id>/', toggle_save_product, name='toggle_save_product'),
     path('saved-items/', saved_items, name='saved_items'),
     path('inbox/',inbox, name='inbox'),
     path('send_message/', send_message, name='send_message'),

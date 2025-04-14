@@ -99,49 +99,123 @@
         </div>
     </div>
 
-      <section class="product-details">
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="details">
-            Deal Details
-          </button>
-          <button class="tab-btn" data-tab="community">Community Notes</button>
-          <button class="tab-btn" data-tab="poster">About the Poster</button>
-        </div>
+                    <!--unsder section-->
+                    <div class="container">
+                      <div class="profile-card">
+                          <!-- Navigation Tabs -->
+                          <nav class="tabs">
+                              <ul>
+                                  <li><button class="tab-btn active" data-tab="details">Deal Description</button></li>
+                                  <li><button class="tab-btn" data-tab="community">Community Voting</button></li>
+                                  <li><button class="tab-btn" data-tab="poster">About the Poster</button></li>
+                              </ul>
+                          </nav>
+  
+                          <!-- Tab Content -->
+                          <div class="tab-content active" id="details">
+                              <div class="product-description">
+                                  <h3>About This Deal</h3>
+                                  <div class="deal-highlights">
+                                      <p class="deal-intro">Get ready to experience premium computing with the all-new Mac
+                                          Mini 2024! Here's what makes this deal special:</p>
+  
+                                      <div class="key-features">
+                                          <div class="feature">
+                                              <i class="fas fa-check-circle"></i>
+                                              <span>Powerful M4 Pro chip for blazing-fast performance</span>
+                                          </div>
+                                          <div class="feature">
+                                              <i class="fas fa-check-circle"></i>
+                                              <span>Generous 24GB RAM for smooth multitasking</span>
+                                          </div>
+                                          <div class="feature">
+                                              <i class="fas fa-check-circle"></i>
+                                              <span>Fast 512GB SSD storage</span>
+                                          </div>
+                                          <div class="feature">
+                                              <i class="fas fa-check-circle"></i>
+                                              <span>Perfect for both home and professional use</span>
+                                          </div>
+                                      </div>
+  
+                                      <div class="price-highlight">
+                                          <p><strong>Amazing Value:</strong> Save $300 (20% off) from the regular price!
+                                          </p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+  
+                          <div class="tab-content" id="community">
+                              <h3>Community Voting</h3>
+                              <div class="voting-section">
+                                  <div class="vote-score">
+                                      <div class="score">+{{ product.likes.count }}</div>
+                                      <div class="score-label">Deal Score</div>
+                                  </div>
+                                  <div class="vote-buttons">
+                                      <button class="vote-btn good-deal">
+                                          👍 Good Deal
+                                      </button>
+                                      <button class="vote-btn bad-deal">
+                                          👎 Bad Deal
+                                      </button>
+                                  </div>
+                              </div>
+                          </div>
+  
+                          <div class="tab-content" id="poster">
+                              <div class="profile-content">
+                                  <div class="profile-header">
+                                      <div class="Section-user-info">
+                                          <img src="pictures/pic/avatar.jpg" alt="Profile" class="Section-avatar" />
+                                          <div class="user-details">
+                                              <h2>phoinix</h2>
+                                              <div class="Section-user-badges">
+                                                <a href="CustomerProfile.html"><span class="Section-badge">Staff</span></a>  
+                                                  <span class="join-date">Joined in Dec 2010</span>
+                                              </div>
+                                          </div>
+                                      </div>
+  
+                                      <div class="Section-action-buttons">
+                                          <button class="Section-btn"><i class="fas fa-user-plus"></i> Follow</button>
+                                          <button class="Section-btn"><i class="fas fa-paper-plane"></i> Message</button>
+                                          <button class="Section-btn report-btn"><i class="fas fa-flag"></i>
+                                              Report</button>
+                                      </div>
+                                  </div>
+  
+                                  <div class="stats-grid">
+                                      <div class="stat-card">
+                                          <i class="fas fa-gift"></i>
+                                          <span class="stat-value">32,961</span>
+                                          <span class="stat-label">Deal Posts</span>
+                                      </div>
+                                      <div class="stat-card">
+                                          <i class="fas fa-comment-alt"></i>
+                                          <span class="stat-value">34,526</span>
+                                          <span class="stat-label">Comments Posts</span>
+                                      </div>
+                                      <div class="stat-card">
+                                          <i class="fas fa-award"></i>
+                                          <span class="stat-value">123,558</span>
+                                          <span class="stat-label">Reputation Points</span>
+                                      </div>
+                                      <div class="stat-card">
+                                          <i class="fas fa-thumbs-up"></i>
+                                          <span class="stat-value">33,704</span>
+                                          <span class="stat-label">Votes Submitted</span>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
 
-        <div class="tab-content active" id="details">
-          <h3>Product Features</h3>
-          <ul>
-            <li>Bluetooth connectivity</li>
-            <li>Foldable design</li>
-            <li>Comfortable on-ear fit</li>
-            <li>Built-in controls</li>
-          </ul>
-        </div>
 
-        <div class="tab-content" id="community">
-          <div class="voting">
-            <div class="vote-count">+3</div>
-            <button class="vote-btn" id="upvote">👍 Good Deal</button>
-            <button class="vote-btn" id="downvote">👎 Bad Deal</button>
-          </div>
-        </div>
 
-        <div class="tab-content" id="poster">
-          <div class="poster-info">
-            <img
-              src="pictures/pic/avatar.jpg"
-              alt="User Avatar"
-              class="avatar"
-            />
-            <div class="poster-details">
-              <h3>Staff</h3>
-              <p>Joined in Mar 2009</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- Rest of your template remains unchanged -->
       
     </main>
     <div class="ads">
@@ -156,127 +230,139 @@
 </form>
 
 <script>
+// Organize all functionality within a single DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', function() {
+  // Tab functionality
   function setupTabs() {
     const tabs = document.querySelectorAll('.tab-btn');
     const contents = document.querySelectorAll('.tab-content');
 
     tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs and contents
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
 
-            // Add active class to clicked tab and corresponding content
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
-        });
+        // Add active class to clicked tab and corresponding content
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
     });
-}
+  }
+  setupTabs();
 
-document.addEventListener('DOMContentLoaded', () => {
-    setupTabs();
-});
+  // Menu dropdown functionality
+  const menuBtn = document.getElementById('menuBtn');
+  const menuDropdown = document.getElementById('menuDropdown');
 
-// Menu dropdown functionality
-const menuBtn = document.getElementById('menuBtn');
-const menuDropdown = document.getElementById('menuDropdown');
+  if (menuBtn && menuDropdown) {
+    // Toggle menu on button click
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuDropdown.classList.toggle('show');
+    });
 
-// Toggle menu on button click
-menuBtn.addEventListener('click', (e) => {
-e.stopPropagation();
-menuDropdown.classList.toggle('show');
-});
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (menuDropdown.classList.contains('show') && 
+          !menuDropdown.contains(e.target) && 
+          !menuBtn.contains(e.target)) {
+        menuDropdown.classList.remove('show');
+      }
+    });
 
-// Close menu when clicking outside
-document.addEventListener('click', (e) => {
-if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-menuDropdown.classList.remove('show');
-}
-});
+    // Handle menu item clicks
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        menuDropdown.classList.remove('show');
+      });
+    });
+  }
 
-// Handle menu item clicks
-document.querySelectorAll('.menu-item').forEach(item => {
-item.addEventListener('click', () => {
-menuDropdown.classList.remove('show');
-// Add your menu item click handlers here
-console.log('Clicked:', item.textContent.trim());
-});
-});
-// Slider functionality
-const slider = document.querySelector('.deals-slider');
-const prevBtn = document.querySelector('.prev');
-const nextBtn = document.querySelector('.next');
-let currentSlide = 0;
-const slideCount = document.querySelectorAll('.deal-slide').length;
+  // Slider functionality
+  const slider = document.querySelector('.deals-slider');
+  const prevBtn = document.querySelector('.prev');
+  const nextBtn = document.querySelector('.next');
+  
+  if (slider && prevBtn && nextBtn) {
+    let currentSlide = 0;
+    const slideCount = document.querySelectorAll('.deal-slide').length;
 
-prevBtn.addEventListener('click', () => {
-    currentSlide = Math.max(0, currentSlide - 1);
-    updateSlider();
-});
+    prevBtn.addEventListener('click', () => {
+      currentSlide = Math.max(0, currentSlide - 1);
+      updateSlider();
+    });
 
-nextBtn.addEventListener('click', () => {
-    currentSlide = Math.min(slideCount - 5, currentSlide + 1);
-    updateSlider();
-});
+    nextBtn.addEventListener('click', () => {
+      currentSlide = Math.min(slideCount - 5, currentSlide + 1);
+      updateSlider();
+    });
 
-function updateSlider() {
-    slider.style.transform = `translateX(-${currentSlide * 20}%)`;
-}
+    function updateSlider() {
+      slider.style.transform = `translateX(-${currentSlide * 20}%)`;
+    }
+  }
 
-// Voting functionality
-let voteScore = 6;
-let hasVoted = null;
-const scoreElement = document.querySelector('.score');
-const goodDealBtn = document.querySelector('.good-deal');
-const badDealBtn = document.querySelector('.bad-deal');
+  // Voting functionality
+  const scoreElement = document.querySelector('.score');
+  const goodDealBtn = document.querySelector('.good-deal');
+  const badDealBtn = document.querySelector('.bad-deal');
+  
+  if (scoreElement && goodDealBtn && badDealBtn) {
+    let voteScore = parseInt(scoreElement.textContent.replace('+', '')) || 0;
+    let hasVoted = null;
 
-function updateScore() {
-    scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
-}
+    function updateScore() {
+      scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
+    }
 
-goodDealBtn.addEventListener('click', () => {
-    if (hasVoted === 'up') {
+    goodDealBtn.addEventListener('click', () => {
+      if (hasVoted === 'up') {
         voteScore--;
         hasVoted = null;
         goodDealBtn.classList.remove('voted');
-    } else {
+      } else {
         if (hasVoted === 'down') {
-            voteScore += 2;
-            badDealBtn.classList.remove('voted');
+          voteScore += 2;
+          badDealBtn.classList.remove('voted');
         } else {
-            voteScore++;
+          voteScore++;
         }
         hasVoted = 'up';
         goodDealBtn.classList.add('voted');
-    }
-    updateScore();
-});
+      }
+      updateScore();
+    });
 
-badDealBtn.addEventListener('click', () => {
-    if (hasVoted === 'down') {
+    badDealBtn.addEventListener('click', () => {
+      if (hasVoted === 'down') {
         voteScore++;
         hasVoted = null;
         badDealBtn.classList.remove('voted');
-    } else {
+      } else {
         if (hasVoted === 'up') {
-            voteScore -= 2;
-            goodDealBtn.classList.remove('voted');
+          voteScore -= 2;
+          goodDealBtn.classList.remove('voted');
         } else {
-            voteScore--;
+          voteScore--;
         }
         hasVoted = 'down';
         badDealBtn.classList.add('voted');
-    }
-    updateScore();
-});
+      }
+      updateScore();
+    });
+  }
 
+  // Comment functionality
+  const postCommentBtn = document.getElementById('post-comment-btn');
+  const commentInput = document.getElementById('comment-input');
+  const commentSection = document.querySelector('.comment-section');
+  
+  if (postCommentBtn && commentInput && commentSection) {
+    postCommentBtn.addEventListener('click', function() {
+      const commentText = commentInput.value.trim();
 
-document.getElementById('post-comment-btn').addEventListener('click', function () {
-    // Get the comment text from the textarea
-    const commentText = document.getElementById('comment-input').value.trim();
-
-    // Check if the comment is not empty
-    if (commentText) {
+      if (commentText) {
         // Create a new comment element
         const newComment = document.createElement('div');
         newComment.classList.add('comment');
@@ -295,7 +381,7 @@ document.getElementById('post-comment-btn').addEventListener('click', function (
         userInfo.classList.add('user-info');
 
         const userName = document.createElement('h3');
-        userName.textContent = 'Current User'; // Replace with actual username if available
+        userName.textContent = userName || 'Current User';
         userInfo.appendChild(userName);
 
         const time = document.createElement('span');
@@ -314,114 +400,138 @@ document.getElementById('post-comment-btn').addEventListener('click', function (
         newComment.appendChild(commentBody);
 
         // Append the new comment to the comment section
-        document.querySelector('.comment-section').insertBefore(newComment, document.querySelector('.comment-form'));
+        const commentForm = document.querySelector('.comment-form');
+        if (commentForm) {
+          commentSection.insertBefore(newComment, commentForm);
+        } else {
+          commentSection.appendChild(newComment);
+        }
 
         // Clear the textarea
-        document.getElementById('comment-input').value = '';
-    } else {
+        commentInput.value = '';
+      } else {
         alert('Please write a comment before posting.');
-    }
-});
-  document.addEventListener('DOMContentLoaded', function() {
-    // Existing script
-    
-    // Function to confirm delete with JavaScript
-    window.confirmDelete = function(productId) {
-      if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
-        // Update form action with the correct product ID
-        const form = document.getElementById('delete-form');
+      }
+    });
+  }
+
+  // Delete product functionality
+  window.confirmDelete = function(productId) {
+    if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
+      const form = document.getElementById('delete-form');
+      if (form) {
         form.action = form.action.replace('/0/', '/' + productId + '/');
         form.submit();
       }
-    };
-    
-    // Handle save button clicks
-    const saveButtons = document.querySelectorAll('.save-btn');
-    saveButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const productId = this.getAttribute('data-product-id');
-        
-        // Send AJAX request
-        fetch(`/product/${productId}/toggle-save/`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Update icon based on response
-          const icon = this.querySelector('i');
-          
-          if (data.is_saved) {
-            icon.className = 'fas fa-bookmark';
-            this.setAttribute('title', 'Unsave this item');
-            showNotification('Product saved successfully!', 'success');
-          } else {
-            icon.className = 'far fa-bookmark';
-            this.setAttribute('title', 'Save this item');
-            showNotification('Product removed from saved items', 'info');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showNotification('Something went wrong. Please try again.', 'error');
-        });
-      });
-    });
-    
-    // Function to show notification
-    function showNotification(message, type) {
-      // Create notification element
-      const notification = document.createElement('div');
-      notification.className = `notification notification-${type}`;
+    }
+  };
+
+  // Save product functionality
+  const saveButtons = document.querySelectorAll('.save-btn');
+  saveButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const productId = this.getAttribute('data-product-id');
+      if (!productId) return;
+
+      // Create form data with CSRF token
+      const formData = new FormData();
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
       
-      // Add icon based on notification type
-      let icon = '';
-      if (type === 'success') {
-        icon = '<i class="fas fa-check-circle"></i>';
-      } else if (type === 'error') {
-        icon = '<i class="fas fa-exclamation-circle"></i>';
-      } else if (type === 'info') {
-        icon = '<i class="fas fa-info-circle"></i>';
+      if (csrfToken) {
+        formData.append('csrfmiddlewaretoken', csrfToken.value);
+      } else {
+        console.error('CSRF token not found');
+        showNotification('Error: CSRF token not found', 'error');
+        return;
       }
       
-      // Set notification content
-      notification.innerHTML = `
-        ${icon}
-        <span>${message}</span>
-        <button class="notification-close"><i class="fas fa-times"></i></button>
-      `;
-      
-      // Add to DOM
-      document.body.appendChild(notification);
-      
-      // Animate in
-      setTimeout(() => {
-        notification.classList.add('show');
-      }, 10);
-      
-      // Set auto remove timer
-      const removeTimeout = setTimeout(() => {
-        removeNotification(notification);
-      }, 3000);
-      
-      // Add close button functionality
-      const closeButton = notification.querySelector('.notification-close');
-      closeButton.addEventListener('click', () => {
-        clearTimeout(removeTimeout);
-        removeNotification(notification);
+      // Send AJAX request to the correct URL
+      fetch(`/toggle-save-product/${productId}/`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken.value
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Update icon based on response
+        const icon = this.querySelector('i');
+        
+        if (data.is_saved) {
+          icon.className = 'fas fa-bookmark';
+          this.setAttribute('title', 'Unsave this item');
+          showNotification('Product saved successfully!', 'success');
+        } else {
+          icon.className = 'far fa-bookmark';
+          this.setAttribute('title', 'Save this item');
+          showNotification('Product removed from saved items', 'info');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('Something went wrong. Please try again.', 'error');
       });
+    });
+  });
+  
+  // Notification functionality
+  function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    
+    // Add icon based on notification type
+    let icon = '';
+    if (type === 'success') {
+      icon = '<i class="fas fa-check-circle"></i>';
+    } else if (type === 'error') {
+      icon = '<i class="fas fa-exclamation-circle"></i>';
+    } else if (type === 'info') {
+      icon = '<i class="fas fa-info-circle"></i>';
     }
     
-    // Function to remove notification
-    function removeNotification(notification) {
-      notification.classList.remove('show');
-      setTimeout(() => {
-        notification.remove();
-      }, 300); // Match this with CSS transition time
-    }
-  });
+    // Set notification content
+    notification.innerHTML = `
+      ${icon}
+      <span>${message}</span>
+      <button class="notification-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    // Add to DOM
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Set auto remove timer
+    const removeTimeout = setTimeout(() => {
+      removeNotification(notification);
+    }, 3000);
+    
+    // Add close button functionality
+    const closeButton = notification.querySelector('.notification-close');
+    closeButton.addEventListener('click', () => {
+      clearTimeout(removeTimeout);
+      removeNotification(notification);
+    });
+  }
+  
+  // Function to remove notification
+  function removeNotification(notification) {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 300); // Match this with CSS transition time
+  }
+});
 </script>
 {% endblock %}

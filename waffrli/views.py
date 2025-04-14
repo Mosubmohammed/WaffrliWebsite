@@ -352,8 +352,6 @@ def register(request):
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         gender = request.POST.get('gender')
-        address = request.POST.get('address')
-        city = request.POST.get('city')
         image = request.FILES.get('image')
         
         # Get location data from form
@@ -434,12 +432,10 @@ def register(request):
                 email=email,
                 password=password,
                 gender=gender,
-                address=address,
-                City=city,
                 # Add location data
                 latitude=float(latitude) if latitude else None,
                 longitude=float(longitude) if longitude else None,
-                formatted_address=formatted_address or address,
+                formatted_address=formatted_address,
             )
             
             # Add image if provided

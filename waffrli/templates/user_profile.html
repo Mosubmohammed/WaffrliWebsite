@@ -93,7 +93,6 @@
                         <p class="deal-views"><i class="fa-solid fa-eye"></i> {{ best_deal.views }} Views</p>
                         <p class="deal-comments"><i class="fa-solid fa-comment"></i> {{ best_deal.comment_count }} Comments</p>
                     </div>
-                    <a href="{{ best_deal.Dealurl }}" target="_blank" class="deal-btn">View Deal</a>
                 </div>
             </div>
         {% else %}
@@ -106,47 +105,6 @@
         {% endif %}
     </div>
     
-    {% comment %}
-    <div class="content-wrapper">
-        <div class="Asidebar">
-            <a href="#" class="active">Activity</a>
-            <a href="#">Contributions</a>
-            <a href="#">Frontpage</a>
-            <a href="#">Deals</a>
-            <a href="#">Coupons</a>
-            <a href="#">Freebies</a>
-            <a href="#">Contests</a>
-            <a href="#">Posts</a>
-            <a href="#">Threads</a>
-            <h3>Reputation</h3>
-        </div>
-        
-        <div class="New-Activity-container">
-            <div class="header">
-                <h2>Activity</h2>
-                <div class="tabs">
-                    <a href="#" class="tab active">All Activity</a>
-                    <a href="#" class="tab">Reputation Points</a>
-                    <a href="#" class="tab">Replies</a>
-                    <a href="#" class="tab">Votes</a>
-                    <a href="#" class="tab">New Threads</a>
-                </div>
-            </div>
-            {% if activities %}
-                {% for activity in activities %}
-                    <div class="activity-item">
-                        <!-- Activity content will go here -->
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="activity-item">
-                    <div>
-                        <p class="note">It looks like there's no activity here yet! <br>Start exploring, posting deals, or engaging with others to bring your profile to life.</p>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endcomment %}
+
 </div>
 {% endblock %}

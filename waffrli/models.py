@@ -41,7 +41,6 @@ class Customer(models.Model):
     gender = models.CharField(max_length=1, choices=[
         ('M', 'Male'), ('F', 'Female'), ('O', 'Other'), ('N', 'Prefer not to say')
     ], default='N')
-    City = models.CharField(max_length=100)
     # New location fields
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)

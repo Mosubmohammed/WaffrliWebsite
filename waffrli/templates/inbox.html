@@ -35,8 +35,8 @@
 <div class="SettingContainer">
   <div class="SettingSidebar">
     <ul class="nav-menu">
-        <li class="active"><a href="{% url 'inbox' %}">Messages ({{ total_messages }})</a></li>
-        <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
+        <li ><a href="{% url 'inbox' %}">Messages ({{ total_messages }})</a></li>
+        <li class="active"><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
         <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
     </ul>
   </div>
@@ -95,9 +95,46 @@
   </div>
 </div>
 
-
+<!-- Add jQuery before custom scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script>
+  function deleteMessage(messageId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+      var form = $("<form></form>");
+      form.attr("method", "post");
+      form.attr("action", '{% url "delete_messages" %}');
+
+      // Add CSRF token
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "csrfmiddlewaretoken",
+          value: "{{ csrf_token }}",
+        })
+      );
+
+      // Add message ID
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "message_ids",
+          value: messageId,
+        })
+      );
+
+      // Add current folder - set to "inbox" for this template
+      form.append(
+        $("<input>").attr({
+          type: "hidden",
+          name: "folder",
+          value: "inbox",
+        })
+      );
+
+      $("body").append(form);
+      form.submit();
+    }
+  }
+</script>
 {% endblock %}
-
-
-

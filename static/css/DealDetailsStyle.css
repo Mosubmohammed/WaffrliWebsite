@@ -23,7 +23,7 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--gray-50);
+  background-color: green;
   color: var(--gray-900);
   line-height: 1.5;
 }
@@ -966,44 +966,43 @@ textarea:focus {
 
 /* Comment Section Styles */
 .community-section {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin: 20px 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 20px 0;
 }
 
 .comment-section {
-    margin-top: 15px;
+  margin-top: 15px;
 }
 
 .comment {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
-  
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
 }
-.comment p{
+.comment p {
   font-size: 13px;
   line-height: 1.4;
   color: #4a4a4a;
   margin: 0;
 }
 .comment-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .comment-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .comment-actions {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 .comment-content {
   margin: 8px 0 0 52px;
@@ -1021,44 +1020,44 @@ textarea:focus {
 }
 
 .comment-form {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
 }
 
 .form-wrapper {
-    flex: 1;
+  flex: 1;
 }
 
 .comment-form textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    resize: vertical;
-    font-size: 14px;
-    margin-bottom: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .form-actions {
-    display: flex;
-    justify-content: flex-end;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .btn-vote {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: #666;
-    border-radius: 4px;
-    transition: all 0.2s;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .btn-vote:hover {
-    background: #f5f5f5;
-    color: #6996c0;
+  background: #f5f5f5;
+  color: #6996c0;
 }
 
 .user-details {
