@@ -278,27 +278,7 @@ def product(request, pk):
         # Increment views
         product.increment_views()
         
-        # Handle POST request for comment submission
-        if request.method == 'POST':
-            comment_text = request.POST.get('comment')
-            if comment_text and request.user.is_authenticated:
-                # Get the current logged-in user's customer
-                customer = Customer.objects.get(user=request.user)
-                
-                # Create and save the comment
-                Comment.objects.create(
-                    product=product,
-                    customer=customer,
-                    text=comment_text
-                )
-                messages.success(request, 'Your comment has been posted successfully!')
-            else:
-                messages.warning(request, 'Please write a comment or log in to comment.')
-        
-        # Retrieve all comments for this product
-        comments = product.comments.all()
-        
-        # Get related products (products in the same category, excluding current product)
+        # Get related products right away (so it's always defined)
         related_products = Product.objects.filter(
             category=product.category
         ).exclude(
@@ -312,7 +292,7 @@ def product(request, pk):
             product.discount_percentage = round(((product.Price - product.sale_price) / product.Price) * 100)
         else:
             product.discount_percentage = 0
-            
+        
         # Calculate discount for related products
         for related_product in related_products:
             if related_product.Price and related_product.sale_price:
@@ -327,6 +307,36 @@ def product(request, pk):
             # Add time ago for display
             related_product.time_ago = related_product.create_at
         
+        # Handle POST request for comment submission
+        if request.method == 'POST':
+            comment_text = request.POST.get('comment')
+            
+            if not request.user.is_authenticated:
+                messages.warning(request, 'Please log in to comment.')
+            elif not comment_text or comment_text.strip() == '':
+                messages.warning(request, 'Please write a comment before posting.')
+            else:
+                try:
+                    # Get the current logged-in user's customer
+                    customer = Customer.objects.get(user=request.user)
+                    
+                    # Create and save the comment
+                    Comment.objects.create(
+                        product=product,
+                        customer=customer,
+                        text=comment_text
+                    )
+                    messages.success(request, 'Your comment has been posted successfully!')
+                    
+                    # Redirect after POST to prevent duplicate submissions
+                    return redirect('product', pk=pk)
+                    
+                except Customer.DoesNotExist:
+                    messages.error(request, 'Your user profile is missing. Please contact support.')
+        
+        # Retrieve all comments for this product
+        comments = Comment.objects.filter(product=product).order_by('-timestamp')
+        
         # Create context with all necessary data
         context = {
             'product': product,
@@ -336,7 +346,7 @@ def product(request, pk):
         }
         
         return render(request, 'product.html', context)
-    
+        
     except Product.DoesNotExist:
         messages.error(request, 'That product does not exist.')
         return redirect('home')
@@ -786,8 +796,14 @@ def like_product(request, product_id):
 
         
 def user_profile(request, identifier):
-    profile_user = get_object_or_404(User, Q(id=identifier) | Q(username=identifier))
-
+    # Try to see if identifier is numeric (an ID)
+    try:
+        user_id = int(identifier)
+        profile_user = get_object_or_404(User, id=user_id)
+    except ValueError:
+        # If not numeric, treat as username
+        profile_user = get_object_or_404(User, username=identifier)
+    
     is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
     followers = profile_user.followers.all()
     following = profile_user.following.all()
@@ -974,14 +990,13 @@ def follow(request, user_id):
     user_to_follow = get_object_or_404(User, id=user_id)
     if user_to_follow != request.user:
         Follow.objects.get_or_create(follower=request.user, following=user_to_follow)
-    return redirect('user_profile', user_id=user_id)
+    return redirect('user_profile', identifier=user_id)
 
 @login_required
 def unfollow(request, user_id):
     user_to_unfollow = get_object_or_404(User, id=user_id)
     Follow.objects.filter(follower=request.user, following=user_to_unfollow).delete()
-    return redirect('user_profile', user_id=user_id)
-
+    return redirect('user_profile', identifier=user_id)
 
 @login_required
 def settings(request):

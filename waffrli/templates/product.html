@@ -28,8 +28,9 @@
             <div class="deal-details">
                 <div class="deal-tags">
                     <span class="tag tag-popular">Popular</span>
-                    <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
-
+                    <a href="{% url 'user_profile' product.user.username %}">
+                      <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
+                    </a>
                 </div>
 
                 <div class="deal-header">
@@ -74,24 +75,26 @@
                   Get Deal at {{product.store}}
                   </a>
 
-                    <div class="vote-buttons">
-                        <button class="btn btn-vote">
-                            <i class="fa-solid fa-thumbs-up"></i>
-                        </button>
-                        <button class="btn btn-vote">
-                            <i class="fa-solid fa-thumbs-down"></i>
-                        </button>
-                        <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-                          <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-                        </button>
+                  <div class="vote-buttons">
+                    <button class="btn btn-vote" id="thumbsUpBtn">
+                        <i class="fa-solid fa-thumbs-up {% if user in product.likes.all %}active{% endif %}"></i>
+                    </button>
 
-                        <div>
-                            <a href="#comment-section"> <span class="comments"><i
-                                        class="fa-regular fa-comment"></i> 166 Comments</span> </a>
-                            <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
-                        </div>
-
+                    
+                    <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+                        <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+                    </button>
+                
+                    <div>
+                        <a href="#comment-section"> 
+                            <span class="comments">
+                                <i class="fa-regular fa-comment"></i> 
+                                {{ comments|length }} Comments
+                            </span> 
+                        </a>
+                        <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
                     </div>
+                </div>
                 </div>
 
 
@@ -146,50 +149,62 @@
                               </div>
                           </div>
   
-                          <div class="tab-content" id="community">
-                              <h3>Community Voting</h3>
-                              <div class="voting-section">
-                                  <div class="vote-score">
-                                      <div class="score">+{{ product.likes.count }}</div>
-                                      <div class="score-label">Deal Score</div>
-                                  </div>
-                                  <div class="vote-buttons">
-                                      <button class="vote-btn good-deal">
-                                          👍 Good Deal
-                                      </button>
-                                      <button class="vote-btn bad-deal">
-                                          👎 Bad Deal
-                                      </button>
-                                  </div>
-                              </div>
-                          </div>
+<!-- Update the community tab vote buttons -->
+<div class="voting-section">
+  <div class="vote-score">
+      <div class="score">+{{ product.likes.count }}</div>
+      <div class="score-label">Deal Score</div>
+  </div>
+  <div class="vote-buttons">
+      <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
+          👍 Good Deal
+      </button>
+      <button class="vote-btn bad-deal">
+          👎 Bad Deal
+      </button>
+  </div>
+</div>
   
                           <div class="tab-content" id="poster">
                               <div class="profile-content">
                                   <div class="profile-header">
                                       <div class="Section-user-info">
-                                          <img src="pictures/pic/avatar.jpg" alt="Profile" class="Section-avatar" />
+                                        {% if product.user.customer.image %}
+                                        <img src="{{ product.user.customer.image.url }}" alt="Profile" class="Section-avatar" />
+                                        {% else %}
+                                        <img src="{% static 'images/default-avatar.jpg' %}" alt="Profile" class="Section-avatar" />
+                                        {% endif %}
                                           <div class="user-details">
-                                              <h2>phoinix</h2>
+                                            <h2>{{ product.user.username }}</h2>
                                               <div class="Section-user-badges">
                                                 <a href="CustomerProfile.html"><span class="Section-badge">Staff</span></a>  
-                                                  <span class="join-date">Joined in Dec 2010</span>
+                                                <span class="join-date">Joined {{ product.user.date_joined|date:"M Y" }}</span>
                                               </div>
                                           </div>
                                       </div>
   
                                       <div class="Section-action-buttons">
-                                          <button class="Section-btn"><i class="fas fa-user-plus"></i> Follow</button>
-                                          <button class="Section-btn"><i class="fas fa-paper-plane"></i> Message</button>
+                                        {% if user.is_authenticated and user != product.user %}
+                                        <form method="POST" action="{% url 'follow' product.user.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="Section-btn">
+                                                <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
+                                                {% if is_following %}Unfollow{% else %}Follow{% endif %}
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'send_message' product.user.id %}" class="Section-btn">
+                                          <i class="fas fa-paper-plane"></i> Message
+                                      </a>
                                           <button class="Section-btn report-btn"><i class="fas fa-flag"></i>
                                               Report</button>
+                                              {% endif %}
                                       </div>
                                   </div>
   
                                   <div class="stats-grid">
                                       <div class="stat-card">
                                           <i class="fas fa-gift"></i>
-                                          <span class="stat-value">32,961</span>
+                                          <span class="stat-value">{{ deal_count }}</span>
                                           <span class="stat-label">Deal Posts</span>
                                       </div>
                                       <div class="stat-card">
@@ -212,15 +227,121 @@
                           </div>
                       </div>
                   </div>
+                  <br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<!-- Related Deals Slider -->
+<div class="related-deals">
+  <h2>Related Deals</h2>
+  <div class="slider-container">
+      <div class="deals-slider">
+          {% for related_product in related_products %}
+          <div class="deal-slide">
+              {% if related_product.image %}
+              <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}" style="wight:20%">
+              {% else %}
+              <img src="{% static 'images/placeholder.jpg' %}" alt="No image">
+              {% endif %}
+              <h3>{{ related_product.Name }}</h3>
+              <div class="deal-price">
+                  <span class="price">${{ related_product.sale_price }}</span>
+                  <span class="original">${{ related_product.Price }}</span>
+                  {% if related_product.discount_percentage > 0 %}
+                  <span class="discount-badge">{{ related_product.discount_percentage }}% OFF</span>
+                  {% endif %}
+              </div>
+              <a href="{% url 'product' related_product.id %}" class="deal-link">View Deal</a>
+          </div>
+          {% empty %}
+          <div class="no-related-deals">No related deals found in this category</div>
+          {% endfor %}
+      </div>
+   <button class="slider-btn prev">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6"></path>
+          </svg>
+      </button>
+      <button class="slider-btn next">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="m9 18 6-6-6-6"></path>
+          </svg>
+      </button> 
+  </div>
+</div>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
+<!-- Comment Section -->
+<!-- Display existing comments -->
+{% for comment in comments %}
+<div class="comment">
+    <div class="comment-header">
+        {% comment %} {% if comment.customer.image %}
+        <img src="{{ comment.customer.image.url }}" alt="User Avatar" class="Section-avatar">
+        {% else %}
+        <img src="{% static 'images/default-avatar.jpg' %}" alt="User Avatar" class="Section-avatar">
+        {% endif %} {% endcomment %}
+        <div class="user-details">
+            <h3>{{ comment.customer.user.username }}</h3>
+            <div class="comment-meta">
+                <span class="time">{{ comment.timestamp|timesince }} ago</span>
+
+            </div>
+        </div>
+    </div>
+    <div class="comment-content">
+        <p>{{ comment.text }}</p>
+    </div>
+</div>
+{% empty %}
+<div class="no-comments">Be the first to comment on this deal!</div>
+{% endfor %}
+
+      <!-- Comment form -->
+      {% if user.is_authenticated %}
+      <form method="POST" action="{{ request.path }}" class="comment-form" id="comment-form">
+          {% csrf_token %}
+          {% comment %} {% if user.customer.image %}
+          <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
+          {% else %}
+          <img src="{% static 'images/default-avatar.jpg' %}" alt="Current User Avatar" class="Section-avatar">
+          {% endif %} {% endcomment %}
+          <div class="form-wrapper">
+              <textarea id="comment-input" name="comment" placeholder="What are your thoughts on this deal?" rows="3"></textarea>
+              <div class="form-actions">
+                  <button type="submit" id="post-comment-btn" class="btn btn-primary">
+                      <i class="fas fa-paper-plane"></i>
+                      Post Comment
+                  </button>
+              </div>
+          </div>
+      </form>
+      {% else %}
+      <div class="login-to-comment">
+          <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
+      </div>
+      {% endif %}
+  </div>
+</div>
 
 
 
       
     </main>
-    <div class="ads">
-      <!-- Sidebar content... -->
-    </div>
+
   </div>
 </div>
 
@@ -303,115 +424,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Voting functionality
+  // Like functionality with AJAX
   const scoreElement = document.querySelector('.score');
   const goodDealBtn = document.querySelector('.good-deal');
-  const badDealBtn = document.querySelector('.bad-deal');
+  const thumbsUpBtn = document.querySelector('.vote-buttons .btn-vote:first-child');
   
-  if (scoreElement && goodDealBtn && badDealBtn) {
-    let voteScore = parseInt(scoreElement.textContent.replace('+', '')) || 0;
-    let hasVoted = null;
-
-    function updateScore() {
-      scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
+  // Check if elements exist to prevent errors
+  if (scoreElement && goodDealBtn && thumbsUpBtn) {
+    // Get product ID and CSRF token
+    const productId = document.querySelector('.save-btn')?.getAttribute('data-product-id');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    
+    if (productId && csrfToken) {
+      // Function to handle like via AJAX
+      function handleLike() {
+        // Create form data with CSRF token
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        
+        // Send AJAX request
+        fetch(`/like-product/${productId}/`, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Update UI based on response
+          const isLiked = data.liked;
+          
+          // Update thumbs up button
+          if (isLiked) {
+            thumbsUpBtn.querySelector('i').classList.add('active');
+            goodDealBtn.classList.add('voted');
+            showNotification('You liked this deal!', 'success');
+          } else {
+            thumbsUpBtn.querySelector('i').classList.remove('active');
+            goodDealBtn.classList.remove('voted');
+            showNotification('Like removed', 'info');
+          }
+          
+          // Update score
+          scoreElement.textContent = data.likes_count > 0 ? `+${data.likes_count}` : data.likes_count;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('Something went wrong. Please try again.', 'error');
+        });
+      }
+      
+      // Add event listeners to both thumbs up and good deal buttons
+      thumbsUpBtn.addEventListener('click', handleLike);
+      goodDealBtn.addEventListener('click', handleLike);
     }
-
-    goodDealBtn.addEventListener('click', () => {
-      if (hasVoted === 'up') {
-        voteScore--;
-        hasVoted = null;
-        goodDealBtn.classList.remove('voted');
-      } else {
-        if (hasVoted === 'down') {
-          voteScore += 2;
-          badDealBtn.classList.remove('voted');
-        } else {
-          voteScore++;
-        }
-        hasVoted = 'up';
-        goodDealBtn.classList.add('voted');
-      }
-      updateScore();
-    });
-
-    badDealBtn.addEventListener('click', () => {
-      if (hasVoted === 'down') {
-        voteScore++;
-        hasVoted = null;
-        badDealBtn.classList.remove('voted');
-      } else {
-        if (hasVoted === 'up') {
-          voteScore -= 2;
-          goodDealBtn.classList.remove('voted');
-        } else {
-          voteScore--;
-        }
-        hasVoted = 'down';
-        badDealBtn.classList.add('voted');
-      }
-      updateScore();
-    });
   }
 
   // Comment functionality
-  const postCommentBtn = document.getElementById('post-comment-btn');
+  const commentForm = document.querySelector('.comment-form');
   const commentInput = document.getElementById('comment-input');
-  const commentSection = document.querySelector('.comment-section');
-  
-  if (postCommentBtn && commentInput && commentSection) {
-    postCommentBtn.addEventListener('click', function() {
+
+  if (commentForm && commentInput) {
+    // Remove the existing click event handler by replacing the button
+    const postCommentBtn = document.getElementById('post-comment-btn');
+    if (postCommentBtn) {
+      const newButton = postCommentBtn.cloneNode(true);
+      postCommentBtn.parentNode.replaceChild(newButton, postCommentBtn);
+    }
+    
+    // Add form submission handler with validation
+    commentForm.addEventListener('submit', function(event) {
       const commentText = commentInput.value.trim();
-
-      if (commentText) {
-        // Create a new comment element
-        const newComment = document.createElement('div');
-        newComment.classList.add('comment');
-
-        // Create the comment header
-        const commentHeader = document.createElement('div');
-        commentHeader.classList.add('comment-header');
-
-        // Add avatar
-        const avatar = document.createElement('div');
-        avatar.classList.add('avatar');
-        commentHeader.appendChild(avatar);
-
-        // Add user info
-        const userInfo = document.createElement('div');
-        userInfo.classList.add('user-info');
-
-        const userName = document.createElement('h3');
-        userName.textContent = userName || 'Current User';
-        userInfo.appendChild(userName);
-
-        const time = document.createElement('span');
-        time.classList.add('time');
-        time.textContent = 'Just now';
-        userInfo.appendChild(time);
-
-        commentHeader.appendChild(userInfo);
-
-        // Add comment text
-        const commentBody = document.createElement('p');
-        commentBody.textContent = commentText;
-
-        // Append header and body to the new comment
-        newComment.appendChild(commentHeader);
-        newComment.appendChild(commentBody);
-
-        // Append the new comment to the comment section
-        const commentForm = document.querySelector('.comment-form');
-        if (commentForm) {
-          commentSection.insertBefore(newComment, commentForm);
-        } else {
-          commentSection.appendChild(newComment);
-        }
-
-        // Clear the textarea
-        commentInput.value = '';
-      } else {
+      
+      if (!commentText) {
+        event.preventDefault();
         alert('Please write a comment before posting.');
+        return false;
       }
+      // Let the form submit normally if there's text
     });
   }
 

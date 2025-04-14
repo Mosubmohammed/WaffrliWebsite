@@ -75,7 +75,24 @@ body {
   background: none;
   border: 1px solid #ddd;
   padding: 0.5rem 1rem;
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
 }
+.btn-vote i.active {
+  color: #0066ff;
+  transform: scale(1.2);
+}
+
+
+.btn-vote:hover {
+  background: #f5f5f5;
+  color: #6996c0;
+  background-color: var(--primary-blue);
+}
+
 .fa-solid,
 .fas {
   font-family: "Font Awesome 6 Free";
@@ -92,17 +109,7 @@ body {
   gap: 1rem;
 }
 
-.btn-vote {
-  padding: 8px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-}
 
-.btn-vote:hover {
-  background-color: var(--primary-blue);
-}
 
 .comments,
 .views {
@@ -1045,20 +1052,7 @@ textarea:focus {
   justify-content: flex-end;
 }
 
-.btn-vote {
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  color: #666;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
 
-.btn-vote:hover {
-  background: #f5f5f5;
-  color: #6996c0;
-}
 
 .user-details {
   display: flex;

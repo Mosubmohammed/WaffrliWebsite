@@ -30,9 +30,9 @@
                 <div class="action-buttons">
                     {% if user_profile.id != user.id %}
                         {% if is_following %}
-                            <a href="{% url 'unfollow_user' user_profile.id %}" class="follow-btn">Unfollow</a>
+                            <a href="{% url 'unfollow' user_profile.id %}" class="follow-btn">Unfollow</a>
                         {% else %}
-                            <a href="{% url 'follow_user' user_profile.id %}" class="follow-btn">Follow</a>
+                            <a href="{% url 'follow' user_profile.id %}" class="follow-btn">Follow</a>
                         {% endif %}
                         <button class="btn"><i class="fa-solid fa-envelope"></i> Message</button>
                     {% endif %}
