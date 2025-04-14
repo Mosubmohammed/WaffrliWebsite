@@ -24,116 +24,241 @@ def home(request):
 
 
 
-def category(request, foo):
-    foo = foo.replace('-', ' ').strip()
-    try:
-        category = Category.objects.get(name__iexact=foo)
-        products = Product.objects.filter(category=category)
+# def category(request, foo):
+#     foo = foo.replace('-', ' ').strip()
+#     try:
+#         category = Category.objects.get(name__iexact=foo)
+#         products = Product.objects.filter(category=category)
         
-        # Get unique store names from products in this category
-        stores = Product.objects.filter(category=category).values_list('store', flat=True).distinct()
+#         # Get unique store names from products in this category
+#         stores = Product.objects.filter(category=category).values_list('store', flat=True).distinct()
         
-        # Get unique city names (instead of location)
-        cities = Product.objects.filter(category=category).values_list('city', flat=True).distinct()
+#         # Get unique city names (instead of location)
+#         cities = Product.objects.filter(category=category).values_list('city', flat=True).distinct()
         
-        # Get unique brand names
-        brands = Product.objects.filter(category=category).values_list('brand', flat=True).distinct()
+#         # Get unique brand names
+#         brands = Product.objects.filter(category=category).values_list('brand', flat=True).distinct()
 
-        return render(request, 'category.html', {
-            'products': products, 
-            'category': category, 
-            'stores': stores,
-            'locations': cities,  # Pass cities as locations for the template
-            'brands': brands
-        })
-    except Category.DoesNotExist:
-        messages.error(request, 'That category does not exist')
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        messages.error(request, 'An unexpected error occurred')
+#         return render(request, 'category.html', {
+#             'products': products, 
+#             'category': category, 
+#             'stores': stores,
+#             'locations': cities,  # Pass cities as locations for the template
+#             'brands': brands
+#         })
+#     except Category.DoesNotExist:
+#         messages.error(request, 'That category does not exist')
+#     except Exception as e:
+#         print(f"Unexpected error: {e}")
+#         messages.error(request, 'An unexpected error occurred')
 
-    return redirect('home')
-
-
+#     return redirect('home')
 
 
-
-def filter_products(request, foo):
-    foo = foo.replace('-', ' ').strip()
+def product_list_base(request, page_type=None, category=None):
+    """
+    Base view function for all product listings with filtering
+    Handles hot deals, popular deals, and category filtering
+    """
+    # Start with the appropriate base query depending on page type
+    if page_type == 'hot_deals':
+        # Hot deals filter: calculate discount ≥ 70%
+        # Using database-level filtering for better performance
+        products = Product.objects.filter(
+            sale_price__isnull=False,
+            Price__gt=0
+        ).exclude(
+            sale_price__gte=F('Price')
+        ).annotate(
+            discount_percentage=ExpressionWrapper(
+                ((F('Price') - F('sale_price')) * 100) / F('Price'),
+                output_field=FloatField()
+            )
+        ).filter(discount_percentage__gte=70)
+        
+        page_title = "Hot Deals"
     
-    try:
-        category = get_object_or_404(Category, name__iexact=foo)
+    elif page_type == 'popular':
+        # Popular deals filter: based on likes and views
+        products = Product.objects.annotate(
+            like_count=Count('likes'),
+            popularity_score=ExpressionWrapper(
+                (F('like_count') * 3) + F('views'),  # Likes weighted 3x more than views
+                output_field=FloatField()
+            )
+        ).order_by('-popularity_score')
         
-        # Get filter parameters
-        store_names = request.GET.get("stores", "").split(",") if request.GET.get("stores") else []
-        location_names = request.GET.get("locations", "").split(",") if request.GET.get("locations") else []
-        brand_names = request.GET.get("brands", "").split(",") if request.GET.get("brands") else []
-        min_price = request.GET.get("min_price", 0)
-        max_price = request.GET.get("max_price", 999999)
-        rating_filter = request.GET.get("ratings", "0")
-        
-        # Convert to numbers to prevent errors
+        page_title = "Popular Deals"
+    
+    elif category:
+        # Category filter
+        category_obj = get_object_or_404(Category, name__iexact=category.replace('-', ' ').strip())
+        products = Product.objects.filter(category=category_obj)
+        page_title = f"{category_obj.name} Deals"
+    
+    else:
+        # All products
+        products = Product.objects.all()
+        page_title = "All Deals"
+    
+    # Use select_related to avoid N+1 queries
+    products = products.select_related('category', 'user', 'customer_pic_id')
+    
+    # Get filter parameters
+    # ---------------------
+    
+    # Store filter - Get checkbox values directly
+    stores = request.GET.getlist('store')
+    if stores:
+        query = Q()
+        for store in stores:
+            query |= Q(store__iexact=store.strip())
+        products = products.filter(query)
+    
+    # Location/City filter - Get checkbox values directly
+    locations = request.GET.getlist('location')
+    if locations:
+        query = Q()
+        for location in locations:
+            query |= Q(city__iexact=location.strip())
+        products = products.filter(query)
+    
+    # Brand filter - Get checkbox values directly
+    brands = request.GET.getlist('brand')
+    if brands:
+        query = Q()
+        for brand in brands:
+            query |= Q(brand__iexact=brand.strip())
+        products = products.filter(query)
+    
+    # Price range filter
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    
+    if min_price:
         try:
-            min_price = float(min_price)
-            max_price = float(max_price)
-        except ValueError:
-            return JsonResponse({"error": "Invalid price filters"}, status=400)
-        
-        # Start filtering by category and sale_price
-        products = Product.objects.filter(category=category, sale_price__gte=min_price, sale_price__lte=max_price)
-        
-        # Apply store filtering only if stores are selected
-        if store_names and store_names[0] != "":
-            products = products.filter(store__in=store_names)
-        
-        # Apply city filtering (instead of location) only if cities are selected
-        if location_names and location_names[0] != "":
-            products = products.filter(city__in=location_names)
-        
-        # Apply brand filtering only if brands are selected
-        if brand_names and brand_names[0] != "":
-            products = products.filter(brand__in=brand_names)
-        
-        # Apply rating (likes) filtering
-        if rating_filter and rating_filter != "0":
-            try:
-                min_rating = int(rating_filter)
-                # Using annotation to count likes for proper filtering
-                from django.db.models import Count
-                products = products.annotate(likes_count=Count('likes')).filter(likes_count__gte=min_rating)
-            except ValueError:
-                pass
-        
-        # Ensure distinct products
-        products = products.distinct()
-        
-        data = {
-            "products": [
-                {
-                    "id": p.id,
-                    "name": p.Name,
-                    "store": p.store,
-                    "city": p.city,  # Change location to city in response
-                    "brand": p.brand,
-                    "price": str(p.Price),
-                    "sale_price": str(p.sale_price) if p.sale_price else None,
-                    "description": p.Description,
-                    "create_at": p.create_at.strftime("%d-%m"),
-                    "username": p.user.username if p.user else "Unknown",
-                    "customer_pic_url": p.customer_pic_id.image.url if p.customer_pic_id and p.customer_pic_id.image else None,
-                    "image_url": p.image.url if p.image else "/static/images/default-product.png",
-                    "likes_count": p.likes.count(),
-                    "liked_by_user": request.user in p.likes.all(),
-                    "comment_count": 0,  # Replace with actual count if needed
-                }
-                for p in products
-            ]
-        }
-        return JsonResponse(data)
+            min_price_value = float(min_price)
+            products = products.filter(sale_price__gte=min_price_value)
+        except (ValueError, TypeError):
+            # Handle invalid input silently
+            pass
     
-    except Category.DoesNotExist:
-        return JsonResponse({"error": "Category not found"}, status=404)
+    if max_price:
+        try:
+            max_price_value = float(max_price)
+            products = products.filter(sale_price__lte=max_price_value)
+        except (ValueError, TypeError):
+            # Handle invalid input silently
+            pass
+    
+    # Rating/Likes filter
+    rating = request.GET.get('rating')
+    if rating and rating != '0':
+        try:
+            rating_value = int(rating)
+            # Using annotation to get accurate likes count
+            products = products.annotate(like_count=Count('likes'))
+            products = products.filter(like_count__gte=rating_value)
+        except (ValueError, TypeError):
+            # Handle invalid input silently
+            pass
+    
+    # Handle JSON response for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET:
+        products_data = []
+        
+        for product in products:
+            # Get customer pic URL if available
+            customer_pic_url = None
+            if product.customer_pic_id and product.customer_pic_id.image:
+                customer_pic_url = product.customer_pic_id.image.url
+            
+            # Calculate discount percentage if not already done
+            discount_percentage = getattr(product, 'discount_percentage', None)
+            if discount_percentage is None:
+                discount_percentage = product.get_discount_percentage()
+            
+            # Check if the current user has liked this product
+            liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
+            
+            products_data.append({
+                'id': product.id,
+                'name': product.Name,
+                'price': str(product.Price),
+                'sale_price': str(product.sale_price) if product.sale_price else None,
+                'description': product.Description,
+                'store': product.store,
+                'city': product.city,
+                'brand': product.brand,
+                'category_name': product.category.name,
+                'image_url': product.image.url if product.image else None,
+                'username': product.user.username if product.user else "Unknown",
+                'create_at': product.create_at.strftime('%d-%m'),
+                'customer_pic_url': customer_pic_url,
+                'discount_percentage': round(discount_percentage, 2) if discount_percentage else 0,
+                'likes_count': product.number_of_likes(),
+                'comment_count': 0,  # Replace with actual comment count if available
+                'liked_by_user': liked_by_user,
+            })
+        
+        return JsonResponse({'products': products_data})
+    
+    # Regular HTML response
+    # --------------------
+    
+    # Apply pagination
+    paginator = Paginator(products, 20)  # Show 20 products per page
+    page_number = request.GET.get('page')
+    
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        page_obj = paginator.page(paginator.num_pages)
+    
+    # Get data for filter dropdowns
+    # Only fetch distinct values for better performance
+    stores_list = Product.objects.values_list('store', flat=True).distinct()
+    cities_list = Product.objects.values_list('city', flat=True).distinct()
+    brands_list = Product.objects.values_list('brand', flat=True).distinct()
+    
+    context = {
+        'products': page_obj,
+        'page_obj': page_obj,
+        'stores': stores_list,
+        'locations': cities_list,
+        'brands': brands_list,
+        'selected_stores': stores,
+        'selected_locations': locations,
+        'selected_brands': brands,
+        'min_price': min_price,
+        'max_price': max_price,
+        'rating': rating,
+        'page_title': page_title,
+        'page_type': page_type,
+        'category': category,
+    }
+    
+    # Choose the appropriate template
+    if page_type == 'hot_deals':
+        template = 'hot_deals.html'
+    elif page_type == 'popular':
+        template = 'popular_deals.html'
+    elif category:
+        template = 'category.html'
+    else:
+        template = 'products.html'
+    
+    return render(request, template, context)
 
+
+
+def filter_products(request, category):
+    category_slug = category.replace('-', ' ').strip()
+    return product_list_base(request, category=category_slug)
 
     
     
@@ -645,118 +770,25 @@ def like_product(request, product_id):
     user = request.user
 
     if user.is_authenticated:
+    # Toggle like status
         if user in product.likes.all():
             product.likes.remove(user)
             liked = False
         else:
             product.likes.add(user)
             liked = True
+        
+        # Handle AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'liked': liked,
+                'likes_count': product.likes.count()
+            })
+        
+        # For non-AJAX requests, redirect back to the referring page
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-        return JsonResponse({"liked": liked, "like_count": product.likes.count()})
-    
-    return JsonResponse({"error": "User not authenticated"}, status=401)
-
-    
-
-# @login_required
-# def user_profile(request, identifier):
-#     try:
-#         # First, try to get the Firebase user by UID
-#         try:
-#             firebase_user = firebase_auth.get_user(identifier)
-#             user_id = firebase_user.uid
-#         except:
-#             # If that fails, try to get by email
-#             try:
-#                 # Check if it's an email
-#                 if '@' in identifier:
-#                     firebase_user = firebase_auth.get_user_by_email(identifier)
-#                     user_id = firebase_user.uid
-#                 else:
-#                     # If not UID or email, check if it's a Django User ID
-#                     django_user = get_object_or_404(User, id=identifier)
-#                     firebase_user_record = FirebaseUser.objects.get(user=django_user)
-#                     user_id = firebase_user_record.firebase_uid
-#             except:
-#                 return redirect('home')
         
-#         # Get the user profile from Firestore
-#         user_doc = db.collection('users').document(user_id).get()
-        
-#         if not user_doc.exists:
-#             messages.error(request, "User profile not found")
-#             return redirect('home')
-            
-#         profile_data = user_doc.to_dict()
-        
-#         # Get all deals (products) posted by this user from Firestore
-#         products_ref = db.collection('products').where('user_id', '==', user_id).get()
-#         user_products = [doc.to_dict() for doc in products_ref]
-        
-#         # Calculate stats for the user (deal count, comments, etc.)
-#         deal_count = len(user_products)
-        
-#         # Get likes and views data 
-#         total_likes_received = sum([product.get('likes_count', 0) for product in user_products])
-#         total_views = sum([product.get('views', 0) for product in user_products])
-        
-#         # Find the best deal (highest likes)
-#         best_deal = None
-#         highest_likes = 0
-#         for product in user_products:
-#             if product.get('likes_count', 0) > highest_likes:
-#                 highest_likes = product.get('likes_count', 0)
-#                 best_deal = product
-        
-#         # Calculate reputation points
-#         reputation_points = total_likes_received * 5
-        
-#         # Check if the current user is following this user
-#         is_following = False
-#         if request.user.is_authenticated:
-#             # Check followers collection
-#             follower_ref = db.collection('followers').document(f"{request.user.username}_{profile_data.get('username')}")
-#             is_following = follower_ref.get().exists
-        
-#         # Get followers and following counts
-#         followers_ref = db.collection('followers').where('following_id', '==', user_id).get()
-#         followers = [doc.to_dict() for doc in followers_ref]
-        
-#         following_ref = db.collection('followers').where('follower_id', '==', user_id).get()
-#         following = [doc.to_dict() for doc in following_ref]
-        
-#         # Increment profile views if not viewing your own profile
-#         if request.user.is_authenticated and request.session.get('firebase_uid') != user_id:
-#             # Update view count in Firestore
-#             db.collection('users').document(user_id).update({
-#                 'view_count': firestore.Increment(1)
-#             })
-#             view_count = profile_data.get('view_count', 0) + 1
-#         else:
-#             view_count = profile_data.get('view_count', 0)
-        
-#         context = {
-#             'user_profile': profile_data,
-#             'is_following': is_following,
-#             'followers': followers,
-#             'following': following,
-#             'deal_count': deal_count,
-#             'comment_count': profile_data.get('comment_count', 0),
-#             'view_count': view_count,
-#             'total_views': total_views,
-#             'total_likes_received': total_likes_received,
-#             'reputation_points': reputation_points,
-#             'best_deal': best_deal,
-#         }
-        
-#         return render(request, 'user_profile.html', context)
-        
-#     except Exception as e:
-#         print(f"Error in user_profile: {str(e)}")
-#         messages.error(request, "An error occurred when retrieving this profile")
-#         return redirect('home')
-    
-    
 def user_profile(request, identifier):
     profile_user = get_object_or_404(User, Q(id=identifier) | Q(username=identifier))
 
@@ -955,72 +987,6 @@ def unfollow(request, user_id):
     return redirect('user_profile', user_id=user_id)
 
 
-# @login_required
-# def settings(request):
-#     try:
-#         # Get Firebase UID from session
-#         firebase_uid = request.session.get('firebase_uid')
-#         if not firebase_uid:
-#             messages.error(request, "Authentication issue. Please log out and log in again.")
-#             return redirect('home')
-        
-#         # Get user profile from Firestore
-#         user_doc = db.collection('users').document(firebase_uid).get()
-        
-#         if not user_doc.exists:
-#             messages.error(request, "User profile not found. Please contact support.")
-#             return redirect('home')
-            
-#         user_data = user_doc.to_dict()
-#         allow_username_edit = False  # Set to True if you want to allow direct username edits
-        
-#         if request.method == 'POST':
-#             # Handle username change request
-#             if 'request_username' in request.POST:
-#                 new_username = request.POST.get('new_username')
-#                 if new_username:
-#                     # Update username in Firebase and Django
-#                     db.collection('users').document(firebase_uid).update({
-#                         'username': new_username
-#                     })
-                    
-#                     # Also update Django username for consistency
-#                     request.user.username = new_username
-#                     request.user.save()
-                    
-#                     messages.success(request, 'Username updated successfully!')
-#                     return redirect('settings')
-            
-#             # Handle email update
-#             if 'update_profile' in request.POST:
-#                 email = request.POST.get('email')
-#                 if email and email != user_data.get('email'):
-#                     # Update email in Firebase Auth
-#                     firebase_auth.update_user(firebase_uid, email=email)
-                    
-#                     # Update email in Firestore
-#                     db.collection('users').document(firebase_uid).update({
-#                         'email': email,
-#                         'email_verified': False
-#                     })
-                    
-#                     # Update Django user's email for consistency
-#                     request.user.email = email
-#                     request.user.save()
-                    
-#                     messages.success(request, 'Email updated successfully! Please verify your new email.')
-#                     return redirect('settings')
-        
-#         context = {
-#             'user_profile': user_data,
-#             'allow_username_edit': allow_username_edit,
-#         }
-#         return render(request, 'settings.html', context)
-        
-#     except Exception as e:
-#         print(f"Error in settings: {str(e)}")
-#         messages.error(request, 'An error occurred. Please try again later.')
-#         return redirect('home')
 @login_required
 def settings(request):
     try:
@@ -1059,91 +1025,6 @@ def settings(request):
 
 
 
-# def update_info(request):
-#     try:
-#         # Get Firebase UID from session
-#         firebase_uid = request.session.get('firebase_uid')
-#         if not firebase_uid:
-#             messages.error(request, "Authentication issue. Please log out and log in again.")
-#             return redirect('home')
-        
-#         # Get user profile from Firestore
-#         user_doc = db.collection('users').document(firebase_uid).get()
-        
-#         if not user_doc.exists:
-#             messages.error(request, "User profile not found. Please contact support.")
-#             return redirect('home')
-            
-#         user_data = user_doc.to_dict()
-        
-#         if request.method == 'POST':
-#             # Extract form data
-#             first_name = request.POST.get('first_name', '')
-#             last_name = request.POST.get('last_name', '')
-#             phone = request.POST.get('phone', '')
-#             address = request.POST.get('address', '')
-#             city = request.POST.get('city', '')
-#             country = request.POST.get('country', '')
-            
-#             # Prepare updates
-#             update_data = {
-#                 'first_name': first_name,
-#                 'last_name': last_name,
-#                 'phone': phone,
-#                 'address': address,
-#                 'city': city,
-#                 'country': country
-#             }
-            
-#             # Handle image upload if provided
-#             if request.FILES.get('image'):
-#                 import os
-#                 from django.conf import settings
-                
-#                 image = request.FILES.get('image')
-                
-#                 # Create a unique filename
-#                 import time
-#                 timestamp = int(time.time())
-#                 filename = f"{firebase_uid}_{timestamp}_{image.name}"
-                
-#                 # Ensure upload directory exists
-#                 upload_path = os.path.join(settings.MEDIA_ROOT, 'user_images', firebase_uid)
-#                 os.makedirs(upload_path, exist_ok=True)
-                
-#                 # Save the image
-#                 with open(os.path.join(upload_path, filename), 'wb+') as destination:
-#                     for chunk in image.chunks():
-#                         destination.write(chunk)
-                
-#                 # Set the image URL for Firestore
-#                 image_path = f"/media/user_images/{firebase_uid}/{filename}"
-#                 update_data['image_path'] = image_path
-            
-#             # Update Firebase Auth display name
-#             firebase_auth.update_user(
-#                 firebase_uid,
-#                 display_name=f"{first_name} {last_name}"
-#             )
-            
-#             # Update user profile in Firestore
-#             db.collection('users').document(firebase_uid).update(update_data)
-            
-#             # Update Django user for consistency
-#             request.user.first_name = first_name
-#             request.user.last_name = last_name
-#             request.user.save()
-            
-#             messages.success(request, 'Profile updated successfully!')
-#             return redirect('update_info')
-        
-#         # For GET requests, pass user data to the template
-#         return render(request, 'update_info.html', {'user_profile': user_data})
-        
-#     except Exception as e:
-#         print(f"Error in update_info: {str(e)}")
-#         messages.error(request, 'An error occurred while updating your profile. Please try again later.')
-#         return redirect('settings')
     
     
 @login_required
@@ -1444,168 +1325,14 @@ def close_account(request):
 
 
 def hot_deals(request):
-    # Get all products that have a sale price
-    products = Product.objects.filter(sale_price__isnull=False).select_related('category', 'user', 'customer_pic_id')
-    
-    # Calculate and filter products with discount >= 70%
-    hot_deals = []
-    for product in products:
-        if product.Price > 0 and product.sale_price is not None:
-            discount_percentage = ((product.Price - product.sale_price) / product.Price) * 100
-            
-            if discount_percentage >= 70:
-                # Add discount_percentage as attribute for display
-                product.discount_percentage = round(discount_percentage, 2)
-                hot_deals.append(product)
-    
-    # Start with all hot deals
-    filtered_deals = hot_deals.copy()
-    
-    # Get data for filter dropdowns
-    all_stores = Product.objects.values_list('store', flat=True).distinct()
-    all_cities = Product.objects.values_list('city', flat=True).distinct()
-    all_brands = Product.objects.values_list('brand', flat=True).distinct()
-    
-    context = {
-        'products': filtered_deals,
-        'stores': all_stores,
-        'locations': all_cities,
-        'brands': all_brands,
-    }
-    
-    return render(request, 'hot_deals.html', context)
+    return product_list_base(request, page_type='hot_deals')
 
-def filter_hot_deals(request):
-    # Get all products that have a sale price
-    products = Product.objects.filter(sale_price__isnull=False).select_related('category', 'user', 'customer_pic_id')
-    
-    # Calculate and filter products with discount >= 70%
-    hot_deals = []
-    for product in products:
-        if product.Price > 0 and product.sale_price is not None:
-            discount_percentage = ((product.Price - product.sale_price) / product.Price) * 100
-            
-            if discount_percentage >= 70:
-                # Add discount_percentage as attribute for display
-                product.discount_percentage = round(discount_percentage, 2)
-                hot_deals.append(product)
-    
-    # Start with all hot deals
-    filtered_deals = hot_deals.copy()
-    
-    # Get filter parameters
-    stores = request.GET.get('stores', '')
-    locations = request.GET.get('locations', '')
-    brands = request.GET.get('brands', '')
-    min_price = request.GET.get('min_price', '0')
-    max_price = request.GET.get('max_price', '1000')
-    ratings = request.GET.get('ratings', '0')
-    
-    # Apply store filter
-    if stores and stores != '':
-        store_list = stores.split(',')
-        filtered_deals = [deal for deal in filtered_deals 
-                          if deal.store in store_list]
-    
-    # Apply city/location filter
-    if locations and locations != '':
-        location_list = locations.split(',')
-        filtered_deals = [deal for deal in filtered_deals 
-                         if deal.city in location_list]
-    
-    # Apply brand filter
-    if brands and brands != '':
-        brand_list = brands.split(',')
-        filtered_deals = [deal for deal in filtered_deals 
-                         if deal.brand in brand_list]
-    
-    # Apply price range filters
-    if min_price:
-        min_price_val = float(min_price)
-        filtered_deals = [deal for deal in filtered_deals if float(deal.sale_price) >= min_price_val]
-    
-    if max_price:
-        max_price_val = float(max_price)
-        filtered_deals = [deal for deal in filtered_deals if float(deal.sale_price) <= max_price_val]
-    
-    # Apply rating filter (thumbs/likes)
-    if ratings and ratings != '0':
-        rating_threshold = int(ratings)
-        filtered_deals = [deal for deal in filtered_deals if deal.number_of_likes() >= rating_threshold]
-    
-    # Prepare JSON response
-    products_data = []
-    for product in filtered_deals:
-        # Get customer pic URL if available
-        customer_pic_url = None
-        if product.customer_pic_id and product.customer_pic_id.image:
-            customer_pic_url = product.customer_pic_id.image.url
-        
-        # Get comment count (adjust if your model has a different way to count comments)
-        comment_count = 0  # Replace with actual comment count if available
-        
-        # Check if the current user has liked this product
-        liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
-        
-        products_data.append({
-            'id': product.id,
-            'name': product.Name,
-            'price': str(product.Price),
-            'sale_price': str(product.sale_price),
-            'description': product.Description,
-            'store': product.store,
-            'city': product.city,
-            'category_name': product.category.name,
-            'image_url': product.image.url if product.image else None,
-            'username': product.user.username if product.user else "Unknown",
-            'create_at': product.create_at.strftime('%d-%m'),
-            'customer_pic_url': customer_pic_url,
-            'discount_percentage': product.discount_percentage,
-            'likes_count': product.number_of_likes(),
-            'comment_count': comment_count,
-            'liked_by_user': liked_by_user,
-        })
-    
-    return JsonResponse({'products': products_data})
+# def filter_hot_deals(request):
+#     return product_list_base(request, page_type='hot_deals')
 
 
 def popular_deals(request):
-    """
-    Function to display popular deals based on a combination of likes and views.
-    """
-    # Get all products and annotate them with like count
-    products_list = Product.objects.annotate(
-        like_count=Count('likes')
-    )
-    
-    # Create a weighted popularity score (likes * 3 + views)
-    # but don't display the score to the user
-    products_list = products_list.annotate(
-        popularity_score=ExpressionWrapper(
-            (F('like_count') * 3) + F('views'),  # Likes are weighted 3x more than views
-            output_field=FloatField()
-        )
-    ).order_by('-popularity_score')
-    
-    # Set up pagination
-    paginator = Paginator(products_list, 2)  # Show 12 deals per page
-    page = request.GET.get('page')
-    
-    try:
-        popular_products = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page
-        popular_products = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range, deliver last page
-        popular_products = paginator.page(paginator.num_pages)
-    
-    context = {
-        'popular_deals': popular_products,
-        'title': 'Popular Deals'
-    }
-    
-    return render(request, 'popular_deals.html', context)
+    return product_list_base(request, page_type='popular')
 
 
 @login_required

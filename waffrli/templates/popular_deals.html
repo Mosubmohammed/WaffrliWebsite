@@ -3,9 +3,10 @@
 
 {% block content %}
 <link href="{% static 'css/popularDeals.css' %}" rel="stylesheet" />
+
 <div class="popular-deals-header">
     <div class="container">
-        <h1>{{ title }}</h1>
+        <h1>{{ page_title }}</h1>
         <p>Discover the most popular deals based on likes and views</p>
     </div>
 </div>
@@ -21,8 +22,65 @@
     </div>
     {% endif %}
 
+    <!-- Filter Form -->
+    <div class="filter-row">
+        <form method="GET" action="{% url 'popular_deals' %}" class="filter-form">
+            <div class="filter-group">
+                <label>Store:</label>
+                <select name="store" multiple>
+                    <option value="">All Stores</option>
+                    {% for store in stores %}
+                    <option value="{{ store }}" {% if store in selected_stores %}selected{% endif %}>{{ store }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Location:</label>
+                <select name="location" multiple>
+                    <option value="">All Locations</option>
+                    {% for location in locations %}
+                    <option value="{{ location }}" {% if location in selected_locations %}selected{% endif %}>{{ location }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Brand:</label>
+                <select name="brand" multiple>
+                    <option value="">All Brands</option>
+                    {% for brand in brands %}
+                    <option value="{{ brand }}" {% if brand in selected_brands %}selected{% endif %}>{{ brand }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Min Likes:</label>
+                <select name="rating">
+                    <option value="0" {% if not rating or rating == '0' %}selected{% endif %}>All</option>
+                    <option value="1" {% if rating == '1' %}selected{% endif %}>1+</option>
+                    <option value="3" {% if rating == '3' %}selected{% endif %}>3+</option>
+                    <option value="5" {% if rating == '5' %}selected{% endif %}>5+</option>
+                    <option value="10" {% if rating == '10' %}selected{% endif %}>10+</option>
+                </select>
+            </div>
+            
+            <div class="filter-group price-range">
+                <label>Price Range:</label>
+                <input type="number" name="min_price" placeholder="Min" value="{{ min_price|default_if_none:'' }}">
+                <span>to</span>
+                <input type="number" name="max_price" placeholder="Max" value="{{ max_price|default_if_none:'' }}">
+            </div>
+            
+            <button type="submit" class="filter-btn">Apply Filters</button>
+            <a href="{% url 'popular_deals' %}" class="reset-btn">Reset</a>
+        </form>
+    </div>
+
+    <!-- Products Grid -->
     <div class="row">
-        {% for product in popular_deals %}
+        {% for product in products %}
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card deal-card">
                     {% if product.get_discount_percentage > 0 %}
@@ -30,7 +88,7 @@
                     {% endif %}
                     
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.Name }}">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.Name }}" loading="lazy">
                     {% else %}
                         <div class="placeholder-img text-center p-4 bg-light">No Image</div>
                     {% endif %}
@@ -48,6 +106,7 @@
                         </div>
                         
                         <p class="store-info">{{ product.store }} - {{ product.city }}</p>
+                        <p class="brand" style="display: none;">{{ product.brand }}</p>
                         
                         <div class="stats">
                             <span><i class="fas fa-heart"></i> {{ product.number_of_likes }} likes</span>
@@ -58,11 +117,13 @@
                             <a href="{% url 'product' product.id %}" class="btn btn-primary view-btn">View Deal</a>
                             
                             {% if user.is_authenticated %}
-                                <a href="{% url 'like_product' product.id %}" 
-                                   class="btn like-btn {% if user in product.likes.all %}liked{% endif %}">
-                                    <i class="fas fa-heart"></i> 
-                                    {% if user in product.likes.all %}Unlike{% else %}Like{% endif %}
-                                </a>
+                                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn like-btn {% if user in product.likes.all %}liked{% endif %}">
+                                        <i class="fas fa-heart"></i> 
+                                        {% if user in product.likes.all %}Unlike{% else %}Like{% endif %}
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>
@@ -71,34 +132,58 @@
         {% empty %}
             <div class="col-12">
                 <div class="empty-deals">
-                    <p>No popular deals available at the moment.</p>
+                    <p>No popular deals available matching your filters. Try adjusting your criteria or check back later!</p>
                 </div>
             </div>
         {% endfor %}
     </div>
     
-    {% if popular_deals.has_other_pages %}
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
-            {% if popular_deals.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.previous_page_number }}">Previous</a></li>
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
             {% endif %}
 
-            {% for i in popular_deals.paginator.page_range %}
-                {% if popular_deals.number == i %}
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
                     <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
-                {% elif i > popular_deals.number|add:'-3' and i < popular_deals.number|add:'3' %}
-                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
+                    </li>
                 {% endif %}
             {% endfor %}
 
-            {% if popular_deals.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.next_page_number }}">Next</a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ popular_deals.paginator.num_pages }}">Last &raquo;</a></li>
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
             {% endif %}
         </ul>
     </nav>
     {% endif %}
 </div>
+
+<script>
+    // Minimal JavaScript for enhancing the form experience
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form submit on select change if desired
+        // const autoSubmitSelects = document.querySelectorAll('.filter-form select');
+        // autoSubmitSelects.forEach(select => {
+        //    select.addEventListener('change', () => {
+        //        document.querySelector('.filter-form').submit();
+        //    });
+        // });
+    });
+</script>
 {% endblock %}

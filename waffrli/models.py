@@ -20,11 +20,14 @@ class FirebaseUser(models.Model):
         return self.user.username
     
 class Category(models.Model):
-    name=models.CharField(max_length=100)
-    def __str__(self) -> str:
+    name = models.CharField(max_length=100, db_index=True)
+    
+    def __str__(self):
         return self.name
+    
     class Meta:
-        verbose_name_plural='Categories'
+        verbose_name_plural = "Categories"
+        ordering = ['name']
         
 
 class Customer(models.Model):
@@ -78,15 +81,15 @@ class Product(models.Model):
 
     def increment_views(self):
         self.views += 1
-        self.save()
-        
+        self.save(update_fields=['views'])  # Optimized to update only the views field
+    
     def __str__(self) -> str:
         return self.Name
     
     def number_of_likes(self):
         return self.likes.count()
     
-    # New methods for hot deals functionality
+    # Hot deals functionality
     def get_discount_percentage(self):
         """Calculate discount percentage if sale_price exists"""
         if not self.sale_price or self.Price == 0:
@@ -104,6 +107,15 @@ class Product(models.Model):
         if not self.sale_price:
             return 0
         return self.Price - self.sale_price
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['sale_price', 'Price']),  # For discount calculations
+            models.Index(fields=['views', '-create_at']),  # For sorting by popularity
+            models.Index(fields=['store', 'city', 'brand']),  # For common filtering combinations
+            models.Index(fields=['category', 'sale_price']),  # For category filtering with price
+        ]
+        ordering = ['-create_at']  # Default ordering
 
 
 

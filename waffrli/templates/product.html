@@ -4,78 +4,100 @@
 <div class="container">
   <div class="content-wrapper">
     <main class="main">
-      <div class="Detailed-deal">
-        <div class="Detailed-deal-image">
-            <img
-            src="{{ product.image.url }}"
-            class="img-fluid rounded-start"
-            alt="Product Image"
-          />
-        </div>
-        <div class="Detailed-deal-content">
-          <div class="deal-tags">
-            <span class="tag tag-popular">Popular</span>
-            <span class="deal-score"
-              >Posted by: <strong>@{{ product.user.username }}</strong></span
-            >
-            {% if user == product.user %}
-            <div class="deal-owner-actions">
-              <a href="{% url 'edit_deal' product.id %}" class="edit-deal-btn">
-                <i class="fas fa-edit"></i> Edit Deal
-              </a>
-              <button class="delete-deal-btn" onclick="confirmDelete({{ product.id }})">
-                <i class="fas fa-trash-alt"></i> Delete Deal
-              </button>
-            </div>
-            {% endif %}
-          </div>
 
-          <h2>{{ product.Name }}</h2>
-          <div class="price-container">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="original-price">${{ product.Price }}</span>
-            <span class="discount">
-              {% if product.Price > 0 %}
-                {{ discount_percentage|default:36 }}% Off
-              {% endif %}
-            </span>
-          </div>
-          <p class="description">
-            {{ product.Description }}
-          </p>
-          <div class="deal-actions">
-            
-            <a
-              class="deal-actions"
-              href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color:blue"
-            >
-            Get Deal at {{product.store}}
-            </a>
-
+{% comment %} 
           <div class="vote-buttons">
             <button class="like-btn" data-product-id="{{ product.id }}">
               <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
               <span class="like-count">{{ product.likes.count }}</span>
             </button>
+{% endcomment %}
 
 
-            <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-              <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-            </button>
 
-            <div>
-              <a href="#comment-section">
-                <span class="comments"><i class="fa-regular fa-comment"></i> 166 Comments</span>
-              </a>
-              <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
+      <div class="deal-card">
+        <div class="deal-content">
+
+            <div class="deal-image">
+              <img
+              src="{{ product.image.url }}"
+              class="img-fluid rounded-start"
+              alt="Product Image"
+            />
             </div>
-          </div>
-          </div>
+            <div class="deal-details">
+                <div class="deal-tags">
+                    <span class="tag tag-popular">Popular</span>
+                    <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
+
+                </div>
+
+                <div class="deal-header">
+                    <h1>{{ product.Name }}</h1>
+                    {% if user == product.user %}
+                    <div class="menu-container">
+                        <button class="btn btn-menu" id="menuBtn">
+                            <i class="fas fa-ellipsis-v"></i>
+                         
+                        </button>
+                        <div class="menu-dropdown" id="menuDropdown">
+                            <button class="menu-item">
+                              <a href="{% url 'edit_deal' product.id %}">
+                                <i class="fas fa-edit"></i>
+                                Edit Post</a>
+                            </button>
+                            <button class="menu-item">
+                                <i class="fas fa-archive"></i>                                            Archive Post
+                            </button>
+                            <button class="menu-item" onclick="confirmDelete({{ product.id }})">
+                                <i class="fas fa-trash-alt"></i>                                            Remove Post
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                  </div>
+
+                <div class="price-info">
+                    <span class="current-price">${{ product.sale_price }}</span>
+                    <span class="original-price">${{ product.Price }}</span>
+                    <span class="discount-badge">{{ product.get_discount_percentage }}% OFF</span>
+                </div>
+
+                <div class="action-buttons">
+                    <a
+                    class="get-deal-btn"
+                    href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    
+                  >
+                  Get Deal at {{product.store}}
+                  </a>
+
+                    <div class="vote-buttons">
+                        <button class="btn btn-vote">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                        </button>
+                        <button class="btn btn-vote">
+                            <i class="fa-solid fa-thumbs-down"></i>
+                        </button>
+                        <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+                          <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+                        </button>
+
+                        <div>
+                            <a href="#comment-section"> <span class="comments"><i
+                                        class="fa-regular fa-comment"></i> 166 Comments</span> </a>
+                            <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
         </div>
-      </div>
+    </div>
 
       <section class="product-details">
         <div class="tabs">
@@ -134,6 +156,172 @@
 </form>
 
 <script>
+  function setupTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and contents
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            // Add active class to clicked tab and corresponding content
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupTabs();
+});
+
+// Menu dropdown functionality
+const menuBtn = document.getElementById('menuBtn');
+const menuDropdown = document.getElementById('menuDropdown');
+
+// Toggle menu on button click
+menuBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+menuDropdown.classList.toggle('show');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+menuDropdown.classList.remove('show');
+}
+});
+
+// Handle menu item clicks
+document.querySelectorAll('.menu-item').forEach(item => {
+item.addEventListener('click', () => {
+menuDropdown.classList.remove('show');
+// Add your menu item click handlers here
+console.log('Clicked:', item.textContent.trim());
+});
+});
+// Slider functionality
+const slider = document.querySelector('.deals-slider');
+const prevBtn = document.querySelector('.prev');
+const nextBtn = document.querySelector('.next');
+let currentSlide = 0;
+const slideCount = document.querySelectorAll('.deal-slide').length;
+
+prevBtn.addEventListener('click', () => {
+    currentSlide = Math.max(0, currentSlide - 1);
+    updateSlider();
+});
+
+nextBtn.addEventListener('click', () => {
+    currentSlide = Math.min(slideCount - 5, currentSlide + 1);
+    updateSlider();
+});
+
+function updateSlider() {
+    slider.style.transform = `translateX(-${currentSlide * 20}%)`;
+}
+
+// Voting functionality
+let voteScore = 6;
+let hasVoted = null;
+const scoreElement = document.querySelector('.score');
+const goodDealBtn = document.querySelector('.good-deal');
+const badDealBtn = document.querySelector('.bad-deal');
+
+function updateScore() {
+    scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
+}
+
+goodDealBtn.addEventListener('click', () => {
+    if (hasVoted === 'up') {
+        voteScore--;
+        hasVoted = null;
+        goodDealBtn.classList.remove('voted');
+    } else {
+        if (hasVoted === 'down') {
+            voteScore += 2;
+            badDealBtn.classList.remove('voted');
+        } else {
+            voteScore++;
+        }
+        hasVoted = 'up';
+        goodDealBtn.classList.add('voted');
+    }
+    updateScore();
+});
+
+badDealBtn.addEventListener('click', () => {
+    if (hasVoted === 'down') {
+        voteScore++;
+        hasVoted = null;
+        badDealBtn.classList.remove('voted');
+    } else {
+        if (hasVoted === 'up') {
+            voteScore -= 2;
+            goodDealBtn.classList.remove('voted');
+        } else {
+            voteScore--;
+        }
+        hasVoted = 'down';
+        badDealBtn.classList.add('voted');
+    }
+    updateScore();
+});
+
+
+document.getElementById('post-comment-btn').addEventListener('click', function () {
+    // Get the comment text from the textarea
+    const commentText = document.getElementById('comment-input').value.trim();
+
+    // Check if the comment is not empty
+    if (commentText) {
+        // Create a new comment element
+        const newComment = document.createElement('div');
+        newComment.classList.add('comment');
+
+        // Create the comment header
+        const commentHeader = document.createElement('div');
+        commentHeader.classList.add('comment-header');
+
+        // Add avatar
+        const avatar = document.createElement('div');
+        avatar.classList.add('avatar');
+        commentHeader.appendChild(avatar);
+
+        // Add user info
+        const userInfo = document.createElement('div');
+        userInfo.classList.add('user-info');
+
+        const userName = document.createElement('h3');
+        userName.textContent = 'Current User'; // Replace with actual username if available
+        userInfo.appendChild(userName);
+
+        const time = document.createElement('span');
+        time.classList.add('time');
+        time.textContent = 'Just now';
+        userInfo.appendChild(time);
+
+        commentHeader.appendChild(userInfo);
+
+        // Add comment text
+        const commentBody = document.createElement('p');
+        commentBody.textContent = commentText;
+
+        // Append header and body to the new comment
+        newComment.appendChild(commentHeader);
+        newComment.appendChild(commentBody);
+
+        // Append the new comment to the comment section
+        document.querySelector('.comment-section').insertBefore(newComment, document.querySelector('.comment-form'));
+
+        // Clear the textarea
+        document.getElementById('comment-input').value = '';
+    } else {
+        alert('Please write a comment before posting.');
+    }
+});
   document.addEventListener('DOMContentLoaded', function() {
     // Existing script
     

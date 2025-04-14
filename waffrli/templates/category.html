@@ -2,357 +2,238 @@
 {% load static %} 
 {% block content %}
 <link href="{% static 'css/Sub-categories.css' %}" rel="stylesheet" />
+
 <div class="container">
+    <div class="category-header">
+        <h1>{{ page_title }}</h1>
+    </div>
 
     <div class="main-content">
+        <!-- Filters -->
         <aside class="filters">
             <h2>Filters</h2>
-        
-            <div class="filter-section">
-                <h3>Stores</h3>
-                {% for store in stores %}
-                    <label>
-                        <input type="checkbox" name="store" value="{{ store }}"> {{ store }}
-                    </label>
-                {% endfor %}
-            </div>
-        
-            <div class="filter-section">
-                <h3>Location</h3>
-                {% for location in locations %}
-                    <label>
-                        <input type="checkbox" name="location" value="{{ location }}"> {{ location }}
-                    </label>
-                {% endfor %}
-            </div>
-        
-            <div class="filter-section">
-                <h3>Rating</h3>
-                <label><input type="radio" name="rating" value="5"> Popular Deals</label>
-                <label><input type="radio" name="rating" value="5"> 5+ Thumbs</label>
-                <label><input type="radio" name="rating" value="4"> 4+ Thumbs</label>
-                <label><input type="radio" name="rating" value="3"> 3+ Thumbs</label>
-                <label><input type="radio" name="rating" value="2"> 2+ Thumbs</label>
-                <label><input type="radio" name="rating" value="1"> 1+ Thumbs</label>
-                <label><input type="radio" name="rating" value="0" checked> All Ratings</label>
-            </div>
-        
-            <div class="filter-section">
-                <h3>Price Range</h3>
-                <div class="price-slider">
-                    <input type="range" id="priceRange" min="0" max="200" value="100">
-                    <div class="price-inputs">
-                        <input type="number" id="minPrice" value="0">
-                        <span>to</span>
-                        <input type="number" id="maxPrice" value="100">
-                    </div>
-                </div>
-            </div>
             
-            <div class="filter-section">
-                <div class="filter-header toggle-brands">
-                    <span>
-                        <h3>Brands</h3>
-                    </span>
-                    
-                </div>
-                <div class="brand-list" style="display: block;">
-                    {% for brand in brands %}
-                        <label><input type="checkbox" name="brand" value="{{ brand }}"> {{ brand }}</label>
+            <!-- Server-side filtering form -->
+            <form method="GET" action="{% url 'filter_products' category %}">
+                <div class="filter-section">
+                    <h3>Stores</h3>
+                    {% for store in stores %}
+                        <label>
+                            <input type="checkbox" name="store" value="{{ store }}" 
+                                  {% if store in selected_stores %}checked{% endif %}> 
+                            {{ store }}
+                        </label>
                     {% endfor %}
                 </div>
-            </div>
-        </aside>
-
-        <main class="products">
-            {% comment %} <div class="sort-bar">
-                <select id="sortBy">
-                    <option value="popular">Most Popular</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
-                </select>
-            </div> {% endcomment %}
-
-            <div  id="productGrid">
-
             
-
-                <div id="product-list">
-                {% for product in products %}
-                    <div class="product-card">
-                        <div class="card-header">
-                            <div class="user-info">
-                                {% if product.customer_pic_id and product.customer_pic_id.image %}
-                                <img style="width: 20px; height: 24px" 
-                                     src="{{ product.customer_pic_id.image.url }}" 
-                                     alt="User Icon" 
-                                     class="profile-pic" 
-                                     width="30" 
-                                     height="30" />
-                                {% else %}
-                                <img style="width: 20px; height: 24px" 
-                                     src="{% static 'images/default-profile.png' %}" 
-                                     alt="Default User" 
-                                     class="profile-pic" 
-                                     width="30" 
-                                     height="30" />
-                                {% endif %}
-                                <div class="user-details">
-                                    <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-                                    <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
-                                </div>
-                            </div>
-                            
-                        </div>
+                <div class="filter-section">
+                    <h3>Location</h3>
+                    {% for location in locations %}
+                        <label>
+                            <input type="checkbox" name="location" value="{{ location }}" 
+                                  {% if location in selected_locations %}checked{% endif %}> 
+                            {{ location }}
+                        </label>
+                    {% endfor %}
+                </div>
             
-                        <img src="{{ product.image.url }}" alt="Product" />
+                <div class="filter-section">
+                    <h3>Rating</h3>
+                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> Popular Deals</label>
+                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> 5+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="4" {% if rating == '4' %}checked{% endif %}> 4+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="3" {% if rating == '3' %}checked{% endif %}> 3+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="2" {% if rating == '2' %}checked{% endif %}> 2+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="1" {% if rating == '1' %}checked{% endif %}> 1+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="0" {% if not rating or rating == '0' %}checked{% endif %}> All Ratings</label>
+                </div>
             
-                        <div class="product-info">
-                            <h3>{{ product.Name }}</h3>
-                            <p class="description">{{ product.Description }}</p>
-            
-                            <div class="price-container">
-                                <span class="current-price">${{ product.sale_price }}</span>
-                                <span class="original-price">${{ product.Price }}</span>
-                            </div>
-            
-
-                        </div>
-            
-                        <div class="card-footer">
-                            <button class="like-btn" data-product-id="{{ product.id }}">
-                                <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-                                <span class="like-count">{{ product.likes.count }}</span>
-                            </button>
-                            <button class="comment-btn">
-                                <i class="far fa-comment"></i> {{ product.comment_count }}
-                            </button>
+                <div class="filter-section">
+                    <h3>Price Range</h3>
+                    <div class="price-slider">
+                        <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                        <div class="price-inputs">
+                            <input type="number" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                            <span>to</span>
+                            <input type="number" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-        
-            
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-header toggle-brands">
+                        <span>
+                            <h3>Brands</h3>
+                        </span>
+                    </div>
+                    <div class="brand-list" style="display: block;">
+                        {% for brand in brands %}
+                            <label>
+                                <input type="checkbox" name="brand" value="{{ brand }}" 
+                                      {% if brand in selected_brands %}checked{% endif %}> 
+                                {{ brand }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="apply-filters-btn">Apply Filters</button>
+                
+                <!-- Reset Link -->
+                <a href="{% url 'filter_products' category %}" class="reset-filters-btn">Reset Filters</a>
+            </form>
+        </aside>
 
-        
+        <!-- Products Grid -->
+        <main class="products">
+            {% if products %}
+                <div id="product-list">
+                    {% for product in products %}
+                        <div class="product-card">
+                            <div class="card-header">
+                                <div class="user-info">
+                                    {% if product.customer_pic_id and product.customer_pic_id.image %}
+                                    <img style="width: 20px; height: 24px" 
+                                         src="{{ product.customer_pic_id.image.url }}" 
+                                         alt="User Icon" 
+                                         class="profile-pic" 
+                                         width="30" 
+                                         height="30" />
+                                    {% else %}
+                                    <img style="width: 20px; height: 24px" 
+                                         src="{% static 'images/default-profile.png' %}" 
+                                         alt="Default User" 
+                                         class="profile-pic" 
+                                         width="30" 
+                                         height="30" />
+                                    {% endif %}
+                                    <div class="user-details">
+                                        <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+                                        <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+                
+                            <div class="product-info">
+                                <h3>{{ product.Name }}</h3>
+                                <p class="description">{{ product.Description }}</p>
+                
+                                <div class="price-container">
+                                    <span class="current-price">${{ product.sale_price }}</span>
+                                    <span class="original-price">${{ product.Price }}</span>
+                                </div>
+                                
+                                <div class="meta-info">
+                                    <span class="store">{{ product.store }}</span>
+                                    <span class="brand">{{ product.brand }}</span>
+                                    <span class="city">{{ product.city }}</span>
+                                </div>
+                            </div>
+                
+                            <div class="card-footer">
+                                <a href="{% url 'product' product.id %}" class="view-deal-btn">View Deal</a>
+                                
+                                {% if user.is_authenticated %}
+                                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                                        <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                                        <span class="like-count">{{ product.number_of_likes }}</span>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <div class="like-count-display">
+                                    <i class="far fa-heart"></i>
+                                    <span>{{ product.number_of_likes }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="pagination">
+                    <ul>
+                        {% if page_obj.has_previous %}
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1">«</a>
+                        </li>
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">‹</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li><span class="current-page">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li><a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">›</a>
+                        </li>
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">»</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No products found matching your filters.</p>
+                    <a href="{% url 'filter_products' category %}" class="reset-btn">Reset Filters</a>
+                </div>
+            {% endif %}
         </main>
     </div>
 </div>
 
-
-
-
 <script>
-
-    // slider of the price 
-    const priceRange = document.getElementById("priceRange");
-    const minPrice = document.getElementById("minPrice");
-    const maxPrice = document.getElementById("maxPrice");
-
-    priceRange.addEventListener("input", function () {
-        minPrice.value = this.min;
-        maxPrice.value = this.value;
-    });
-
-    minPrice.addEventListener("input", function () {
-        if (parseInt(minPrice.value) >= parseInt(maxPrice.value)) {
-            minPrice.value = maxPrice.value - 1;
+    // Minimal JavaScript for basic functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Price range slider functionality
+        const priceRange = document.getElementById('priceRange');
+        const minPriceInput = document.getElementById('minPrice');
+        const maxPriceInput = document.getElementById('maxPrice');
+    
+        if (priceRange && minPriceInput && maxPriceInput) {
+            priceRange.addEventListener("input", function () {
+                maxPriceInput.value = this.value;
+            });
+        
+            minPriceInput.addEventListener("input", function () {
+                if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
+                    minPriceInput.value = maxPriceInput.value - 1;
+                }
+            });
+        
+            maxPriceInput.addEventListener("input", function () {
+                if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
+                    maxPriceInput.value = parseInt(minPriceInput.value) + 1;
+                }
+                priceRange.value = maxPriceInput.value;
+            });
         }
-    });
-
-    maxPrice.addEventListener("input", function () {
-        if (parseInt(maxPrice.value) <= parseInt(minPrice.value)) {
-            maxPrice.value = parseInt(minPrice.value) + 1;
-        }
-        priceRange.value = maxPrice.value;
-    });
-
-
-    // brands filter
-    document.addEventListener("DOMContentLoaded", function () {
+        
+        // Toggle functionality for brand filter
         const brandHeader = document.querySelector(".toggle-brands");
         const brandList = document.querySelector(".brand-list");
-        const icon = document.querySelector(".brand-toggle-icon");
-
-        brandHeader.addEventListener("click", function () {
-
-            if (brandList.style.display === "none" || brandList.style.display === "") {
-                brandList.style.display = "block";
-                icon.classList.add("rotate");
-            } else {
-                brandList.style.display = "none";
-                icon.classList.remove("rotate");
-            }
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const priceRange = document.getElementById("priceRange");
-        const minPriceInput = document.getElementById("minPrice");
-        const maxPriceInput = document.getElementById("maxPrice");
-        const storeCheckboxes = document.querySelectorAll('input[name="store"]');
-        const locationCheckboxes = document.querySelectorAll('input[name="location"]');
-        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
-        const ratingRadios = document.querySelectorAll('input[name="rating"]');
     
-        // Update min/max price based on slider
-        priceRange.addEventListener("input", function () {
-            maxPriceInput.value = this.value;
-            fetchFilteredProducts();
-        });
-    
-        // Prevent min price from exceeding max price
-        minPriceInput.addEventListener("input", function () {
-            if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
-                minPriceInput.value = maxPriceInput.value - 1;
-            }
-            fetchFilteredProducts();
-        });
-    
-        maxPriceInput.addEventListener("input", function () {
-            if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
-                maxPriceInput.value = parseInt(minPriceInput.value) + 1;
-            }
-            priceRange.value = maxPriceInput.value;
-            fetchFilteredProducts();
-        });
-    
-        // Brand Filter Toggle
-        const brandHeader = document.querySelector(".toggle-brands");
-        const brandList = document.querySelector(".brand-list");
-        const icon = document.querySelector(".brand-toggle-icon");
-    
-        if (brandHeader) {
+        if (brandHeader && brandList) {
             brandHeader.addEventListener("click", function () {
                 const isHidden = brandList.style.display === "none" || brandList.style.display === "";
                 brandList.style.display = isHidden ? "block" : "none";
-                icon.classList.toggle("rotate", isHidden);
             });
-        }
-    
-        // Add event listeners for all filter inputs
-        storeCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        locationCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        brandCheckboxes.forEach(cb => cb.addEventListener("change", fetchFilteredProducts));
-        ratingRadios.forEach(radio => radio.addEventListener("change", fetchFilteredProducts));
-    
-        // Define fetchFilteredProducts function in the same scope
-        function fetchFilteredProducts() {
-            // Get selected stores
-            let selectedStores = [...document.querySelectorAll('input[name="store"]:checked')]
-                .map(cb => cb.value);
-            
-            // Get selected locations
-            let selectedLocations = [...document.querySelectorAll('input[name="location"]:checked')]
-                .map(cb => cb.value);
-            
-            // Get selected brands
-            let selectedBrands = [...document.querySelectorAll('input[name="brand"]:checked')]
-                .map(cb => cb.value);
-    
-            // Get selected rating
-            let selectedRating = document.querySelector('input[name="rating"]:checked')?.value || "0";
-    
-            // Get price range
-            const minPrice = minPriceInput.value;
-            const maxPrice = maxPriceInput.value;
-    
-            // Get category slug dynamically
-            const categorySlug = "{{ category.name|slugify }}";
-    
-            // Add console logs for debugging
-            console.log("Filtering with:", {
-                stores: selectedStores,
-                locations: selectedLocations,
-                brands: selectedBrands,
-                rating: selectedRating,
-                minPrice: minPrice,
-                maxPrice: maxPrice
-            });
-    
-            // Build the URL with all filters
-            const url = `/category/${categorySlug}/filter-products/?` + 
-                        `stores=${selectedStores.join(",")}&` +
-                        `locations=${selectedLocations.join(",")}&` +
-                        `brands=${selectedBrands.join(",")}&` +
-                        `min_price=${minPrice}&` +
-                        `max_price=${maxPrice}&` +
-                        `ratings=${selectedRating}`;
-    
-            console.log("Fetching URL:", url);
-    
-            // Fetch filtered products via AJAX
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received data:", data);
-                    
-                    const productList = document.getElementById("product-list");
-                    productList.innerHTML = ""; // Clear previous products
-                    
-                    if (data.products.length === 0) {
-                        productList.innerHTML = "<p class='no-results'>No products found matching your filters.</p>";
-                        return;
-                    }
-                    
-                    data.products.forEach(product => {
-                        productList.innerHTML += `
-                            <div class="product-card">
-                                <div class="card-header">
-                                    <div class="user-info">
-                                        ${product.customer_pic_url ? 
-                                            `<img style="width: 20px; height: 24px" src="${product.customer_pic_url}" alt="User Icon" class="profile-pic" />` : 
-                                            `<img style="width: 20px; height: 24px" src="/static/images/default-profile.png" alt="Default User" class="profile-pic" />`
-                                        }
-                                        <div class="user-details">
-                                            <span class="username">Found by <strong>@${product.username}</strong></span>
-                                            <span class="deal-time">${product.create_at}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <img src="${product.image_url}" alt="Product" />
-                                <div class="product-info">
-                                    <h3>${product.name}</h3>
-                                    <p class="description">${product.description}</p>
-                                    <div class="price-container">
-                                        <span class="current-price">$${product.sale_price ? product.sale_price : product.price}</span>
-                                        <span class="original-price">$${product.price}</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    <button class="like-btn" data-product-id="${product.id}">
-                                        <i class="${product.liked_by_user ? 'fas fa-heart' : 'far fa-heart'}"></i>
-                                        <span class="like-count">${product.likes_count}</span>
-                                    </button>
-                                    <button class="comment-btn">
-                                        <i class="far fa-comment"></i> ${product.comment_count}
-                                    </button>
-                                </div>
-                            </div>`;
-                    });
-                })
-                .catch(error => {
-                    console.error("Error fetching products:", error);
-                    const productList = document.getElementById("product-list");
-                    productList.innerHTML = "<p class='error'>Error loading products. Please try again.</p>";
-                });
         }
     });
-
-// Add event listeners for the new filters
-document.querySelectorAll('input[name="location"]').forEach(cb => 
-    cb.addEventListener("change", fetchFilteredProducts)
-);
-document.querySelectorAll('input[name="brand"]').forEach(cb => 
-    cb.addEventListener("change", fetchFilteredProducts)
-);
-    
-    
 </script>
-{%endblock%}
+{% endblock %}

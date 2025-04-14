@@ -94,106 +94,10 @@
     {% endif %}
   </div>
 </div>
-  
 
-{% comment %} 
-  <div class="savedListContainer" id="savedListContainer">
-    <div class="favorites-header">
-      <h1>Messages</h1>
-    </div>
-    <div class="items-count">You have {{ messages|length }} items in your Inbox</div>
-    
-    <div class="content-actions">
-      <a href="{% url 'send_message' %}">Send A Message</a>
-    </div>
-    
-    {% if messages %}
-    <table class="messages-table">
-      <thead>
-        <tr>
-          <th><input type="checkbox"></th>
-          <th>From</th>
-          <th>Subject</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for message in messages %}
-        <tr{% if not message.is_read %} class="unread"{% endif %}>
-          <td><input type="checkbox" name="message_id" value="{{ message.id }}"></td>
-          <td>{{ message.sender.username }}</td>
-          <td><a href="{% url 'view_message' message.id %}">{{ message.subject }}</a></td>
-          <td>{{ message.date_sent|date:"M d, Y" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="messages-empty">
-      <p>You have 0 items in your Inbox</p>
-    </div>
-    {% endif %}
-  </div>
-</div> {% endcomment %}
 
 <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 {% endblock %}
 
 
 
-
-<!-- base.html -->
-{% comment %} {% load static %}
-  
-
-
-    <div class="container">
-
-
-      <div class="content">
-        <div class="content-header">
-          <div class="content-title">Messages</div>
-          <div class="content-actions">
-
-            <a href="{% url 'send_message' %}">Send A Message</a>
-          </div>
-        </div>
-
-        <div>
-          <p>You have {{ messages|length }} items in your Inbox</p>
-          {% if messages %}
-          <table class="messages-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox"></th>
-                    <th>From</th>
-                    <th>Subject</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for message in messages %}
-                <tr{% if not message.is_read %} class="unread"{% endif %}>
-                    <td><input type="checkbox" name="message_id" value="{{ message.id }}"></td>
-                    <td>{{ message.sender.username }}</td>
-                    <td><a href="{% url 'view_message' message.id %}">{{ message.subject }}</a></td> 
-                    
-                    <td>{{ message.date_sent|date:"M d, Y" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="messages-empty">
-            <p>You have 0 items in your Inbox</p>
-        </div>
-
-          {% endif %}
-          
-        </div>
-      </div>
-    </div>
-
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-  </body>
-</html>  {% endcomment %}

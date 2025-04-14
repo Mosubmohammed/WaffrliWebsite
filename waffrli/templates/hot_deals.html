@@ -5,7 +5,6 @@
 <link href="{% static 'css/hotDeals.css' %}" rel="stylesheet" />
 <!-- Hero Section -->
 <div class="hero-section">
-
     <div class="hero-content">
         <h1 class="main-title">
             Hot Deals
@@ -17,8 +16,6 @@
         </p>
     </div>
 </div>
-
-
 
 <div class="featured-deals-slider">
     <button class="slider-btn prev-btn">❮</button>
@@ -77,112 +74,169 @@
     </div>
     <button class="slider-btn next-btn">❯</button>
 </div>
+
 <!-- Main Content -->
 <div class="main-content">
     <!-- Filters -->
     <aside class="filters">
         <h2>Filters</h2>
-
-        <!-- Stores -->
-        <div class="filter-section">
-            <h3>Stores</h3>
-            {% for store in stores %}
-            <label>
-                <input type="checkbox" name="store" value="{{ store }}"> {{ store }}
-            </label>
-        {% endfor %}
-        </div>
-
-        <div class="filter-section">
-            <h3>Location</h3>
-            {% for location in locations %}
-            <label>
-                <input type="checkbox" name="location" value="{{ location }}"> {{ location }}
-            </label>
-        {% endfor %}
-        </div>
-
-        <!-- Rating -->
-        <div class="filter-section">
-            <h3>Rating</h3>
-            <div class="rating-filters">
-                <label><input type="radio" name="rating" value="5"> Popular Deals</label>
-                <label><input type="radio" name="rating" value="5"> 5+ Thumbs</label>
-                <label><input type="radio" name="rating" value="4"> 4+ Thumbs</label>
-                <label><input type="radio" name="rating" value="3"> 3+ Thumbs</label>
-                <label><input type="radio" name="rating" value="2"> 2+ Thumbs</label>
-                <label><input type="radio" name="rating" value="1"> 1+ Thumbs</label>
-                <label><input type="radio" name="rating" value="0" checked> All Ratings</label>
+        
+        <!-- Server-side filtering form -->
+        <form method="GET" action="{% url 'hot_deals' %}">
+            <!-- Stores -->
+            <div class="filter-section">
+                <h3>Stores</h3>
+                {% for store in stores %}
+                <label>
+                    <input type="checkbox" name="store" value="{{ store }}" 
+                           {% if store in selected_stores %}checked{% endif %}> 
+                    {{ store }}
+                </label>
+                {% endfor %}
             </div>
-        </div>
 
-        <!-- Price Range -->
-        <div class="filter-section">
-            <h3>Price Range</h3>
-            <div class="price-slider">
-                <input type="range" id="priceRange" min="0" max="200" value="100">
-                <div class="price-inputs">
-                    <input type="number" id="minPrice" value="0">
-                    <span>to</span>
-                    <input type="number" id="maxPrice" value="100">
+            <!-- Locations -->
+            <div class="filter-section">
+                <h3>Location</h3>
+                {% for location in locations %}
+                <label>
+                    <input type="checkbox" name="location" value="{{ location }}" 
+                           {% if location in selected_locations %}checked{% endif %}> 
+                    {{ location }}
+                </label>
+                {% endfor %}
+            </div>
+
+            <!-- Rating -->
+            <div class="filter-section">
+                <h3>Rating</h3>
+                <div class="rating-filters">
+                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> Popular Deals</label>
+                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> 5+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="4" {% if rating == '4' %}checked{% endif %}> 4+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="3" {% if rating == '3' %}checked{% endif %}> 3+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="2" {% if rating == '2' %}checked{% endif %}> 2+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="1" {% if rating == '1' %}checked{% endif %}> 1+ Thumbs</label>
+                    <label><input type="radio" name="rating" value="0" {% if not rating or rating == '0' %}checked{% endif %}> All Ratings</label>
                 </div>
             </div>
-        </div>
 
-                    <div class="filter-section">
+            <!-- Price Range -->
+            <div class="filter-section">
+                <h3>Price Range</h3>
+                <div class="price-slider">
+                    <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                    <div class="price-inputs">
+                        <input type="number" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                        <span>to</span>
+                        <input type="number" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brands -->
+            <div class="filter-section">
                 <div class="filter-header toggle-brands">
                     <span>
                         <h3>Brands</h3>
                     </span>
-                    
                 </div>
                 <div class="brand-list" style="display: block;">
                     {% for brand in brands %}
-                        <label><input type="checkbox" name="brand" value="{{ brand }}"> {{ brand }}</label>
+                        <label>
+                            <input type="checkbox" name="brand" value="{{ brand }}" 
+                                   {% if brand in selected_brands %}checked{% endif %}>
+                            {{ brand }}
+                        </label>
                     {% endfor %}
                 </div>
             </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="apply-filters-btn">Apply Filters</button>
+            
+            <!-- Reset Link -->
+            <a href="{% url 'hot_deals' %}" class="reset-filters-btn">Reset Filters</a>
+        </form>
     </aside>
 
     <!-- Products Grid -->
     <main class="Subproducts-grid">
-        <div class="Subproduct-card">
-            {% if products %}
+        {% if products %}
             {% for product in products %}
-            <div class="product-image">
-                <img src="{{ product.image.url }}" alt="Product" />
-                <div class="discount-badge">{{ product.discount_percentage }} %OFF</div>
-            </div>
-            <div class="product-details">
-                <h3>{{ product.Name }}</h3>
-                <div class="price-rating">
-                    {% comment %} <span class="price">$49.99</span> {% endcomment %}
-                    <span class="current-price">${{ product.sale_price }}</span>
-                    <span class="original-price">${{ product.Price }}</span><br/>
-                    
+            <div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+                <div class="product-image">
+                    <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+                    <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
                 </div>
-                <div class="store">{{ product.store }}</div>
-                <a href="{% url 'product' product.id %}">            
-                    <button  class="view-deal-btn" >
-                    <span class="bag-icon">🛍️</span>
-                    View Deal
-                </button>
-            </a>
-
-
+                <div class="product-details">
+                    <h3 class="product-title">{{ product.Name }}</h3>
+                    <div class="price-rating">
+                        <span class="current-price">${{ product.sale_price }}</span>
+                        <span class="original-price">${{ product.Price }}</span>
+                    </div>
+                    <div class="store">{{ product.store }}</div>
+                    <div class="brand">{{ product.brand }}</div>
+                    <div class="location" style="display: none;">{{ product.city }}</div>
+                    <a href="{% url 'product' product.id %}">            
+                        <button class="view-deal-btn">
+                            <span class="bag-icon">🛍️</span>
+                            View Deal
+                        </button>
+                    </a>
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+                        {% csrf_token %}
+                        <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                            <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                            <span class="like-count">{{ product.likes.count }}</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
-            {% else %}
-            <p class="no-results">No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                <ul>
+                    {% if page_obj.has_previous %}
+                    <li>
+                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" class="first-page">«</a>
+                    </li>
+                    <li>
+                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" class="prev-page">‹</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li><span class="current-page">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li><a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li>
+                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" class="next-page">›</a>
+                    </li>
+                    <li>
+                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="last-page">»</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
             {% endif %}
-        </div>
-
-
+            
+        {% else %}
+            <p class="no-results">No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+        {% endif %}
     </main>
 </div>
 
 <!-- Featured Deal -->
-
 <div class="sales-boxes">
     <div class="sales-box">
         <div class="sales-icon">🔥</div>
@@ -211,38 +265,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Animate elements when they come into view
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                }
-            });
-        }, { threshold: 0.1 });
-    
-        // Observe all product cards
-        document.querySelectorAll('.product-card').forEach(card => {
-            observer.observe(card);
-        });
-    
-        // Category selection
-        const categoryCards = document.querySelectorAll('.category-card');
-        categoryCards.forEach(card => {
-            card.addEventListener('click', () => {
-                // Remove active class from all cards
-                categoryCards.forEach(c => c.classList.remove('active'));
-                // Add active class to clicked card
-                card.classList.add('active');
-    
-                // Add animation
-                card.style.animation = 'scaleIn 0.3s ease forwards';
-                setTimeout(() => {
-                    card.style.animation = '';
-                }, 300);
-            });
-        });
-    
-        // Price range slider
+        // Price range slider functionality
         const priceRange = document.getElementById('priceRange');
         const minPriceInput = document.getElementById('minPrice');
         const maxPriceInput = document.getElementById('maxPrice');
@@ -265,47 +288,6 @@
                 priceRange.value = maxPriceInput.value;
             });
         }
-    
-        // Hover animations for product cards
-        document.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-5px)';
-                card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
-            });
-    
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-                card.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-            });
-        });
-    
-        // Button hover effects
-        document.querySelectorAll('.view-deal-btn').forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'scale(1.02)';
-            });
-    
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'scale(1)';
-            });
-        });
-    
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    
-        // Add loading animation for images
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('load', () => {
-                img.style.animation = 'fadeIn 0.5s ease-out';
-            });
-        });
     
         // Featured deals slider functionality
         const container = document.querySelector('.featured-deals-container');
@@ -336,7 +318,7 @@
             }, 5000);
         }
     
-        // Brand Filter Toggle
+        // Minimal toggle functionality for brand filter
         const brandHeader = document.querySelector(".toggle-brands");
         const brandList = document.querySelector(".brand-list");
     
@@ -345,264 +327,6 @@
                 const isHidden = brandList.style.display === "none" || brandList.style.display === "";
                 brandList.style.display = isHidden ? "block" : "none";
             });
-        }
-    
-        // Setup filter listeners
-        const storeCheckboxes = document.querySelectorAll('input[name="store"]');
-        const locationCheckboxes = document.querySelectorAll('input[name="location"]');
-        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
-        const ratingRadios = document.querySelectorAll('input[name="rating"]');
-    
-// Replace the existing applyClientSideFilters function with this updated version
-
-function applyClientSideFilters() {
-    // Get selected values
-    const selectedStores = Array.from(document.querySelectorAll('input[name="store"]:checked'))
-        .map(cb => cb.value.toLowerCase());
-    
-    const selectedLocations = Array.from(document.querySelectorAll('input[name="location"]:checked'))
-        .map(cb => cb.value.toLowerCase());
-    
-    const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked'))
-        .map(cb => cb.value.toLowerCase());
-
-    // Get the selected rating (likes threshold)
-    const selectedRating = parseInt(document.querySelector('input[name="rating"]:checked')?.value || "0");
-    
-    const minPrice = parseFloat(minPriceInput?.value || 0);
-    const maxPrice = parseFloat(maxPriceInput?.value || Number.MAX_SAFE_INTEGER);
-
-    console.log("Filters applied:", {
-        stores: selectedStores,
-        locations: selectedLocations,
-        brands: selectedBrands,
-        minPrice,
-        maxPrice,
-        rating: selectedRating
-    });
-
-    // Important: For testing, let's add data attributes for likes to each product
-    // In production, you should modify your Django template to include likes data
-    // This is just for demonstration if likes data isn't available in HTML
-    const productCards = document.querySelectorAll('.Subproduct-card');
-    
-    // DEBUG: Check what we're finding
-    console.log(`Found ${productCards.length} product cards with selector '.Subproduct-card'`);
-    
-    if (productCards.length === 0) {
-        console.log("No product cards found with selector '.Subproduct-card'");
-        return;
-    }
-    
-    // For the likes filter, we'll check for data-likes attribute or add a default value
-    // This simulates the likes count if it's not available in your HTML
-    productCards.forEach(card => {
-        if (!card.hasAttribute('data-likes')) {
-            // In production, you should get this from the Django template
-            // For now, this will help with testing
-            card.setAttribute('data-likes', Math.floor(Math.random() * 10));
-        }
-    });
-    
-    let visibleCount = 0;
-
-    // Loop through products
-    productCards.forEach(card => {
-        let showProduct = true;
-
-        // Store filter
-        if (selectedStores.length > 0) {
-            const storeElement = card.querySelector('.store');
-            if (storeElement) {
-                const storeText = storeElement.textContent.toLowerCase();
-                if (!selectedStores.some(store => storeText.includes(store))) {
-                    showProduct = false;
-                }
-            }
-        }
-
-        // Location filter
-        if (showProduct && selectedLocations.length > 0) {
-            // Check product details for location match
-            const productText = card.textContent.toLowerCase();
-            if (!selectedLocations.some(location => productText.includes(location))) {
-                showProduct = false;
-            }
-        }
-
-        // Brand filter
-        if (showProduct && selectedBrands.length > 0) {
-            // Check product details for brand match
-            const productText = card.textContent.toLowerCase();
-            if (!selectedBrands.some(brand => productText.includes(brand))) {
-                showProduct = false;
-            }
-        }
-
-        // Price filter
-        if (showProduct) {
-            const salePriceElement = card.querySelector('.current-price');
-            if (salePriceElement) {
-                const priceText = salePriceElement.textContent.replace('$', '');
-                const price = parseFloat(priceText);
-                
-                if (isNaN(price) || price < minPrice || price > maxPrice) {
-                    showProduct = false;
-                }
-            }
-        }
-
-        // Rating/Likes filter
-        if (showProduct && selectedRating > 0) {
-            // Get likes from data attribute or fallback to 0
-            const likesCount = parseInt(card.getAttribute('data-likes') || '0');
-            
-            // If selected rating is "Popular Deals" (5), we check for high likes
-            if (selectedRating >= 5 && likesCount < 5) {
-                showProduct = false;
-            } else if (likesCount < selectedRating) {
-                showProduct = false;
-            }
-        }
-
-        // Toggle visibility
-        if (showProduct) {
-            card.style.display = '';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-
-    // Show "no results" message if needed
-    const noResultsMsg = document.querySelector('.no-results');
-    if (noResultsMsg) {
-        noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-    } else if (visibleCount === 0) {
-        // Create no results message if it doesn't exist
-        const productsGrid = document.querySelector('.Subproducts-grid');
-        if (productsGrid) {
-            const newMsg = document.createElement('p');
-            newMsg.className = 'no-results';
-            newMsg.textContent = 'No hot deals found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!';
-            productsGrid.appendChild(newMsg);
-        }
-    }
-
-    // Add filter animation
-    document.querySelectorAll('.Subproduct-card').forEach(card => {
-        if (card.style.display !== 'none') {
-            card.style.animation = 'fadeIn 0.3s ease-out';
-        }
-    });
-}
-    
-        // Add event listeners to filter inputs
-        storeCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
-        locationCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
-        brandCheckboxes.forEach(cb => cb.addEventListener("change", applyClientSideFilters));
-        ratingRadios.forEach(radio => radio.addEventListener("change", applyClientSideFilters));
-        
-        // Add listeners for price inputs
-        if (minPriceInput && maxPriceInput && priceRange) {
-            minPriceInput.addEventListener("change", applyClientSideFilters);
-            maxPriceInput.addEventListener("change", applyClientSideFilters);
-            priceRange.addEventListener("change", applyClientSideFilters);
-        }
-    
-        // Add smooth transitions for filter changes
-        document.querySelectorAll('.filter-section input').forEach(input => {
-            input.addEventListener('change', () => {
-                const productsGrid = document.querySelector('.Subproducts-grid');
-                if (productsGrid) {
-                    productsGrid.style.opacity = '0.8';
-                    setTimeout(() => {
-                        productsGrid.style.opacity = '1';
-                    }, 300);
-                }
-            });
-        });
-    
-        // Like button functionality
-        document.querySelectorAll('.like-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                likeProduct(productId, this);
-            });
-        });
-    
-        // Like product function
-        function likeProduct(productId, button) {
-            fetch(`/like-product/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const likeIcon = button.querySelector('i');
-                const likeCount = button.querySelector('.like-count');
-                
-                if (data.liked) {
-                    likeIcon.classList.remove('far');
-                    likeIcon.classList.add('fas');
-                } else {
-                    likeIcon.classList.remove('fas');
-                    likeIcon.classList.add('far');
-                }
-                
-                likeCount.textContent = data.likes_count;
-            })
-            .catch(error => console.error('Error:', error));
-        }
-    
-        // Helper function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    
-        // Timer functionality
-        const hoursElement = document.getElementById('hours');
-        const minutesElement = document.getElementById('minutes');
-        const secondsElement = document.getElementById('seconds');
-    
-        if (hoursElement && minutesElement && secondsElement) {
-            function updateTimer() {
-                let hours = parseInt(hoursElement.textContent);
-                let minutes = parseInt(minutesElement.textContent);
-                let seconds = parseInt(secondsElement.textContent);
-    
-                if (seconds > 0) {
-                    seconds--;
-                } else if (minutes > 0) {
-                    minutes--;
-                    seconds = 59;
-                } else if (hours > 0) {
-                    hours--;
-                    minutes = 59;
-                    seconds = 59;
-                }
-    
-                hoursElement.textContent = String(hours).padStart(2, '0');
-                minutesElement.textContent = String(minutes).padStart(2, '0');
-                secondsElement.textContent = String(seconds).padStart(2, '0');
-            }
-            
-            // Update timer every second
-            setInterval(updateTimer, 1000);
         }
     });
 </script>
