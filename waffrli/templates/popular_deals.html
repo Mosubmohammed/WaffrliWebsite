@@ -2,188 +2,501 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'css/popularDeals.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/popularDeals4.css' %}">
 
-<div class="popular-deals-header">
-    <div class="container">
-        <h1>{{ page_title }}</h1>
-        <p>Discover the most popular deals based on likes and views</p>
-    </div>
-</div>
-
-<div class="container">
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
+<!-- Popular Deals Section -->
+<div class="deals-section">
+    <div class="popular-deals-header">
+        <div class="header-overlay"></div>
+        <h2>{{ page_title|default:"Trending Deals" }}</h2>
+        <p class="section-subtitle">Discover Jordan's Most-Loved Savings - Curated Just for You!</p>
+        <div class="deals-highlight">
+            <span class="highlight-text">Updated hourly with the best verified deals</span>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Filter Form -->
-    <div class="filter-row">
-        <form method="GET" action="{% url 'popular_deals' %}" class="filter-form">
-            <div class="filter-group">
-                <label>Store:</label>
-                <select name="store" multiple>
-                    <option value="">All Stores</option>
-                    {% for store in stores %}
-                    <option value="{{ store }}" {% if store in selected_stores %}selected{% endif %}>{{ store }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label>Location:</label>
-                <select name="location" multiple>
-                    <option value="">All Locations</option>
-                    {% for location in locations %}
-                    <option value="{{ location }}" {% if location in selected_locations %}selected{% endif %}>{{ location }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label>Brand:</label>
-                <select name="brand" multiple>
-                    <option value="">All Brands</option>
-                    {% for brand in brands %}
-                    <option value="{{ brand }}" {% if brand in selected_brands %}selected{% endif %}>{{ brand }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label>Min Likes:</label>
-                <select name="rating">
-                    <option value="0" {% if not rating or rating == '0' %}selected{% endif %}>All</option>
-                    <option value="1" {% if rating == '1' %}selected{% endif %}>1+</option>
-                    <option value="3" {% if rating == '3' %}selected{% endif %}>3+</option>
-                    <option value="5" {% if rating == '5' %}selected{% endif %}>5+</option>
-                    <option value="10" {% if rating == '10' %}selected{% endif %}>10+</option>
-                </select>
-            </div>
-            
-            <div class="filter-group price-range">
-                <label>Price Range:</label>
-                <input type="number" name="min_price" placeholder="Min" value="{{ min_price|default_if_none:'' }}">
-                <span>to</span>
-                <input type="number" name="max_price" placeholder="Max" value="{{ max_price|default_if_none:'' }}">
-            </div>
-            
-            <button type="submit" class="filter-btn">Apply Filters</button>
-            <a href="{% url 'popular_deals' %}" class="reset-btn">Reset</a>
-        </form>
     </div>
 
-    <!-- Products Grid -->
-    <div class="row">
-        {% for product in products %}
-            <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card deal-card">
-                    {% if product.get_discount_percentage > 0 %}
-                        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
-                    {% endif %}
-                    
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.Name }}" loading="lazy">
-                    {% else %}
-                        <div class="placeholder-img text-center p-4 bg-light">No Image</div>
-                    {% endif %}
-                    
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ product.Name }}</h5>
-                        
-                        <div class="price-section">
-                            {% if product.sale_price %}
-                                <span class="sale-price">${{ product.sale_price }}</span>
-                                <span class="original-price">${{ product.Price }}</span>
-                            {% else %}
-                                <span class="regular-price">${{ product.Price }}</span>
-                            {% endif %}
-                        </div>
-                        
-                        <p class="store-info">{{ product.store }} - {{ product.city }}</p>
-                        <p class="brand" style="display: none;">{{ product.brand }}</p>
-                        
-                        <div class="stats">
-                            <span><i class="fas fa-heart"></i> {{ product.number_of_likes }} likes</span>
-                            <span><i class="fas fa-eye"></i> {{ product.views }} views</span>
-                        </div>
-                        
-                        <div class="button-group mt-auto">
-                            <a href="{% url 'product' product.id %}" class="btn btn-primary view-btn">View Deal</a>
-                            
-                            {% if user.is_authenticated %}
-                                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn like-btn {% if user in product.likes.all %}liked{% endif %}">
-                                        <i class="fas fa-heart"></i> 
-                                        {% if user in product.likes.all %}Unlike{% else %}Like{% endif %}
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
+    <div class="separator-container">
+        <div class="separator-line"></div>
+        <div class="separator-text">
+            <h2>This Week's Top Trending Deals</h2>
+        </div>
+        <div class="separator-line"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Filters -->
+        {% comment %} <aside class="filters">
+            <h2>Filters</h2>
+
+            <!-- Stores -->
+            <div class="filter-section">
+                <h3>Stores</h3>
+                {% for store in stores %}
+                <label class="checkbox-label">
+                    <input type="checkbox" name="store" value="{{ store }}" {% if store in selected_stores %}checked{% endif %}>
+                    <span>{{ store }}</span>
+                </label>
+                {% empty %}
+                <label class="checkbox-label">
+                    <input type="checkbox" name="store" value="mango">
+                    <span>Mango</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="store" value="compujordan">
+                    <span>CompuJordan</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="store" value="irbid">
+                    <span>Irbid City Center</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <!-- Rating -->
+            <div class="filter-section">
+                <h3>Rating</h3>
+                <div class="rating-filters">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rating" value="5" {% if '5' in selected_ratings %}checked{% endif %}>
+                        <span class="stars">★★★★★</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rating" value="4" {% if '4' in selected_ratings %}checked{% endif %}>
+                        <span class="stars">★★★★☆</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rating" value="3" {% if '3' in selected_ratings %}checked{% endif %}>
+                        <span class="stars">★★★☆☆</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rating" value="2" {% if '2' in selected_ratings %}checked{% endif %}>
+                        <span class="stars">★★☆☆☆</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rating" value="1" {% if '1' in selected_ratings %}checked{% endif %}>
+                        <span class="stars">★☆☆☆☆</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-section">
+                <h3>Price Range</h3>
+                <div class="price-slider">
+                    <input type="range" id="priceRange" min="0" max="200" value="{{ price_range|default:'100' }}">
+                    <div class="price-values">
+                        <span>$0</span>
+                        <span id="currentPrice">${{ price_range|default:'100' }}</span>
                     </div>
                 </div>
             </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="empty-deals">
-                    <p>No popular deals available matching your filters. Try adjusting your criteria or check back later!</p>
+        </aside> {% endcomment %}
+
+        <aside class="filters">
+            <h2>Filters</h2>
+            <form method="GET" action="{% url 'hot_deals' %}">
+                <!-- Stores -->
+                <div class="filter-section">
+                    <h3>Stores</h3>
+                    {% for store in stores %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="store" value="{{ store }}" 
+                              {% if store in selected_stores %}checked{% endif %}> 
+                        <span>{{ store }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+        
+                <!-- Rating -->
+                <div class="filter-section">
+                    <h3>Rating</h3>
+                    <div class="rating-filters">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
+                            <span class="stars">★★★★★</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
+                            <span class="stars">★★★★☆</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
+                            <span class="stars">★★★☆☆</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
+                            <span class="stars">★★☆☆☆</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
+                            <span class="stars">★☆☆☆☆</span>
+                        </label>
+                    </div>
+                </div>
+        
+                <!-- Location -->
+                <div class="filter-section">
+                    <h3>Location</h3>
+                    {% for location in locations %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="location" value="{{ location }}" 
+                              {% if location in selected_locations %}checked{% endif %}> 
+                        <span>{{ location }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+        
+                <!-- Brands -->
+                <div class="filter-section">
+                    <h3>Brands</h3>
+                    {% for brand in brands %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="brand" value="{{ brand }}" 
+                              {% if brand in selected_brands %}checked{% endif %}>
+                        <span>{{ brand }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+        
+                <!-- Price Range -->
+                <div class="filter-section">
+                    <h3>Price Range</h3>
+                    <div class="price-slider">
+                        <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                        <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                        <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
+                        <div class="price-values">
+                            <span>$0</span>
+                            <span id="currentPrice">${{ max_price|default:'100' }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Buttons -->
+                <div class="filter-buttons">
+                    <button type="submit" class="filter-btn apply">Apply Filters</button>
+                    <a href="{% url 'hot_deals' %}" class="filter-btn reset">Reset Filters</a>
+                </div>
+            </form>
+        </aside>
+        <!-- Products Grid -->
+        <main class="Subproducts-grid">
+            {% for product in products %}
+            <div class="Subproduct-card">
+                <div class="product-image">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+                    {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}">
+                    {% endif %}
+                    {% if product.get_discount_percentage > 0 %}
+                    <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+                    {% endif %}
+                </div>
+                <div class="product-details">
+                    <h3>{{ product.Name }}</h3>
+                    <div class="price-rating">
+                        <span class="price">${{ product.sale_price|default:product.Price }}</span>
+                        <div class="rating">
+                            {% comment %} {% with ''|center:product.rating as range %}
+                            {% for _ in range %}★{% endfor %}
+                            {% endwith %} {% endcomment %}
+                        </div>
+                    </div>
+                    <div class="store">{{ product.store }}</div>
+                    <a href="{% url 'product' product.id %}" class="view-deal-btn">
+                        <span class="bag-icon">🛍️</span>
+                        View Deal
+                    </a>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-    
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page=1">&laquo; First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
-            {% endif %}
-
-            {% for i in page_obj.paginator.page_range %}
-                {% if page_obj.number == i %}
-                    <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
-                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
-                    </li>
-                {% endif %}
+            {% empty %}
+            <div class="no-products-message">
+                No deals found matching your criteria. Try adjusting your filters.
+            </div>
             {% endfor %}
+        </main>
+    </div>
 
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+    <section class="daily-deals-section">
+        <div class="daily-container">
+            <div class="daily-header">
+                <h2>Deal of the Day</h2>
+                <div class="daily-timer">
+                    <i class="fas fa-clock"></i>
+                    <div class="daily-countdown">
+                        <span id="hours">10</span>h
+                        <span id="minutes">45</span>m
+                        <span id="seconds">37</span>s
+                    </div>
+                </div>
+            </div>
+            <div class="daily-deals-grid">
+                {% for deal in daily_deals %}
+                <div class="daily-card">
+                    {% if deal.image %}
+                    <img src="{{ deal.image.url }}" alt="{{ deal.Name }}" class="daily-image">
+                    {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="{{ deal.Name }}" class="daily-image">
+                    {% endif %}
+                    <div class="daily-content">
+                        <h3 class="daily-title">{{ deal.Name }}</h3>
+                        <div class="daily-price">
+                            <span class="daily-current-price">${{ deal.sale_price }}</span>
+                            <span class="daily-original-price">${{ deal.Price }}</span>
+                            <span class="daily-discount">-{{ deal.get_discount_percentage }}%</span>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-progress-fill" style="width: {{ deal.progress_percentage }}%"></div>
+                        </div>
+                        <div class="daily-status">
+                            <span>{{ deal.status_icon }} {{ deal.status_text }}</span>
+                        </div>
+                        <a href="{% url 'product' deal.id %}" class="daily-button">Grab This Deal</a>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Fallback content if no daily deals are available -->
+                <div class="daily-card">
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="Headphones" class="daily-image">
+                    <div class="daily-content">
+                        <h3 class="daily-title">Wireless Headphones</h3>
+                        <div class="daily-price">
+                            <span class="daily-current-price">$99.99</span>
+                            <span class="daily-original-price">$129.99</span>
+                            <span class="daily-discount">-23%</span>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-progress-fill" style="width: 70%"></div>
+                        </div>
+                        <div class="daily-status">
+                            <span>👑 Best Seller</span>
+                        </div>
+                        <button class="daily-button">Grab This Deal</button>
+                    </div>
+                </div>
+                <div class="daily-card">
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="Headphones" class="daily-image">
+                    <div class="daily-content">
+                        <h3 class="daily-title">Wireless Headphones</h3>
+                        <div class="daily-price">
+                            <span class="daily-current-price">$99.99</span>
+                            <span class="daily-original-price">$129.99</span>
+                            <span class="daily-discount">-23%</span>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-progress-fill" style="width: 70%"></div>
+                        </div>
+                        <div class="daily-status">
+                            <span>📈 Trending</span>
+                        </div>
+                        <button class="daily-button">Grab This Deal</button>
+                    </div>
+                </div>
+                <div class="daily-card">
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="Headphones" class="daily-image">
+                    <div class="daily-content">
+                        <h3 class="daily-title">Wireless Headphones</h3>
+                        <div class="daily-price">
+                            <span class="daily-current-price">$99.99</span>
+                            <span class="daily-original-price">$129.99</span>
+                            <span class="daily-discount">-23%</span>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-progress-fill" style="width: 70%"></div>
+                        </div>
+                        <div class="daily-status">
+                            <span>💎 Customer Favorite</span>
+                        </div>
+                        <button class="daily-button">Grab This Deal</button>
+                    </div>
+                </div>
+                <div class="daily-card">
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="Headphones" class="daily-image">
+                    <div class="daily-content">
+                        <h3 class="daily-title">Wireless Headphones</h3>
+                        <div class="daily-price">
+                            <span class="daily-current-price">$99.99</span>
+                            <span class="daily-original-price">$129.99</span>
+                            <span class="daily-discount">-23%</span>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-progress-fill" style="width: 70%"></div>
+                        </div>
+                        <div class="daily-status">
+                            <span>⭐ Popular Choice</span>
+                        </div>
+                        <button class="daily-button">Grab This Deal</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 </div>
 
+<!-- Pagination -->
+{% if products.has_other_pages %}
+<div class="pagination-container">
+    <ul class="pagination">
+        {% if products.has_previous %}
+            <li><a href="?page=1">&laquo; First</a></li>
+            <li><a href="?page={{ products.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        
+        {% for i in products.paginator.page_range %}
+            {% if products.number == i %}
+                <li class="active"><a href="#">{{ i }}</a></li>
+            {% elif i > products.number|add:'-3' and i < products.number|add:'3' %}
+                <li><a href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if products.has_next %}
+            <li><a href="?page={{ products.next_page_number }}">Next</a></li>
+            <li><a href="?page={{ products.paginator.num_pages }}">Last &raquo;</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 <script>
-    // Minimal JavaScript for enhancing the form experience
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add form submit on select change if desired
-        // const autoSubmitSelects = document.querySelectorAll('.filter-form select');
-        // autoSubmitSelects.forEach(select => {
-        //    select.addEventListener('change', () => {
-        //        document.querySelector('.filter-form').submit();
-        //    });
-        // });
+    // Animations on scroll
+    document.addEventListener('DOMContentLoaded', () => {
+        // Animate elements when they come into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observe all product cards
+        document.querySelectorAll('.Subproduct-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Price range slider
+        const priceRange = document.getElementById('priceRange');
+        const currentPrice = document.getElementById('currentPrice');
+
+        if (priceRange && currentPrice) {
+            priceRange.addEventListener('input', (e) => {
+                currentPrice.textContent = `$${e.target.value}`;
+
+                // Add smooth animation to the price display
+                currentPrice.style.animation = 'fadeIn 0.2s ease-out';
+                setTimeout(() => {
+                    currentPrice.style.animation = '';
+                }, 200);
+            });
+        }
+
+        // Hover animations for product cards
+        document.querySelectorAll('.Subproduct-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+            });
+        });
+
+        // Button hover effects
+        document.querySelectorAll('.view-deal-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'scale(1.02)';
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        // Filter functionality
+        const applyFilters = () => {
+            const selectedStores = Array.from(document.querySelectorAll('input[name="store"]:checked'))
+                .map(input => input.value);
+
+            const selectedRatings = Array.from(document.querySelectorAll('input[name="rating"]:checked'))
+                .map(input => parseInt(input.value));
+
+            const priceRange = document.getElementById('priceRange').value;
+
+            // Form the filter URL
+            let filterParams = new URLSearchParams();
+            
+            if (selectedStores.length > 0) {
+                selectedStores.forEach(store => {
+                    filterParams.append('store', store);
+                });
+            }
+            
+            if (selectedRatings.length > 0) {
+                selectedRatings.forEach(rating => {
+                    filterParams.append('rating', rating);
+                });
+            }
+            
+            filterParams.append('price_range', priceRange);
+            
+            // Redirect to filtered URL
+            window.location.href = `?${filterParams.toString()}`;
+        };
+
+        // Add filter change listeners
+        document.querySelectorAll('input[type="checkbox"], input[type="range"]')
+            .forEach(input => {
+                input.addEventListener('change', applyFilters);
+            });
+
+        // Countdown timer
+        function startTimer() {
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            
+            if (!hoursElement || !minutesElement || !secondsElement) return;
+            
+            let hours = parseInt(hoursElement.textContent);
+            let minutes = parseInt(minutesElement.textContent);
+            let seconds = parseInt(secondsElement.textContent);
+            
+            const timer = setInterval(() => {
+                seconds--;
+                
+                if (seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                    
+                    if (minutes < 0) {
+                        minutes = 59;
+                        hours--;
+                        
+                        if (hours < 0) {
+                            clearInterval(timer);
+                            // Reset timer or handle end of countdown
+                            hours = 10;
+                            minutes = 45;
+                            seconds = 37;
+                        }
+                    }
+                }
+                
+                // Update display with leading zeros
+                hoursElement.textContent = hours.toString().padStart(2, '0');
+                minutesElement.textContent = minutes.toString().padStart(2, '0');
+                secondsElement.textContent = seconds.toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        // Start the timer when the page loads
+        startTimer();
     });
 </script>
 {% endblock %}

@@ -30,39 +30,46 @@
               />
               {% endif %}
               <div class="user-details">
-                <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-                <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+                <span class="username"
+                  >Found by <strong>@{{ product.user.username }}</strong></span
+                >
+                <span class="deal-time"
+                  >{{ product.create_at|date:"d-m" }}</span
+                >
               </div>
             </div>
             <div class="sale-tag">{{ product.get_discount_percentage }}%</div>
           </div>
-    
+
           <!-- Product image with link -->
           <a href="{% url 'product' product.id %}" class="product-image-link">
             <img src="{{ product.image.url }}" alt="Product" />
           </a>
-    
+
           <!-- Product info with link -->
           <a href="{% url 'product' product.id %}" class="product-info-link">
             <div class="product-info">
               <h3>{{ product.Name }}</h3>
               <p class="description">{{ product.Description }}</p>
-    
+
               <div class="price-container">
                 <span class="current-price">${{ product.sale_price }}</span>
                 <span class="original-price">${{ product.Price }}</span>
               </div>
             </div>
           </a>
-    
+
           <div class="card-footer">
             <button class="like-btn" data-product-id="{{ product.id }}">
-              <i 
+              <i
                 class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
               ></i>
               <span class="like-count">{{ product.likes.count }}</span>
             </button>
-            <a href="{% url 'product' product.id %}#comment-section" class="comment-btn">
+            <a
+              href="{% url 'product' product.id %}#comment-section"
+              class="comment-btn"
+            >
               <i class="far fa-comment"></i> {{ product.comments.count }}
             </a>
           </div>
@@ -70,7 +77,6 @@
       </div>
       {% endfor %}
     </div>
-    
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -91,7 +97,6 @@
           <p>Buy one, get one free on fashion!</p>
         </div>
       </div>
-
     </aside>
   </div>
 </div>
@@ -112,25 +117,25 @@
           "X-CSRFToken": "{{ csrf_token }}",
         },
       })
-      .then((response) => {
-        if (response.status === 401) {
-          window.location.href = "{% url 'login' %}"; // Redirect to login if not authenticated
-          return;
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data) {
-          if (data.liked) {
-            likeIcon.classList.remove("far");
-            likeIcon.classList.add("fas");
-          } else {
-            likeIcon.classList.remove("fas");
-            likeIcon.classList.add("far");
+        .then((response) => {
+          if (response.status === 401) {
+            window.location.href = "{% url 'login' %}"; // Redirect to login if not authenticated
+            return;
           }
-          likeCount.innerText = data.like_count;
-        }
-      });
+          return response.json();
+        })
+        .then((data) => {
+          if (data) {
+            if (data.liked) {
+              likeIcon.classList.remove("far");
+              likeIcon.classList.add("fas");
+            } else {
+              likeIcon.classList.remove("fas");
+              likeIcon.classList.add("far");
+            }
+            likeCount.innerText = data.like_count;
+          }
+        });
     });
   });
 </script>

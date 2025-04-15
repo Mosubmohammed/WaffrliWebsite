@@ -22,17 +22,13 @@
                   <i class="fas fa-bolt"></i>
                   <span>Popular</span>
               </a>
-              <a href="#" class="nav-link">
-                  <i class="fas fa-heart"></i>
-                  <span>Favorites</span>
-              </a>
               <div class="dropdown">
                 <button class="nav-link dropdown-toggle">
                     <i class="fas fa-thin fa-icons"></i>
                     Categories
                     <i class="fas fa-chevron-down"></i>
                 </button>
-                {% comment %} <div class="dropdown-content">
+                <div class="dropdown-content">
                   {% for category in categories %}
                   <a href="{% url 'category' category.name|slugify %}">
 
@@ -40,14 +36,11 @@
                       </a>
                   {% endfor %}
                   <a href="{% url 'AllCategory' %}">All Categories</a>
-              </div> {% endcomment %}
+              </div> 
             </div>
 
               </a>
-              <a href="CustomerProfile.html" class="nav-link">
-                  <i class="fas fa-heart"></i>
-                  <span>dealer page</span>
-              </a>
+
           </div>
       </div>
       <form method="POST" action="{% url 'search' %}">

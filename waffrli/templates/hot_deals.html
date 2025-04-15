@@ -2,7 +2,7 @@
 {% load static %} 
 {% block content %}
 <link href="{% static 'css/popularDeals.css' %}" rel="stylesheet" />
-<link href="{% static 'css/hotDeals.css' %}" rel="stylesheet" />
+<link href="{% static 'css/hotDeals1.css' %}" rel="stylesheet" />
 <!-- Hero Section -->
 <div class="hero-section">
     <div class="hero-content">
@@ -78,87 +78,94 @@
 <!-- Main Content -->
 <div class="main-content">
     <!-- Filters -->
-    <aside class="filters">
-        <h2>Filters</h2>
+<!-- Filters -->
+<aside class="filters">
+    <h2>Filters</h2>
+    <form method="GET" action="{% url 'hot_deals' %}">
+        <!-- Stores -->
+        <div class="filter-section">
+            <h3>Stores</h3>
+            {% for store in stores %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="store" value="{{ store }}" 
+                      {% if store in selected_stores %}checked{% endif %}> 
+                <span>{{ store }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-section">
+            <h3>Rating</h3>
+            <div class="rating-filters">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
+                    <span class="stars">★★★★★</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
+                    <span class="stars">★★★★☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
+                    <span class="stars">★★★☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
+                    <span class="stars">★★☆☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
+                    <span class="stars">★☆☆☆☆</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="filter-section">
+            <h3>Location</h3>
+            {% for location in locations %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="location" value="{{ location }}" 
+                      {% if location in selected_locations %}checked{% endif %}> 
+                <span>{{ location }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Brands -->
+        <div class="filter-section">
+            <h3>Brands</h3>
+            {% for brand in brands %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="brand" value="{{ brand }}" 
+                      {% if brand in selected_brands %}checked{% endif %}>
+                <span>{{ brand }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-section">
+            <h3>Price Range</h3>
+            <div class="price-slider">
+                <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
+                <div class="price-values">
+                    <span>$0</span>
+                    <span id="currentPrice">${{ max_price|default:'100' }}</span>
+                </div>
+            </div>
+        </div>
         
-        <!-- Server-side filtering form -->
-        <form method="GET" action="{% url 'hot_deals' %}">
-            <!-- Stores -->
-            <div class="filter-section">
-                <h3>Stores</h3>
-                {% for store in stores %}
-                <label>
-                    <input type="checkbox" name="store" value="{{ store }}" 
-                           {% if store in selected_stores %}checked{% endif %}> 
-                    {{ store }}
-                </label>
-                {% endfor %}
-            </div>
-
-            <!-- Locations -->
-            <div class="filter-section">
-                <h3>Location</h3>
-                {% for location in locations %}
-                <label>
-                    <input type="checkbox" name="location" value="{{ location }}" 
-                           {% if location in selected_locations %}checked{% endif %}> 
-                    {{ location }}
-                </label>
-                {% endfor %}
-            </div>
-
-            <!-- Rating -->
-            <div class="filter-section">
-                <h3>Rating</h3>
-                <div class="rating-filters">
-                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> Popular Deals</label>
-                    <label><input type="radio" name="rating" value="5" {% if rating == '5' %}checked{% endif %}> 5+ Thumbs</label>
-                    <label><input type="radio" name="rating" value="4" {% if rating == '4' %}checked{% endif %}> 4+ Thumbs</label>
-                    <label><input type="radio" name="rating" value="3" {% if rating == '3' %}checked{% endif %}> 3+ Thumbs</label>
-                    <label><input type="radio" name="rating" value="2" {% if rating == '2' %}checked{% endif %}> 2+ Thumbs</label>
-                    <label><input type="radio" name="rating" value="1" {% if rating == '1' %}checked{% endif %}> 1+ Thumbs</label>
-                    <label><input type="radio" name="rating" value="0" {% if not rating or rating == '0' %}checked{% endif %}> All Ratings</label>
-                </div>
-            </div>
-
-            <!-- Price Range -->
-            <div class="filter-section">
-                <h3>Price Range</h3>
-                <div class="price-slider">
-                    <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
-                    <div class="price-inputs">
-                        <input type="number" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
-                        <span>to</span>
-                        <input type="number" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Brands -->
-            <div class="filter-section">
-                <div class="filter-header toggle-brands">
-                    <span>
-                        <h3>Brands</h3>
-                    </span>
-                </div>
-                <div class="brand-list" style="display: block;">
-                    {% for brand in brands %}
-                        <label>
-                            <input type="checkbox" name="brand" value="{{ brand }}" 
-                                   {% if brand in selected_brands %}checked{% endif %}>
-                            {{ brand }}
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Submit Button -->
-            <button type="submit" class="apply-filters-btn">Apply Filters</button>
-            
-            <!-- Reset Link -->
-            <a href="{% url 'hot_deals' %}" class="reset-filters-btn">Reset Filters</a>
-        </form>
-    </aside>
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button type="submit" class="filter-btn apply">Apply Filters</button>
+            <a href="{% url 'hot_deals' %}" class="filter-btn reset">Reset Filters</a>
+        </div>
+    </form>
+</aside>
 
     <!-- Products Grid -->
     <main class="Subproducts-grid">
@@ -269,10 +276,12 @@
         const priceRange = document.getElementById('priceRange');
         const minPriceInput = document.getElementById('minPrice');
         const maxPriceInput = document.getElementById('maxPrice');
+        const currentPriceDisplay = document.getElementById('currentPrice');
     
-        if (priceRange && minPriceInput && maxPriceInput) {
+        if (priceRange && minPriceInput && maxPriceInput && currentPriceDisplay) {
             priceRange.addEventListener("input", function () {
                 maxPriceInput.value = this.value;
+                currentPriceDisplay.textContent = `$${this.value}`;
             });
         
             minPriceInput.addEventListener("input", function () {
@@ -286,7 +295,11 @@
                     maxPriceInput.value = parseInt(minPriceInput.value) + 1;
                 }
                 priceRange.value = maxPriceInput.value;
+                currentPriceDisplay.textContent = `$${maxPriceInput.value}`;
             });
+            
+            // Initialize current price display
+            currentPriceDisplay.textContent = `$${priceRange.value}`;
         }
     
         // Featured deals slider functionality

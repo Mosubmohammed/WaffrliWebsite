@@ -45,10 +45,10 @@
     <div class="inbox-header">
         <h1>Inbox</h1>
         <div class="action-buttons">
-            <a href="{% url 'send_message' %}" class="action-btn compose-btn">
-                <i class="fas fa-pen"></i>
-                Send a Message
-            </a>
+          <a href="{% url 'send_message' 0 %}" class="action-btn compose-btn">
+            <i class="fas fa-pen"></i>
+            Send a Message
+        </a>
         </div>
     </div>
     {% if messages %}

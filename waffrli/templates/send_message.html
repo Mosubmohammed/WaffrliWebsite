@@ -1,86 +1,129 @@
-{% extends 'base.html' %} 
-{% block title %}New Message{% endblock %}
-{% load static %} 
- {% block content %}
-<link href="{% static 'css/sendMessage.css' %}" rel="stylesheet" />
+{% extends 'base.html' %}
+{% load static %}
 
-<div class="container">
+{% block title %}Compose Message{% endblock %}
 
+{% block content %}
+<link href="{% static 'css/sendMessage1.css' %}" rel="stylesheet" />
 
-  <div class="content">
-    <div class="content-header">
-      <h1>New Message</h1>
+<div class="SettingContainer">
+    <div class="container">
+        <div class="header">
+            <h1>Compose Message</h1>
+        </div>
+        
+        <form method="post" action="">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="recipients">To</label>
+                <div class="form-input">
+                    <input type="text" id="recipients" name="recipient" placeholder="Recipients">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <div class="form-input">
+                    <input type="text" id="subject" name="subject" placeholder="Message Subject">
+                </div>
+            </div>
+            
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button type="button" title="Bold">
+                        <svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+                    </button>
+                    <button type="button" title="Italic">
+                        <svg viewBox="0 0 24 24"><path d="M19 4h-9M14 20H5M15 4L9 20"></path></svg>
+                    </button>
+                    <button type="button" title="Underline">
+                        <svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path><path d="M4 21h16"></path></svg>
+                    </button>
+                    <button type="button" title="Strikethrough">
+                        <svg viewBox="0 0 24 24"><path d="M17.15 15.60A6 6 0 0 1 8.59 15.32M7.13 7.70A6 6 0 0 1 15.85 8.4M4 12H20"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button type="button" title="Align Left">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h10M3 18h15"></path></svg>
+                    </button>
+                    <button type="button" title="Align Center">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M5 18h14"></path></svg>
+                    </button>
+                    <button type="button" title="Align Right">
+                        <svg viewBox="0 0 24 24"><path d="M3 6h18M11 12h10M8 18h15"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button type="button" title="Bullet List">
+                        <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6.5a.5.5 0 1 1 1 0 .5.5 0 1 1-1 0M3 12.5a.5.5 0 1 1 1 0 .5.5 0 1 1-1 0M3 18.5a.5.5 0 1 1 1 0 .5.5 0 1 1-1 0"></path></svg>
+                    </button>
+                    <button type="button" title="Numbered List">
+                        <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button type="button" title="Quote">
+                        <svg viewBox="0 0 24 24"><path d="M3 8h14M3 14h9M19 10v8M15 8v10"></path></svg>
+                    </button>
+                    <button type="button" title="Link">
+                        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button type="button" title="Insert Image">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"></path><path d="M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path><path d="m21 15-5-5L5 21"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button type="button" title="Source Code">
+                        <svg viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <textarea class="editor" name="body" placeholder="Write your message here..."></textarea>
+            
+            <div class="notification" id="notification">
+                <div class="notification-content">
+                    <span class="notification-message">Message sent successfully!</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </div>
+        </form>
     </div>
-
-      <form method="post" action="{% url 'send_message' %}">
-        {% csrf_token %}
-
-        <div class="form-group">
-          <div class="form-row">
-            <label for="recipient">Send To</label>
-            <a href="#" class="bcc-link">Bcc</a>
-          </div>
-          <input
-            type="text"
-            id="recipient"
-            name="recipient"
-            class="form-control"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="subject">Title</label>
-          <input type="text" id="subject" name="subject" class="form-control" />
-        </div>
-
-        <div class="form-group">
-          <div class="editor-toolbar">
-            <button type="button" class="toolbar-btn">
-              <strong>B</strong>
-            </button>
-            <button type="button" class="toolbar-btn"><em>I</em></button>
-            <button type="button" class="toolbar-btn"><u>U</u></button>
-            <button type="button" class="toolbar-btn"><s>S</s></button>
-            <button type="button" class="toolbar-btn">T<sub>x</sub></button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn">≡</button>
-            <button type="button" class="toolbar-btn">≣</button>
-            <button type="button" class="toolbar-btn">☰</button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn">•</button>
-            <button type="button" class="toolbar-btn">○</button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn">⇤</button>
-            <button type="button" class="toolbar-btn">⇥</button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn">"</button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn">🔗</button>
-            <button type="button" class="toolbar-btn">🔄</button>
-            <span class="toolbar-separator"></span>
-            <button type="button" class="toolbar-btn source-btn">Source</button>
-          </div>
-          <textarea
-            id="message-body"
-            name="body"
-            class="form-control editor-area"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <div class="options-dropdown">
-            <button type="button" class="dropdown-btn">
-              Additional Options
-              <span class="dropdown-arrow">▼</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <button type="submit" class="send-btn">Send Message</button>
-        </div>
-      </form>
-    
-  </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Here you can add form validation if needed
+            
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    // You can redirect to inbox or submit the form
+                    // Uncomment one of these options:
+                    // window.location.href = "{% url 'inbox' %}";
+                    form.submit();
+                }, 300);
+            }, 3000);
+        });
+    });
+</script>
 {% endblock %}

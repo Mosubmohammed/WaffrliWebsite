@@ -2,8 +2,8 @@ from .views import *
 from django.urls import path 
 urlpatterns = [
     path('', home, name='home'),
-    #  path('category/<str:foo>/', category, name='category'),
-     path('category/<str:category>/', filter_products, name='filter_products'),
+    path('category/<str:category>/', filter_products, name='category'),
+     path('filter/<str:category>/', filter_products, name='filter_products'),
      path('AllCategory/', AllCategory, name='AllCategory'),
     path('product/<str:pk>/', product, name='product'),
     path('register/', register, name='register'),
@@ -28,7 +28,8 @@ urlpatterns = [
     path('toggle-save-product/<int:product_id>/', toggle_save_product, name='toggle_save_product'),
     path('saved-items/', saved_items, name='saved_items'),
     path('inbox/',inbox, name='inbox'),
-    path('send_message/<int:user_id>', send_message, name='send_message'),
+    path('send_message/', send_message, name='compose_message'),
+    path('send_message/<int:user_id>/', send_message, name='send_message'),
     path('message/<int:message_id>/', view_message, name='view_message'),
     path('message/<int:message_id>/reply/', reply_message, name='reply_message'),
     path('sent_items/', sent_items, name='sent_items'),

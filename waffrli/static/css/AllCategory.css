@@ -1,0 +1,157 @@
+:root {
+  --primary-color: #0071dc;
+  --secondary-color: #4a90e2;
+  --text-color: #333;
+  --light-bg: #f8f9fa;
+  --white: #ffffff;
+}
+
+.top-deals {
+  padding: 2rem 5%;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+}
+
+.tv-slider {
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.tv-ad {
+  position: relative;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+}
+
+.tv-ad img {
+  width: 70%;
+  height: auto;
+  object-fit: contain;
+  margin-left: auto;
+}
+
+.tv-content {
+  position: absolute;
+  left: 2rem;
+  max-width: 300px;
+}
+
+.tv-content h3 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.tv-content p {
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.shop-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.shop-link:hover {
+  text-decoration: underline;
+}
+
+.featured-categories {
+  padding: 2rem 5%;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  background: var(--white);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.category-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.329);
+}
+
+.category-item i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.category-item span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333333de;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tv-ad {
+    height: 200px;
+    padding: 1rem;
+  }
+
+  .tv-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .tv-content p {
+    font-size: 0.875rem;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .category-item i {
+    font-size: 1.5rem;
+  }
+
+  .category-item span {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tv-ad {
+    height: 150px;
+  }
+
+  .tv-content {
+    left: 1rem;
+    max-width: 200px;
+  }
+
+  .tv-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+  }
+}

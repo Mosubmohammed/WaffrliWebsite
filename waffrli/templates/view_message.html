@@ -1,248 +1,223 @@
-{% extends 'base.html' %} {% load static %} {% block content %}
-<!-- Bootstrap CSS -->
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-/>
-<!-- Font Awesome -->
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-/>
-<!-- Your custom CSS -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/message_styles.css' %}" />
 <link rel="stylesheet" href="{% static 'css/settings.css' %}" />
-<!-- At the bottom of your base.html, before closing body tag -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<div class="container">
-  <div class="row">
+
+<div class="SettingContainer">
     <div class="SettingSidebar">
-      <ul class="nav-menu">
-          <li class="active"><a href="{% url 'inbox' %}">Messages Messages ({{ total_messages }})</a></li>
-          <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
-          <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
-      </ul>
+        <ul class="nav-menu">
+            <li class="active"><a href="{% url 'inbox' %}">Messages ({{ total_messages }})</a></li>
+            <li><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
+            <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
+        </ul>
     </div>
 
-    <!-- Main content area -->
-    <div class="col-md-9">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{% url 'inbox' %}" class="btn btn-outline-secondary">
-          <i class="fas fa-arrow-left"></i>
-        </a>
-        <a href="{% url 'send_message' %}" class="btn btn-primary"
-          >Send A Message</a
-        >
-      </div>
-
-      <!-- Message view -->
-      <div class="card">
-        <div class="card-header">
-          <h4>{{ message.subject }}</h4>
-          <div class="d-flex align-items-center">
-            {% if message.sender.profile.avatar %}
-            <img
-              src="{{ message.sender.profile.avatar.url }}"
-              class="avatar-small rounded-circle mr-2"
-              alt="{{ message.sender.username }}"
-            />
-            {% else %}
-            <div
-              class="avatar-small rounded-circle bg-secondary text-white mr-2 d-flex justify-content-center align-items-center"
-            >
-              {{ message.sender.username.0|upper }}
-            </div>
-            {% endif %}
-            <div>
-              <strong>{{ message.sender.username }}</strong>
-              <div class="text-muted small">
-                {{ message.date_sent|date:"F j, Y \a\t g:i A" }}
-              </div>
-            </div>
-          </div>
+    <div class="main-content">
+        <div class="message-header">
+            <a href="{% url 'inbox' %}" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <a href="{% url 'send_message' %}" class="send-message-button">Send A Message</a>
         </div>
-
-        <div class="card-body">
-          {% if message.is_flagged %}
-          <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <p class="mb-0">
-              Please help us prevent spam and PM abuse. If this PM looks like
-              spam to you, please
-              <a href="{% url 'report_message' message.id %}">report it</a>.
-              Posting a deal on behalf of a merchant is not allowed, and may
-              result in your account being warned and/or banned.
-            </p>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {% endif %}
         
-          <!-- Message content with proper HTML tags -->
-          <div class="message-content">
-            {% if message.content %}
-              <div class="message-text p-3 border rounded bg-white">
-                {{ message.content|safe|linebreaksbr }}
-              </div>
-            {% else %}
-              <div class="message-text p-3 border rounded bg-light text-muted">
-                <em>No message content</em>
-              </div>
-            {% endif %}
-          </div>
+        <h2 class="message-title">{{ message.subject }}</h2>
+        
+        <div class="message-container">
+            <div class="message">
+                <div class="message-info">
+                    {% if message.sender.profile.avatar %}
+                    <img src="{{ message.sender.profile.avatar.url }}" class="message-avatar" alt="{{ message.sender.username }}">
+                    {% else %}
+                    <div class="message-avatar">{{ message.sender.username.0|upper }}</div>
+                    {% endif %}
+                    
+                    <span class="star-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </span>
+                    
+                    <span class="message-sender">{{ message.sender.username }}</span>
+                    <span class="message-time">{{ message.date_sent|date:"n/j/Y \a\t g:i A" }}</span>
+                    
+                    <div class="message-actions">
+                        <button class="message-action-button" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                <path d="M10 11v6M14 11v6"/>
+                            </svg>
+                        </button>
+                        <button class="message-action-button" title="Report">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </button>
+                        <button class="message-action-button" title="Reply">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 17l9-5-9-5v10z"/>
+                            </svg>
+                        </button>
+                        <button class="message-action-button" title="Forward">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                {% if message.is_flagged %}
+                <div class="alert alert-warning">
+                    <button class="alert-close">&times;</button>
+                    Please help us prevent spam and PM abuse. If this PM looks like spam to you, please 
+                    <a href="{% url 'report_message' message.id %}">report it</a>.
+                    Posting a deal on behalf of a merchant is not allowed, and may result in your account being warned and/or banned.
+                </div>
+                {% endif %}
+                
+                <div class="message-content">
+                    {% if message.content %}
+                    {{ message.content|safe }}
+                    {% else %}
+                    <p><em>No message content</em></p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-
-        <div class="card-footer d-flex justify-content-end">
-          <div class="btn-group">
-            <button class="btn btn-sm btn-outline-danger" title="Delete">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" title="Report">
-              <i class="fas fa-exclamation-circle"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" title="Reply">
-              <i class="fas fa-reply"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" title="Forward">
-              <i class="fas fa-share"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reply form -->
-      <div class="card mt-4">
-        <div class="card-body">
-          <form method="post" action="{% url 'reply_message' message.id %}">
-            {% csrf_token %} 
+        
+        <div class="reply-section">
+            <div class="quote">
+                <div class="quote-header">
+                    Quote from <a href="#" class="quote-name">{{ message.sender.username }}</a>
+                </div>
+                <div class="quote-content">
+                    {{ message.content|striptags|truncatewords:15 }}
+                </div>
+            </div>
             
-            <div class="form-group">
-              <div class="quote-block p-3 bg-light mb-3">
-                <p class="mb-0">
-                  <strong>Quote from {{ message.sender.username }}</strong>
-                </p>
-                <p class="mb-0">
-                  {{ message.content|striptags|truncatewords:15 }}
-                </p>
-              </div>
-
-              <!-- Rich text editor toolbar -->
-              <div class="editor-toolbar btn-toolbar mb-2" role="toolbar">
-                <div class="btn-group mr-2">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Bold"
-                  >
-                    <i class="fas fa-bold"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Italic"
-                  >
-                    <i class="fas fa-italic"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Underline"
-                  >
-                    <i class="fas fa-underline"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Strikethrough"
-                  >
-                    <i class="fas fa-strikethrough"></i>
-                  </button>
+            <form method="post" action="{% url 'reply_message' message.id %}">
+                {% csrf_token %}
+                
+                <div class="formatting-toolbar">
+                    <div class="toolbar-group">
+                        <button type="button" class="formatting-button" title="Bold">
+                            <strong>B</strong>
+                        </button>
+                        <button type="button" class="formatting-button" title="Italic">
+                            <em>I</em>
+                        </button>
+                        <button type="button" class="formatting-button" title="Underline">
+                            <u>U</u>
+                        </button>
+                        <button type="button" class="formatting-button" title="Strikethrough">
+                            <s>S</s>
+                        </button>
+                        <button type="button" class="formatting-button" title="Code">
+                            <span style="font-family: monospace;">{}</span>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="formatting-button" title="Align Left">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="17" y1="10" x2="3" y2="10"></line>
+                                <line x1="21" y1="6" x2="3" y2="6"></line>
+                                <line x1="21" y1="14" x2="3" y2="14"></line>
+                                <line x1="17" y1="18" x2="3" y2="18"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="formatting-button" title="Align Center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="10" x2="6" y2="10"></line>
+                                <line x1="21" y1="6" x2="3" y2="6"></line>
+                                <line x1="21" y1="14" x2="3" y2="14"></line>
+                                <line x1="18" y1="18" x2="6" y2="18"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="formatting-button" title="Align Right">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="21" y1="10" x2="7" y2="10"></line>
+                                <line x1="21" y1="6" x2="3" y2="6"></line>
+                                <line x1="21" y1="14" x2="3" y2="14"></line>
+                                <line x1="21" y1="18" x2="7" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="formatting-button" title="Bullet List">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="formatting-button" title="Numbered List">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="10" y1="6" x2="21" y2="6"></line>
+                                <line x1="10" y1="12" x2="21" y2="12"></line>
+                                <line x1="10" y1="18" x2="21" y2="18"></line>
+                                <path d="M4 6h1v4"></path>
+                                <path d="M4 10h2"></path>
+                                <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="formatting-button" title="Quote">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+                                <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="formatting-button" title="Link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="formatting-button" title="Source Code">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-
-                <div class="btn-group mr-2">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Align Left"
-                  >
-                    <i class="fas fa-align-left"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Align Center"
-                  >
-                    <i class="fas fa-align-center"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Align Right"
-                  >
-                    <i class="fas fa-align-right"></i>
-                  </button>
+                
+                <textarea class="reply-textarea" name="content" placeholder="Type your reply here..." required></textarea>
+                
+                <div class="reply-actions">
+                    <button type="submit" class="reply-button primary-button">Send Reply</button>
                 </div>
-
-                <div class="btn-group mr-2">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Bulleted List"
-                  >
-                    <i class="fas fa-list-ul"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Numbered List"
-                  >
-                    <i class="fas fa-list-ol"></i>
-                  </button>
-                </div>
-
-                <div class="btn-group">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Insert Link"
-                  >
-                    <i class="fas fa-link"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Insert Image"
-                  >
-                    <i class="fas fa-image"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Source Code"
-                  >
-                    Source
-                  </button>
-                </div>
-              </div>
-
-              <textarea
-                class="form-control"
-                name="content"
-                rows="8"
-                required
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <button type="submit" class="btn btn-primary">Send Reply</button>
-
-            </div>
-          </form>
+            </form>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Close button for alert
+        const alertClose = document.querySelector('.alert-close');
+        if (alertClose) {
+            alertClose.addEventListener('click', function() {
+                this.closest('.alert').style.display = 'none';
+            });
+        }
+        
+        // Formatting buttons functionality can be added here
+    });
+</script>
 {% endblock %}

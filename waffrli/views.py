@@ -17,6 +17,9 @@ from waffrliApp.settings import db
 from django.utils import timezone
 from datetime import datetime
 
+
+def test(request):
+    return render(request,'test.html',{})
 def home(request):
     Product.objects.filter(expires_at__lte=timezone.now()).delete()
     products = Product.objects.all()
@@ -1136,9 +1139,23 @@ def inbox(request):
     }
     
     return render(request, 'inbox.html', context)
+
 @login_required
-def send_message(request):
+def send_message(request, user_id=None):
+    recipient = None
+    recipient_username = ""
+    
+    # Try to get recipient if user_id is provided
+    if user_id:
+        try:
+            recipient = User.objects.get(id=user_id)
+            recipient_username = recipient.username
+        except User.DoesNotExist:
+            messages.error(request, 'User does not exist.')
+            return redirect('inbox')
+    
     if request.method == 'POST':
+        # Get form data
         recipient_username = request.POST.get('recipient')
         subject = request.POST.get('subject')
         body = request.POST.get('body')
@@ -1150,9 +1167,11 @@ def send_message(request):
                 'recipient': recipient_username,
                 'subject': subject,
                 'body': body,
+                'inbox_count': Message.objects.filter(recipient=request.user).count(),
+                'sent_count': Message.objects.filter(sender=request.user).count(),
             })
-            
-        # Find recipient user
+        
+        # Find recipient user (even if we already got it from URL, to validate the form input)
         try:
             recipient = User.objects.get(username=recipient_username)
         except User.DoesNotExist:
@@ -1161,6 +1180,8 @@ def send_message(request):
                 'recipient': recipient_username,
                 'subject': subject,
                 'body': body,
+                'inbox_count': Message.objects.filter(recipient=request.user).count(),
+                'sent_count': Message.objects.filter(sender=request.user).count(),
             })
         
         # Create and save message
@@ -1175,8 +1196,9 @@ def send_message(request):
         messages.success(request, 'Message sent successfully!')
         return redirect('inbox')
     
-    # For GET requests, just show the form
+    # For GET requests, show the form with pre-filled recipient if available
     return render(request, 'send_message.html', {
+        'recipient': recipient_username,
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
     })

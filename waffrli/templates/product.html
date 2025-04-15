@@ -1,634 +1,622 @@
-{% extends "base.html" %} {% load static %} {% block content %}
-<link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
+{% extends "base.html" %} 
+{% load static %} 
+{% block content %}
+<link href="{% static 'css/DealDetailsStyle2.css' %}" rel="stylesheet" />
 
 <div class="container">
-  <div class="content-wrapper">
-    <main class="main">
-
-{% comment %} 
-          <div class="vote-buttons">
-            <button class="like-btn" data-product-id="{{ product.id }}">
-              <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-              <span class="like-count">{{ product.likes.count }}</span>
-            </button>
-{% endcomment %}
-
-
-
-      <div class="deal-card">
-        <div class="deal-content">
-
-            <div class="deal-image">
-              <img
-              src="{{ product.image.url }}"
-              class="img-fluid rounded-start"
-              alt="Product Image"
-            />
-            </div>
-            <div class="deal-details">
-                <div class="deal-tags">
-                    <span class="tag tag-popular">Popular</span>
-                    <a href="{% url 'user_profile' product.user.username %}">
-                      <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
-                    </a>
-                </div>
-
-                <div class="deal-header">
-                    <h1>{{ product.Name }}</h1>
-                    {% if user == product.user %}
-                    <div class="menu-container">
-                        <button class="btn btn-menu" id="menuBtn">
-                            <i class="fas fa-ellipsis-v"></i>
-                         
-                        </button>
-                        <div class="menu-dropdown" id="menuDropdown">
-                            <button class="menu-item">
-                              <a href="{% url 'edit_deal' product.id %}">
-                                <i class="fas fa-edit"></i>
-                                Edit Post</a>
-                            </button>
-                            <button class="menu-item">
-                                <i class="fas fa-archive"></i>                                            Archive Post
-                            </button>
-                            <button class="menu-item" onclick="confirmDelete({{ product.id }})">
-                                <i class="fas fa-trash-alt"></i>                                            Remove Post
-                            </button>
+    <div class="content-wrapper">
+        <main class="main-content">
+            <div class="deal-card">
+                <div class="deal-content">
+                    <div class="deal-image">
+                        <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
+                    </div>
+                    <div class="deal-details">
+                        <div class="deal-tags">
+                            <span class="tag tag-popular">Popular</span>
+                            <a href="{% url 'user_profile' product.user.username %}">
+                                <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
+                            </a>
                         </div>
+
+                        <div class="deal-header">
+                            <h1>{{ product.Name }}</h1>
+                            {% if user == product.user %}
+                            <div class="menu-container">
+                                <button class="btn btn-menu" id="menuBtn">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="menu-dropdown" id="menuDropdown">
+                                    <button class="menu-item">
+                                        <a href="{% url 'edit_deal' product.id %}">
+                                            <i class="fas fa-edit"></i> Edit Post
+                                        </a>
+                                    </button>
+                                    <button class="menu-item">
+                                        <i class="fas fa-archive"></i> Archive Post
+                                    </button>
+                                    <button class="menu-item" onclick="confirmDelete({{ product.id }})">
+                                        <i class="fas fa-trash-alt"></i> Remove Post
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="price-info">
+                            <span class="current-price">${{ product.sale_price }}</span>
+                            <span class="original-price">${{ product.Price }}</span>
+                            <span class="discount-badge">{{ product.get_discount_percentage }}% OFF</span>
+                        </div>
+
+                        <div class="action-buttons">
+                            <a class="get-deal-btn"
+                                href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+                                target="_blank" rel="noopener noreferrer">
+                                Get Deal at {{product.store}}
+                            </a>
+
+                            <div class="vote-buttons">
+                                <button class="btn btn-vote" id="thumbsUpBtn">
+                                    <i class="fa-solid fa-thumbs-up {% if user in product.likes.all %}active{% endif %}"></i>
+                                </button>
+
+                                <button class="save-btn" data-product-id="{{ product.id }}" 
+                                    title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+                                    <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+                                </button>
+
+                                <div>
+                                    <a href="#comment-section">
+                                        <span class="comments">
+                                            <i class="fa-regular fa-comment"></i>
+                                            {{ comments|length }} Comments
+                                        </span>
+                                    </a>
+                                    <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Under section with tabs -->
+            <div class="container">
+                <div class="profile-card">
+                    <!-- Navigation Tabs -->
+                    <nav class="tabs">
+                        <ul>
+                            <li><button class="tab-btn active" data-tab="details">Deal Description</button></li>
+                            <li><button class="tab-btn" data-tab="community">Community Voting</button></li>
+                            <li><button class="tab-btn" data-tab="poster">About the Poster</button></li>
+                        </ul>
+                    </nav>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content active" id="details">
+                        <div class="product-description">
+                            <h3>About This Deal</h3>
+                            <div class="deal-highlights">
+                                <p class="deal-intro">Get ready to experience premium computing with the all-new Mac
+                                    Mini 2024! Here's what makes this deal special:</p>
+
+                                <div class="key-features">
+                                    <div class="feature">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Powerful M4 Pro chip for blazing-fast performance</span>
+                                    </div>
+                                    <div class="feature">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Generous 24GB RAM for smooth multitasking</span>
+                                    </div>
+                                    <div class="feature">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Fast 512GB SSD storage</span>
+                                    </div>
+                                    <div class="feature">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Perfect for both home and professional use</span>
+                                    </div>
+                                </div>
+
+                                <div class="price-highlight">
+                                    <p><strong>Amazing Value:</strong> Save $300 (20% off) from the regular price!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="community">
+                        <h3>Community Voting</h3>
+                        <div class="voting-section">
+                            <div class="vote-score">
+                                <div class="score">+{{ product.likes.count }}</div>
+                                <div class="score-label">Deal Score</div>
+                            </div>
+                            <div class="vote-buttons">
+                                <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
+                                    👍 Good Deal
+                                </button>
+                                <button class="vote-btn bad-deal">
+                                    👎 Bad Deal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="poster">
+                        <div class="profile-content">
+                            <div class="profile-header">
+                                <div class="Section-user-info">
+                                    {% if product.user.customer.image %}
+                                    <img src="{{ product.user.customer.image.url }}" alt="Profile" class="Section-avatar" />
+                                    {% else %}
+                                    <img src="{% static 'images/default-avatar.jpg' %}" alt="Profile" class="Section-avatar" />
+                                    {% endif %}
+                                    <div class="user-details">
+                                        <h2>{{ product.user.username }}</h2>
+                                        <div class="Section-user-badges">
+                                            <a href="{% url 'user_profile' product.user.username %}">
+                                                <span class="Section-badge">Staff</span>
+                                            </a>
+                                            <span class="join-date">Joined {{ product.user.date_joined|date:"M Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="Section-action-buttons">
+                                    {% if user.is_authenticated and user != product.user %}
+                                    <form method="POST" action="{% url 'follow' product.user.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="Section-btn">
+                                            <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
+                                            {% if is_following %}Unfollow{% else %}Follow{% endif %}
+                                        </button>
+                                    </form>
+                                    <a href="{% url 'send_message' product.user.id %}" class="Section-btn">
+                                        <i class="fas fa-paper-plane"></i> Message
+                                    </a>
+                                    <button class="Section-btn report-btn">
+                                        <i class="fas fa-flag"></i> Report
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <i class="fas fa-gift"></i>
+                                    <span class="stat-value">{{ deal_count }}</span>
+                                    <span class="stat-label">Deal Posts</span>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="fas fa-comment-alt"></i>
+                                    <span class="stat-value">34,526</span>
+                                    <span class="stat-label">Comments Posts</span>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="fas fa-award"></i>
+                                    <span class="stat-value">123,558</span>
+                                    <span class="stat-label">Reputation Points</span>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span class="stat-value">33,704</span>
+                                    <span class="stat-label">Votes Submitted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Related Deals Slider -->
+            <div class="related-deals">
+                <h2>Related Deals</h2>
+                <div class="slider-container">
+                    <div class="deals-slider">
+                        {% for related_product in related_products %}
+                        <div class="deal-slide">
+                            {% if related_product.image %}
+                            <a href="{% url 'product' related_product.id %}">
+                            <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="No image">
+                            {% endif %}
+                            <h3>{{ related_product.Name }}</h3>
+                            <div class="deal-price">
+                                <span class="price">${{ related_product.sale_price }}</span>
+                                <span class="original">${{ related_product.Price }}</span>
+                                {% if related_product.discount_percentage > 0 %}
+                                <span class="discount-badge">{{ related_product.discount_percentage }}% OFF</span>
+                                {% endif %}
+                              </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-related-deals">No related deals found in this category</div>
+                        {% endfor %}
+                    </div>
+                    <button class="slider-btn prev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6"></path>
+                        </svg>
+                    </button>
+                    <button class="slider-btn next">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Comment Section -->
+            <div id="comment-section" class="community-section">
+                <h2 class="section-title">Share Your Thoughts 💭</h2>
+                <div class="comment-section">
+                    <!-- Display existing comments -->
+                    {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-header">
+                            {% if comment.customer.image %}
+                            <img src="{{ comment.customer.image.url }}" alt="User Avatar" class="Section-avatar">
+                            {% else %}
+                            <img src="{% static 'images/default-avatar.jpg' %}" alt="User Avatar" class="Section-avatar">
+                            {% endif %}
+                            <div class="user-details">
+                                <h3>{{ comment.customer.user.username }}</h3>
+                                <div class="comment-meta">
+                                    <span class="time">{{ comment.timestamp|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment-content">
+                            <p>{{ comment.text }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-comments">Be the first to comment on this deal!</div>
+                    {% endfor %}
+
+                    <!-- Comment form -->
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{{ request.path }}" class="comment-form" id="comment-form">
+                        {% csrf_token %}
+                        {% if user.customer.image %}
+                        <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
+                        {% else %}
+                        <img src="{% static 'images/default-avatar.jpg' %}" alt="Current User Avatar" class="Section-avatar">
                         {% endif %}
+                        <div class="form-wrapper">
+                            <textarea id="comment-input" name="comment" placeholder="What are your thoughts on this deal?" rows="3"></textarea>
+                            <div class="form-actions">
+                                <button type="submit" id="post-comment-btn" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Post Comment
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="login-to-comment">
+                        <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
                     </div>
-                  </div>
-
-                <div class="price-info">
-                    <span class="current-price">${{ product.sale_price }}</span>
-                    <span class="original-price">${{ product.Price }}</span>
-                    <span class="discount-badge">{{ product.get_discount_percentage }}% OFF</span>
+                    {% endif %}
                 </div>
-
-                <div class="action-buttons">
-                    <a
-                    class="get-deal-btn"
-                    href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    
-                  >
-                  Get Deal at {{product.store}}
-                  </a>
-
-                  <div class="vote-buttons">
-                    <button class="btn btn-vote" id="thumbsUpBtn">
-                        <i class="fa-solid fa-thumbs-up {% if user in product.likes.all %}active{% endif %}"></i>
-                    </button>
-
-                    
-                    <button class="save-btn" data-product-id="{{ product.id }}" title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-                        <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-                    </button>
-                
-                    <div>
-                        <a href="#comment-section"> 
-                            <span class="comments">
-                                <i class="fa-regular fa-comment"></i> 
-                                {{ comments|length }} Comments
-                            </span> 
-                        </a>
-                        <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
-                    </div>
-                </div>
-                </div>
-
-
             </div>
-        </div>
-    </div>
+        </main>
 
-                    <!--unsder section-->
-                    <div class="container">
-                      <div class="profile-card">
-                          <!-- Navigation Tabs -->
-                          <nav class="tabs">
-                              <ul>
-                                  <li><button class="tab-btn active" data-tab="details">Deal Description</button></li>
-                                  <li><button class="tab-btn" data-tab="community">Community Voting</button></li>
-                                  <li><button class="tab-btn" data-tab="poster">About the Poster</button></li>
-                              </ul>
-                          </nav>
-  
-                          <!-- Tab Content -->
-                          <div class="tab-content active" id="details">
-                              <div class="product-description">
-                                  <h3>About This Deal</h3>
-                                  <div class="deal-highlights">
-                                      <p class="deal-intro">Get ready to experience premium computing with the all-new Mac
-                                          Mini 2024! Here's what makes this deal special:</p>
-  
-                                      <div class="key-features">
-                                          <div class="feature">
-                                              <i class="fas fa-check-circle"></i>
-                                              <span>Powerful M4 Pro chip for blazing-fast performance</span>
-                                          </div>
-                                          <div class="feature">
-                                              <i class="fas fa-check-circle"></i>
-                                              <span>Generous 24GB RAM for smooth multitasking</span>
-                                          </div>
-                                          <div class="feature">
-                                              <i class="fas fa-check-circle"></i>
-                                              <span>Fast 512GB SSD storage</span>
-                                          </div>
-                                          <div class="feature">
-                                              <i class="fas fa-check-circle"></i>
-                                              <span>Perfect for both home and professional use</span>
-                                          </div>
-                                      </div>
-  
-                                      <div class="price-highlight">
-                                          <p><strong>Amazing Value:</strong> Save $300 (20% off) from the regular price!
-                                          </p>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-  
-<!-- Update the community tab vote buttons -->
-<div class="voting-section">
-  <div class="vote-score">
-      <div class="score">+{{ product.likes.count }}</div>
-      <div class="score-label">Deal Score</div>
-  </div>
-  <div class="vote-buttons">
-      <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
-          👍 Good Deal
-      </button>
-      <button class="vote-btn bad-deal">
-          👎 Bad Deal
-      </button>
-  </div>
-</div>
-  
-                          <div class="tab-content" id="poster">
-                              <div class="profile-content">
-                                  <div class="profile-header">
-                                      <div class="Section-user-info">
-                                        {% if product.user.customer.image %}
-                                        <img src="{{ product.user.customer.image.url }}" alt="Profile" class="Section-avatar" />
-                                        {% else %}
-                                        <img src="{% static 'images/default-avatar.jpg' %}" alt="Profile" class="Section-avatar" />
-                                        {% endif %}
-                                          <div class="user-details">
-                                            <h2>{{ product.user.username }}</h2>
-                                              <div class="Section-user-badges">
-                                                <a href="CustomerProfile.html"><span class="Section-badge">Staff</span></a>  
-                                                <span class="join-date">Joined {{ product.user.date_joined|date:"M Y" }}</span>
-                                              </div>
-                                          </div>
-                                      </div>
-  
-                                      <div class="Section-action-buttons">
-                                        {% if user.is_authenticated and user != product.user %}
-                                        <form method="POST" action="{% url 'follow' product.user.id %}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="Section-btn">
-                                                <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
-                                                {% if is_following %}Unfollow{% else %}Follow{% endif %}
-                                            </button>
-                                        </form>
-                                        <a href="{% url 'send_message' product.user.id %}" class="Section-btn">
-                                          <i class="fas fa-paper-plane"></i> Message
-                                      </a>
-                                          <button class="Section-btn report-btn"><i class="fas fa-flag"></i>
-                                              Report</button>
-                                              {% endif %}
-                                      </div>
-                                  </div>
-  
-                                  <div class="stats-grid">
-                                      <div class="stat-card">
-                                          <i class="fas fa-gift"></i>
-                                          <span class="stat-value">{{ deal_count }}</span>
-                                          <span class="stat-label">Deal Posts</span>
-                                      </div>
-                                      <div class="stat-card">
-                                          <i class="fas fa-comment-alt"></i>
-                                          <span class="stat-value">34,526</span>
-                                          <span class="stat-label">Comments Posts</span>
-                                      </div>
-                                      <div class="stat-card">
-                                          <i class="fas fa-award"></i>
-                                          <span class="stat-value">123,558</span>
-                                          <span class="stat-label">Reputation Points</span>
-                                      </div>
-                                      <div class="stat-card">
-                                          <i class="fas fa-thumbs-up"></i>
-                                          <span class="stat-value">33,704</span>
-                                          <span class="stat-label">Votes Submitted</span>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-                  <br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<!-- Related Deals Slider -->
-<div class="related-deals">
-  <h2>Related Deals</h2>
-  <div class="slider-container">
-      <div class="deals-slider">
-          {% for related_product in related_products %}
-          <div class="deal-slide">
-              {% if related_product.image %}
-              <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}" style="wight:20%">
-              {% else %}
-              <img src="{% static 'images/placeholder.jpg' %}" alt="No image">
-              {% endif %}
-              <h3>{{ related_product.Name }}</h3>
-              <div class="deal-price">
-                  <span class="price">${{ related_product.sale_price }}</span>
-                  <span class="original">${{ related_product.Price }}</span>
-                  {% if related_product.discount_percentage > 0 %}
-                  <span class="discount-badge">{{ related_product.discount_percentage }}% OFF</span>
-                  {% endif %}
-              </div>
-              <a href="{% url 'product' related_product.id %}" class="deal-link">View Deal</a>
-          </div>
-          {% empty %}
-          <div class="no-related-deals">No related deals found in this category</div>
-          {% endfor %}
-      </div>
-   <button class="slider-btn prev">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6"></path>
-          </svg>
-      </button>
-      <button class="slider-btn next">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="m9 18 6-6-6-6"></path>
-          </svg>
-      </button> 
-  </div>
-</div>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-
-<!-- Comment Section -->
-<!-- Display existing comments -->
-{% for comment in comments %}
-<div class="comment">
-    <div class="comment-header">
-        {% comment %} {% if comment.customer.image %}
-        <img src="{{ comment.customer.image.url }}" alt="User Avatar" class="Section-avatar">
-        {% else %}
-        <img src="{% static 'images/default-avatar.jpg' %}" alt="User Avatar" class="Section-avatar">
-        {% endif %} {% endcomment %}
-        <div class="user-details">
-            <h3>{{ comment.customer.user.username }}</h3>
-            <div class="comment-meta">
-                <span class="time">{{ comment.timestamp|timesince }} ago</span>
-
+        <!-- Sidebar for Ads -->
+        <aside class="sidebar">
+            <div class="ad-space">
+                <a href="https://smartbuy-me.com/" target="_blank">
+                    <img src="{% static 'C:\Users\mosup\WaffrliWebsite\media\uploads\product\133802231298907063_3DRDaW8.jpg' %}" alt="Ad 1" class="ad-image">
+                </a>
             </div>
-        </div>
+            <div class="ad-space">
+                <a href="https://www.facebook.com/upimjordan/" target="_blank">
+                    <img src="{% static 'images/irbidCityCenter.jpg' %}" alt="Ad 2" class="ad-image">
+                </a>
+            </div>
+            <div class="ad-space">
+                <a href="https://smartbuy-me.com/" target="_blank">
+                    <img src="{% static 'images/Sale-clothes.jpg' %}" alt="Ad 3" class="ad-image">
+                </a>
+            </div>
+        </aside>
     </div>
-    <div class="comment-content">
-        <p>{{ comment.text }}</p>
-    </div>
-</div>
-{% empty %}
-<div class="no-comments">Be the first to comment on this deal!</div>
-{% endfor %}
-
-      <!-- Comment form -->
-      {% if user.is_authenticated %}
-      <form method="POST" action="{{ request.path }}" class="comment-form" id="comment-form">
-          {% csrf_token %}
-          {% comment %} {% if user.customer.image %}
-          <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
-          {% else %}
-          <img src="{% static 'images/default-avatar.jpg' %}" alt="Current User Avatar" class="Section-avatar">
-          {% endif %} {% endcomment %}
-          <div class="form-wrapper">
-              <textarea id="comment-input" name="comment" placeholder="What are your thoughts on this deal?" rows="3"></textarea>
-              <div class="form-actions">
-                  <button type="submit" id="post-comment-btn" class="btn btn-primary">
-                      <i class="fas fa-paper-plane"></i>
-                      Post Comment
-                  </button>
-              </div>
-          </div>
-      </form>
-      {% else %}
-      <div class="login-to-comment">
-          <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
-      </div>
-      {% endif %}
-  </div>
-</div>
-
-
-
-      
-    </main>
-
-  </div>
 </div>
 
 <!-- Hidden form for delete submission -->
 <form id="delete-form" action="{% url 'delete_deal' 0 %}" method="POST" style="display: none;">
-  {% csrf_token %}
+    {% csrf_token %}
 </form>
 
 <script>
 // Organize all functionality within a single DOMContentLoaded event
 document.addEventListener('DOMContentLoaded', function() {
-  // Tab functionality
-  function setupTabs() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.tab-content');
+    // Tab functionality
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // Remove active class from all tabs and contents
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
 
-        // Add active class to clicked tab and corresponding content
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.tab).classList.add('active');
-      });
-    });
-  }
-  setupTabs();
-
-  // Menu dropdown functionality
-  const menuBtn = document.getElementById('menuBtn');
-  const menuDropdown = document.getElementById('menuDropdown');
-
-  if (menuBtn && menuDropdown) {
-    // Toggle menu on button click
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuDropdown.classList.toggle('show');
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (menuDropdown.classList.contains('show') && 
-          !menuDropdown.contains(e.target) && 
-          !menuBtn.contains(e.target)) {
-        menuDropdown.classList.remove('show');
-      }
-    });
-
-    // Handle menu item clicks
-    document.querySelectorAll('.menu-item').forEach(item => {
-      item.addEventListener('click', () => {
-        menuDropdown.classList.remove('show');
-      });
-    });
-  }
-
-  // Slider functionality
-  const slider = document.querySelector('.deals-slider');
-  const prevBtn = document.querySelector('.prev');
-  const nextBtn = document.querySelector('.next');
-  
-  if (slider && prevBtn && nextBtn) {
-    let currentSlide = 0;
-    const slideCount = document.querySelectorAll('.deal-slide').length;
-
-    prevBtn.addEventListener('click', () => {
-      currentSlide = Math.max(0, currentSlide - 1);
-      updateSlider();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      currentSlide = Math.min(slideCount - 5, currentSlide + 1);
-      updateSlider();
-    });
-
-    function updateSlider() {
-      slider.style.transform = `translateX(-${currentSlide * 20}%)`;
-    }
-  }
-
-  // Like functionality with AJAX
-  const scoreElement = document.querySelector('.score');
-  const goodDealBtn = document.querySelector('.good-deal');
-  const thumbsUpBtn = document.querySelector('.vote-buttons .btn-vote:first-child');
-  
-  // Check if elements exist to prevent errors
-  if (scoreElement && goodDealBtn && thumbsUpBtn) {
-    // Get product ID and CSRF token
-    const productId = document.querySelector('.save-btn')?.getAttribute('data-product-id');
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-    
-    if (productId && csrfToken) {
-      // Function to handle like via AJAX
-      function handleLike() {
-        // Create form data with CSRF token
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', csrfToken);
-        
-        // Send AJAX request
-        fetch(`/like-product/${productId}/`, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrfToken
-          },
-          body: formData
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Update UI based on response
-          const isLiked = data.liked;
-          
-          // Update thumbs up button
-          if (isLiked) {
-            thumbsUpBtn.querySelector('i').classList.add('active');
-            goodDealBtn.classList.add('voted');
-            showNotification('You liked this deal!', 'success');
-          } else {
-            thumbsUpBtn.querySelector('i').classList.remove('active');
-            goodDealBtn.classList.remove('voted');
-            showNotification('Like removed', 'info');
-          }
-          
-          // Update score
-          scoreElement.textContent = data.likes_count > 0 ? `+${data.likes_count}` : data.likes_count;
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showNotification('Something went wrong. Please try again.', 'error');
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
         });
-      }
-      
-      // Add event listeners to both thumbs up and good deal buttons
-      thumbsUpBtn.addEventListener('click', handleLike);
-      goodDealBtn.addEventListener('click', handleLike);
     }
-  }
+    setupTabs();
 
-  // Comment functionality
-  const commentForm = document.querySelector('.comment-form');
-  const commentInput = document.getElementById('comment-input');
+    // Menu dropdown functionality
+    const menuBtn = document.getElementById('menuBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
 
-  if (commentForm && commentInput) {
-    // Remove the existing click event handler by replacing the button
-    const postCommentBtn = document.getElementById('post-comment-btn');
-    if (postCommentBtn) {
-      const newButton = postCommentBtn.cloneNode(true);
-      postCommentBtn.parentNode.replaceChild(newButton, postCommentBtn);
+    if (menuBtn && menuDropdown) {
+        // Toggle menu on button click
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle('show');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (menuDropdown.classList.contains('show') && 
+                !menuDropdown.contains(e.target) && 
+                !menuBtn.contains(e.target)) {
+                menuDropdown.classList.remove('show');
+            }
+        });
+
+        // Handle menu item clicks
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                menuDropdown.classList.remove('show');
+            });
+        });
     }
+
+    // Slider functionality
+    const slider = document.querySelector('.deals-slider');
+    const prevBtn = document.querySelector('.prev');
+    const nextBtn = document.querySelector('.next');
     
-    // Add form submission handler with validation
-    commentForm.addEventListener('submit', function(event) {
-      const commentText = commentInput.value.trim();
-      
-      if (!commentText) {
-        event.preventDefault();
-        alert('Please write a comment before posting.');
-        return false;
-      }
-      // Let the form submit normally if there's text
-    });
-  }
+    if (slider && prevBtn && nextBtn) {
+        let currentSlide = 0;
+        const slideCount = document.querySelectorAll('.deal-slide').length;
 
-  // Delete product functionality
-  window.confirmDelete = function(productId) {
-    if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
-      const form = document.getElementById('delete-form');
-      if (form) {
-        form.action = form.action.replace('/0/', '/' + productId + '/');
-        form.submit();
-      }
-    }
-  };
+        prevBtn.addEventListener('click', () => {
+            currentSlide = Math.max(0, currentSlide - 1);
+            updateSlider();
+        });
 
-  // Save product functionality
-  const saveButtons = document.querySelectorAll('.save-btn');
-  saveButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const productId = this.getAttribute('data-product-id');
-      if (!productId) return;
+        nextBtn.addEventListener('click', () => {
+            currentSlide = Math.min(slideCount - 5, currentSlide + 1);
+            updateSlider();
+        });
 
-      // Create form data with CSRF token
-      const formData = new FormData();
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-      
-      if (csrfToken) {
-        formData.append('csrfmiddlewaretoken', csrfToken.value);
-      } else {
-        console.error('CSRF token not found');
-        showNotification('Error: CSRF token not found', 'error');
-        return;
-      }
-      
-      // Send AJAX request to the correct URL
-      fetch(`/toggle-save-product/${productId}/`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': csrfToken.value
-        },
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentSlide * 20}%)`;
         }
-        return response.json();
-      })
-      .then(data => {
-        // Update icon based on response
-        const icon = this.querySelector('i');
+    }
+
+    // Like functionality with AJAX
+    const scoreElement = document.querySelector('.score');
+    const goodDealBtn = document.querySelector('.good-deal');
+    const thumbsUpBtn = document.querySelector('.vote-buttons .btn-vote:first-child');
+    
+    // Check if elements exist to prevent errors
+    if (scoreElement && goodDealBtn && thumbsUpBtn) {
+        // Get product ID and CSRF token
+        const productId = document.querySelector('.save-btn')?.getAttribute('data-product-id');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
         
-        if (data.is_saved) {
-          icon.className = 'fas fa-bookmark';
-          this.setAttribute('title', 'Unsave this item');
-          showNotification('Product saved successfully!', 'success');
-        } else {
-          icon.className = 'far fa-bookmark';
-          this.setAttribute('title', 'Save this item');
-          showNotification('Product removed from saved items', 'info');
+        if (productId && csrfToken) {
+            // Function to handle like via AJAX
+            function handleLike() {
+                // Create form data with CSRF token
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                
+                // Send AJAX request
+                fetch(`/like-product/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update UI based on response
+                    const isLiked = data.liked;
+                    
+                    // Update thumbs up button
+                    if (isLiked) {
+                        thumbsUpBtn.querySelector('i').classList.add('active');
+                        goodDealBtn.classList.add('voted');
+                        showNotification('You liked this deal!', 'success');
+                    } else {
+                        thumbsUpBtn.querySelector('i').classList.remove('active');
+                        goodDealBtn.classList.remove('voted');
+                        showNotification('Like removed', 'info');
+                    }
+                    
+                    // Update score
+                    scoreElement.textContent = data.likes_count > 0 ? `+${data.likes_count}` : data.likes_count;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Something went wrong. Please try again.', 'error');
+                });
+            }
+            
+            // Add event listeners to both thumbs up and good deal buttons
+            thumbsUpBtn.addEventListener('click', handleLike);
+            goodDealBtn.addEventListener('click', handleLike);
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showNotification('Something went wrong. Please try again.', 'error');
-      });
+    }
+
+    // Comment functionality
+    const commentForm = document.querySelector('.comment-form');
+    const commentInput = document.getElementById('comment-input');
+
+    if (commentForm && commentInput) {
+        // Remove the existing click event handler by replacing the button
+        const postCommentBtn = document.getElementById('post-comment-btn');
+        if (postCommentBtn) {
+            const newButton = postCommentBtn.cloneNode(true);
+            postCommentBtn.parentNode.replaceChild(newButton, postCommentBtn);
+        }
+        
+        // Add form submission handler with validation
+        commentForm.addEventListener('submit', function(event) {
+            const commentText = commentInput.value.trim();
+            
+            if (!commentText) {
+                event.preventDefault();
+                alert('Please write a comment before posting.');
+                return false;
+            }
+            // Let the form submit normally if there's text
+        });
+    }
+
+    // Delete product functionality
+    window.confirmDelete = function(productId) {
+        if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
+            const form = document.getElementById('delete-form');
+            if (form) {
+                form.action = form.action.replace('/0/', '/' + productId + '/');
+                form.submit();
+            }
+        }
+    };
+
+    // Save product functionality
+    const saveButtons = document.querySelectorAll('.save-btn');
+    saveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            if (!productId) return;
+
+            // Create form data with CSRF token
+            const formData = new FormData();
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            
+            if (csrfToken) {
+                formData.append('csrfmiddlewaretoken', csrfToken.value);
+            } else {
+                console.error('CSRF token not found');
+                showNotification('Error: CSRF token not found', 'error');
+                return;
+            }
+            
+            // Send AJAX request to the correct URL
+            fetch(`/toggle-save-product/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken.value
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update icon based on response
+                const icon = this.querySelector('i');
+                
+                if (data.is_saved) {
+                    icon.className = 'fas fa-bookmark';
+                    this.setAttribute('title', 'Unsave this item');
+                    showNotification('Product saved successfully!', 'success');
+                } else {
+                    icon.className = 'far fa-bookmark';
+                    this.setAttribute('title', 'Save this item');
+                    showNotification('Product removed from saved items', 'info');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Something went wrong. Please try again.', 'error');
+            });
+        });
     });
-  });
-  
-  // Notification functionality
-  function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
     
-    // Add icon based on notification type
-    let icon = '';
-    if (type === 'success') {
-      icon = '<i class="fas fa-check-circle"></i>';
-    } else if (type === 'error') {
-      icon = '<i class="fas fa-exclamation-circle"></i>';
-    } else if (type === 'info') {
-      icon = '<i class="fas fa-info-circle"></i>';
+    // Notification functionality
+    function showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        // Add icon based on notification type
+        let icon = '';
+        if (type === 'success') {
+            icon = '<i class="fas fa-check-circle"></i>';
+        } else if (type === 'error') {
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+        } else if (type === 'info') {
+            icon = '<i class="fas fa-info-circle"></i>';
+        }
+        
+        // Set notification content
+        notification.innerHTML = `
+            ${icon}
+            <span>${message}</span>
+            <button class="notification-close"><i class="fas fa-times"></i></button>
+        `;
+        
+        // Add to DOM
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Set auto remove timer
+        const removeTimeout = setTimeout(() => {
+            removeNotification(notification);
+        }, 3000);
+        
+        // Add close button functionality
+        const closeButton = notification.querySelector('.notification-close');
+        closeButton.addEventListener('click', () => {
+            clearTimeout(removeTimeout);
+            removeNotification(notification);
+        });
     }
     
-    // Set notification content
-    notification.innerHTML = `
-      ${icon}
-      <span>${message}</span>
-      <button class="notification-close"><i class="fas fa-times"></i></button>
-    `;
-    
-    // Add to DOM
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-      notification.classList.add('show');
-    }, 10);
-    
-    // Set auto remove timer
-    const removeTimeout = setTimeout(() => {
-      removeNotification(notification);
-    }, 3000);
-    
-    // Add close button functionality
-    const closeButton = notification.querySelector('.notification-close');
-    closeButton.addEventListener('click', () => {
-      clearTimeout(removeTimeout);
-      removeNotification(notification);
-    });
-  }
-  
-  // Function to remove notification
-  function removeNotification(notification) {
-    notification.classList.remove('show');
-    setTimeout(() => {
-      notification.remove();
-    }, 300); // Match this with CSS transition time
-  }
+    // Function to remove notification
+    function removeNotification(notification) {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300); // Match this with CSS transition time
+    }
 });
 </script>
 {% endblock %}
