@@ -117,13 +117,7 @@
           "X-CSRFToken": "{{ csrf_token }}",
         },
       })
-        .then((response) => {
-          if (response.status === 401) {
-            window.location.href = "{% url 'login' %}"; // Redirect to login if not authenticated
-            return;
-          }
-          return response.json();
-        })
+
         .then((data) => {
           if (data) {
             if (data.liked) {
