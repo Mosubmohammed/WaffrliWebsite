@@ -76,43 +76,80 @@ class Product(models.Model):
     likes = models.ManyToManyField(User, related_name="Product_like", blank=True)
     views = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
-    expires_at=models.DateTimeField(null=True,blank=True)
-
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    # New fields for location-based features
+    store_type = models.CharField(max_length=10, choices=[
+        ('online', 'Online Store'),
+        ('physical', 'Physical Store')
+    ], default='online')
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    formatted_address = models.CharField(max_length=255, null=True, blank=True)
+    
     def increment_views(self):
         self.views += 1
         self.save(update_fields=['views'])  # Optimized to update only the views field
-    
+        
     def __str__(self) -> str:
         return self.Name
-    
+        
     def number_of_likes(self):
         return self.likes.count()
-    
+        
     # Hot deals functionality
     def get_discount_percentage(self):
         """Calculate discount percentage if sale_price exists"""
         if not self.sale_price or self.Price == 0:
             return 0
-        
+            
         discount = ((self.Price - self.sale_price) / self.Price) * 100
         return round(discount, 2)
-    
+        
     def is_hot_deal(self):
         """Check if product qualifies as a hot deal (discount >= 70%)"""
         return self.get_discount_percentage() >= 70
-    
+        
     def get_savings_amount(self):
         """Calculate amount saved"""
         if not self.sale_price:
             return 0
         return self.Price - self.sale_price
     
+    # New method for location-based features
+    def distance_to(self, user_lat, user_lng):
+        """Calculate distance in kilometers between this product's location and a user location"""
+        if not self.latitude or not self.longitude or not user_lat or not user_lng:
+            return None
+            
+        # Haversine formula for distance calculation
+        from math import radians, sin, cos, sqrt, atan2
+        
+        R = 6371  # Earth radius in kilometers
+        
+        # Convert latitude/longitude from degrees to radians
+        lat1 = radians(self.latitude)
+        lon1 = radians(self.longitude)
+        lat2 = radians(user_lat)
+        lon2 = radians(user_lng)
+        
+        # Haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        distance = R * c
+        
+        return round(distance, 2)  # Return distance in kilometers, rounded to 2 decimal places
+        
     class Meta:
         indexes = [
             models.Index(fields=['sale_price', 'Price']),  # For discount calculations
             models.Index(fields=['views', '-create_at']),  # For sorting by popularity
             models.Index(fields=['store', 'city', 'brand']),  # For common filtering combinations
             models.Index(fields=['category', 'sale_price']),  # For category filtering with price
+            models.Index(fields=['store_type']),  # For filtering by store type
+            models.Index(fields=['latitude', 'longitude']),  # For location-based queries
         ]
         ordering = ['-create_at']  # Default ordering
 

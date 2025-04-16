@@ -9,7 +9,11 @@
             <div class="deal-card">
                 <div class="deal-content">
                     <div class="deal-image">
+                        {% if product.image %}
                         <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
+                        {% else %}
+                        <img src="{% static 'images/placeholder.jpg' %}" class="img-fluid rounded-start" alt="Product Image" />
+                        {% endif %}
                     </div>
                     <div class="deal-details">
                         <div class="deal-tags">
@@ -46,7 +50,7 @@
                         <div class="price-info">
                             <span class="current-price">${{ product.sale_price }}</span>
                             <span class="original-price">${{ product.Price }}</span>
-                            <span class="discount-badge">{{ product.get_discount_percentage }}% OFF</span>
+                            <span class="discount-badge">{{ product.discount_percentage }}% OFF</span>
                         </div>
 
                         <div class="action-buttons">
@@ -98,30 +102,29 @@
                         <div class="product-description">
                             <h3>About This Deal</h3>
                             <div class="deal-highlights">
-                                <p class="deal-intro">Get ready to experience premium computing with the all-new Mac
-                                    Mini 2024! Here's what makes this deal special:</p>
+                                <p class="deal-intro">{{ product.Description|truncatewords:20 }}</p>
 
                                 <div class="key-features">
                                     <div class="feature">
                                         <i class="fas fa-check-circle"></i>
-                                        <span>Powerful M4 Pro chip for blazing-fast performance</span>
+                                        <span>{{ product.Description|truncatewords:5 }}</span>
                                     </div>
                                     <div class="feature">
                                         <i class="fas fa-check-circle"></i>
-                                        <span>Generous 24GB RAM for smooth multitasking</span>
+                                        <span>Brand: {{ product.brand }}</span>
                                     </div>
                                     <div class="feature">
                                         <i class="fas fa-check-circle"></i>
-                                        <span>Fast 512GB SSD storage</span>
+                                        <span>Store: {{ product.store }}</span>
                                     </div>
                                     <div class="feature">
                                         <i class="fas fa-check-circle"></i>
-                                        <span>Perfect for both home and professional use</span>
+                                        <span>Location: {{ product.city }}</span>
                                     </div>
                                 </div>
 
                                 <div class="price-highlight">
-                                    <p><strong>Amazing Value:</strong> Save $300 (20% off) from the regular price!</p>
+                                    <p><strong>Amazing Value:</strong> Save ${{ product.get_savings_amount }} ({{ product.discount_percentage }}% off) from the regular price!</p>
                                 </div>
                             </div>
                         </div>
@@ -219,21 +222,21 @@
                     <div class="deals-slider">
                         {% for related_product in related_products %}
                         <div class="deal-slide">
-                            {% if related_product.image %}
                             <a href="{% url 'product' related_product.id %}">
-                            <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}">
-                            {% else %}
-                            <img src="{% static 'images/placeholder.jpg' %}" alt="No image">
-                            {% endif %}
-                            <h3>{{ related_product.Name }}</h3>
-                            <div class="deal-price">
-                                <span class="price">${{ related_product.sale_price }}</span>
-                                <span class="original">${{ related_product.Price }}</span>
-                                {% if related_product.discount_percentage > 0 %}
-                                <span class="discount-badge">{{ related_product.discount_percentage }}% OFF</span>
+                                {% if related_product.image %}
+                                <img src="{{ related_product.image.url }}" alt="{{ related_product.Name }}">
+                                {% else %}
+                                <img src="{% static 'images/placeholder.jpg' %}" alt="No image">
                                 {% endif %}
-                              </a>
-                            </div>
+                                <h3>{{ related_product.Name }}</h3>
+                                <div class="deal-price">
+                                    <span class="price">${{ related_product.sale_price }}</span>
+                                    <span class="original">${{ related_product.Price }}</span>
+                                    {% if related_product.discount_percentage > 0 %}
+                                    <span class="discount-badge">{{ related_product.discount_percentage }}% OFF</span>
+                                    {% endif %}
+                                </div>
+                            </a>
                         </div>
                         {% empty %}
                         <div class="no-related-deals">No related deals found in this category</div>
@@ -316,7 +319,7 @@
         <aside class="sidebar">
             <div class="ad-space">
                 <a href="https://smartbuy-me.com/" target="_blank">
-                    <img src="{% static 'C:\Users\mosup\WaffrliWebsite\media\uploads\product\133802231298907063_3DRDaW8.jpg' %}" alt="Ad 1" class="ad-image">
+                    <img src="{% static 'images/ad1.jpg' %}" alt="Ad 1" class="ad-image">
                 </a>
             </div>
             <div class="ad-space">

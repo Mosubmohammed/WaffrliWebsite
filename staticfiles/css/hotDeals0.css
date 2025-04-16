@@ -8,7 +8,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   min-height: 100vh;
- 
+  background-color: #1976d2;
 }
 :root {
   --primary-color: #8b5cf6;
@@ -418,4 +418,247 @@ body {
 
 .next-btn {
   right: 15px;
+}
+/* Store type badges (keep for backwards compatibility) */
+.store-type-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 5px;
+  display: inline-block;
+}
+
+.store-type-badge.online {
+  background-color: #e0f7fa;
+  color: #0277bd;
+}
+
+.store-type-badge.physical {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Store info layout */
+.store-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Enhanced Jordan Cities filter */
+.jordan-cities-section h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jordan-cities-section h3:before {
+  content: "🇯🇴";
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.clear-city-filters {
+  font-size: 12px;
+  color: #f44336;
+  text-decoration: none;
+  cursor: pointer;
+  display: none; /* Hidden by default, shown via JS when cities are selected */
+}
+
+.clear-city-filters:hover {
+  text-decoration: underline;
+}
+
+.cities-filter {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 8px;
+  border-radius: 6px;
+  background: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.cities-filter .checkbox-label {
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.cities-filter .checkbox-label:hover {
+  background-color: #f0f0f0;
+}
+
+.cities-filter .checkbox-label input:checked + span {
+  font-weight: bold;
+  color: #2196f3;
+}
+
+.cities-filter::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cities-filter::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.cities-filter::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.cities-filter::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* City highlighting for selected cities */
+.city-highlight {
+  background-color: rgba(33, 150, 243, 0.1);
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Distance information */
+.distance-info {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  padding: 3px 6px;
+  border-radius: 12px;
+  background-color: #f5f5f5;
+  width: fit-content;
+}
+
+.distance-info i {
+  color: #1976d2;
+}
+
+.product-card:hover .distance-info {
+  background-color: #e3f2fd;
+  transform: scale(1.05);
+}
+
+/* Location display */
+.location {
+  display: flex !important;
+  flex-direction: column;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #555;
+}
+
+.location i {
+  margin-right: 5px;
+  color: #f44336;
+}
+
+/* Sort options */
+.sort-options {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.sort-options .radio-label {
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sort-options .radio-label:hover {
+  background-color: #f0f0f0;
+}
+
+.sort-options .radio-label input:checked + span {
+  font-weight: bold;
+  color: #1976d2;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio-label input {
+  margin: 0;
+}
+
+/* Nearest product highlights */
+.nearest-highlight {
+  position: relative;
+  box-shadow: 0 0 0 2px #4caf50, 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nearest-highlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  border-radius: 4px 4px 0 0;
+  z-index: 1;
+}
+
+.nearby-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Animation for products when filter changes */
+@keyframes highlightNew {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.product-highlight-animation {
+  animation: highlightNew 1s ease;
+}
+
+/* Responsive improvements for mobile */
+@media screen and (max-width: 768px) {
+  .cities-filter {
+    max-height: 180px;
+  }
+
+  .filter-section h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

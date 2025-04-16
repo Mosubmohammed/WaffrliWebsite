@@ -46,6 +46,21 @@
           </div>
       </div>
 
+      <!-- New Store Type Selection -->
+      <div class="form-group">
+          <label for="store-type">Store Type</label>
+          <div class="store-type-options">
+              <div>
+                  <input type="radio" id="online-store" name="store-type" value="online" checked>
+                  <label for="online-store">Online Store</label>
+              </div>
+              <div>
+                  <input type="radio" id="physical-store" name="store-type" value="physical">
+                  <label for="physical-store">Physical Store</label>
+              </div>
+          </div>
+      </div>
+
       <div class="form-grid">
           <div class="form-group floating-label">
               <input type="number" id="sale-price" name="sale-price" placeholder=" " step="0.01">
@@ -78,6 +93,25 @@
               </select>
               <label for="category">Category</label>
               <div class="error-message" id="category-error">Please select a category.</div>
+          </div>
+      </div>
+
+      <!-- Map container - Initially hidden, shown only for physical stores -->
+      <div id="location-map-container" style="display: none;">
+          <div class="form-group">
+              <label for="address">Store Address</label>
+              <input type="text" id="address" name="address" placeholder="Search for store address...">
+          </div>
+          
+          <!-- Hidden fields for location data -->
+          <input type="hidden" name="latitude" id="latitude">
+          <input type="hidden" name="longitude" id="longitude">
+          <input type="hidden" name="formatted_address" id="formatted_address">
+          
+          <div class="form-group">
+              <div id="map-container">
+                  <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
+              </div>
           </div>
       </div>
 
@@ -129,6 +163,31 @@
     const steps = document.querySelectorAll('.progress-step');
     const fields = Array.from(form.querySelectorAll('input, select, textarea'));
     const archiveButton = document.getElementById('archive-btn');
+    
+    // Store type elements
+    const onlineStore = document.getElementById('online-store');
+    const physicalStore = document.getElementById('physical-store');
+    const locationMapContainer = document.getElementById('location-map-container');
+    
+    // Toggle map visibility based on store type
+    onlineStore.addEventListener('change', function() {
+        if (this.checked) {
+            locationMapContainer.style.display = 'none';
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            document.getElementById('formatted_address').value = '';
+        }
+    });
+    
+    physicalStore.addEventListener('change', function() {
+        if (this.checked) {
+            locationMapContainer.style.display = 'block';
+            // Initialize map if it hasn't been loaded yet
+            if (typeof map === 'undefined') {
+                initMap();
+            }
+        }
+    });
     
     // Expiration date elements
     const defaultExpiration = document.getElementById('default-expiration');
@@ -267,8 +326,194 @@
   });
 </script>
 
-<style>
-  /* Add styles for the expiration options */
- 
-</style>
+<!-- Google Maps JavaScript -->
+<script>
+    // Add this function to check if location is in Jordan
+    function isLocationInJordan(addressComponents) {
+      if (!addressComponents || !Array.isArray(addressComponents)) {
+        return false;
+      }
+      
+      // Look for Jordan as the country
+      const countryComponent = addressComponents.find(
+        component => component.types.includes("country")
+      );
+      
+      if (!countryComponent) {
+        return false;
+      }
+      
+      // Check if the country is Jordan (both short and long names)
+      return countryComponent.short_name === "JO" || 
+             countryComponent.long_name.toLowerCase().includes("jordan");
+    }
+  
+    // Define the initMap function first
+    function initMap() {
+      // Default location (center of Jordan)
+      const defaultLocation = { lat: 31.9539, lng: 35.9106 };
+  
+      // Initialize map
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 13,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+      });
+  
+      // Initialize geocoder for address lookup
+      geocoder = new google.maps.Geocoder();
+  
+      // Create marker - using AdvancedMarkerElement to avoid deprecation warning
+      try {
+        // Try to use the new AdvancedMarkerElement if available
+        marker = new google.maps.marker.AdvancedMarkerElement({
+          position: defaultLocation,
+          map: map,
+          draggable: true,
+        });
+  
+        // Add click event to the map
+        map.addListener("click", (event) => {
+          marker.position = event.latLng;
+          updateLocationFields(event.latLng);
+        });
+  
+        // Update fields when marker is dragged
+        marker.addListener("dragend", () => {
+          updateLocationFields(marker.position);
+          map.panTo(marker.position);
+        });
+      } catch (e) {
+        // Fall back to the old Marker if AdvancedMarkerElement is not available
+        marker = new google.maps.Marker({
+          position: defaultLocation,
+          map: map,
+          draggable: true,
+          animation: google.maps.Animation.DROP,
+        });
+  
+        // Update fields when marker is dragged
+        marker.addListener("dragend", () => {
+          const position = marker.getPosition();
+          updateLocationFields(position);
+          map.panTo(position);
+        });
+  
+        // Add click event to the map
+        map.addListener("click", (event) => {
+          marker.setPosition(event.latLng);
+          updateLocationFields(event.latLng);
+        });
+      }
+  
+      // Set up address autocomplete
+      const addressInput = document.getElementById("address");
+      autocomplete = new google.maps.places.Autocomplete(addressInput);
+      autocomplete.setFields([
+        "geometry",
+        "formatted_address",
+        "address_components",
+      ]);
+  
+      // When a place is selected, update map and fields
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+  
+        if (!place.geometry) {
+          console.error("No geometry found for this place");
+          return;
+        }
+        
+        // Check if location is in Jordan
+        if (!isLocationInJordan(place.address_components)) {
+          alert("Sorry, our service is only available in Jordan at this time.");
+          // Clear the address field
+          document.getElementById("address").value = "";
+          document.getElementById("formatted_address").value = "";
+          return;
+        }
+  
+        // Update map view
+        map.setCenter(place.geometry.location);
+  
+        // Update marker position based on which marker type we're using
+        if (marker.setPosition) {
+          marker.setPosition(place.geometry.location);
+        } else {
+          marker.position = place.geometry.location;
+        }
+  
+        map.setZoom(15);
+  
+        // Update fields
+        updateLocationFields(place.geometry.location);
+        document.getElementById("formatted_address").value =
+          place.formatted_address;
+      });
+    }
+  
+    function updateLocationFields(location) {
+      // Update hidden form fields
+      document.getElementById("latitude").value = location.lat();
+      document.getElementById("longitude").value = location.lng();
+  
+      // Get address from coordinates
+      geocoder.geocode(
+        { location: { lat: location.lat(), lng: location.lng() } },
+        (results, status) => {
+          if (status === "OK" && results[0]) {
+            // Check if location is in Jordan
+            if (!isLocationInJordan(results[0].address_components)) {
+              alert("Sorry, our service is only available in Jordan at this time.");
+              // Clear the form fields
+              document.getElementById("address").value = "";
+              document.getElementById("formatted_address").value = "";
+              return;
+            }
+            
+            const address = results[0].formatted_address;
+            document.getElementById("formatted_address").value = address;
+  
+            // Don't update the address input if the user is currently typing
+            const addressInput = document.getElementById("address");
+            if (!addressInput.matches(":focus")) {
+              addressInput.value = address;
+            }
+          }
+        }
+      );
+    }
+  
+    // Initialize variables
+    let map;
+    let marker;
+    let geocoder;
+    let autocomplete;
+</script>
+
+<!-- Load Google Maps API with proper pattern -->
+<script>
+  // Load Google Maps API lazily - only when physical store is selected
+  function loadGoogleMapsScript() {
+    if (document.getElementById('physical-store').checked && !window.googleMapsLoaded) {
+      const script = document.createElement("script");
+      script.src =
+        "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+      window.googleMapsLoaded = true;
+    }
+  }
+  
+  // Load maps when physical store option is selected
+  document.getElementById('physical-store').addEventListener('change', function() {
+    if (this.checked) {
+      loadGoogleMapsScript();
+    }
+  });
+</script>
+
 {% endblock %}

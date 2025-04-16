@@ -4,6 +4,8 @@
 {% block content %}
 <link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
 <link href="{% static 'css/EditDealStyle.css' %}" rel="stylesheet" />
+<!-- Add Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places"></script>
 
 <div class="container">
   <div class="content-wrapper">
@@ -76,6 +78,115 @@
                 <label for="deal-store">Store</label>
                 <input type="text" id="deal-store" name="store" value="{{ product.store }}" required>
               </div>
+              
+              <div class="form-group">
+                <label for="deal-brand">Brand</label>
+                <input type="text" id="deal-brand" name="brand" value="{{ product.brand }}" required>
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <h3>Store Type & Location</h3>
+              
+              <div class="form-group">
+                <label>Store Type</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="store_type" value="online" {% if product.store_type == 'online' %}checked{% endif %}>
+                    <span>Online Store</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="store_type" value="physical" {% if product.store_type == 'physical' %}checked{% endif %}>
+                    <span>Physical Store</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="deal-location">City</label>
+                <select id="deal-location" name="location" required>
+                  <option value="">Select a city</option>
+                  <option value="Amman" {% if product.city == 'Amman' %}selected{% endif %}>Amman</option>
+                  <option value="Zarqa" {% if product.city == 'Zarqa' %}selected{% endif %}>Zarqa</option>
+                  <option value="Irbid" {% if product.city == 'Irbid' %}selected{% endif %}>Irbid</option>
+                  <option value="Aqaba" {% if product.city == 'Aqaba' %}selected{% endif %}>Aqaba</option>
+                  <option value="Salt" {% if product.city == 'Salt' %}selected{% endif %}>Salt</option>
+                  <option value="Madaba" {% if product.city == 'Madaba' %}selected{% endif %}>Madaba</option>
+                  <option value="Jerash" {% if product.city == 'Jerash' %}selected{% endif %}>Jerash</option>
+                  <option value="Ajloun" {% if product.city == 'Ajloun' %}selected{% endif %}>Ajloun</option>
+                  <option value="Mafraq" {% if product.city == 'Mafraq' %}selected{% endif %}>Mafraq</option>
+                  <option value="Tafilah" {% if product.city == 'Tafilah' %}selected{% endif %}>Tafilah</option>
+                  <option value="Karak" {% if product.city == 'Karak' %}selected{% endif %}>Karak</option>
+                  <option value="Ma'an" {% if product.city == 'Ma\'an' %}selected{% endif %}>Ma'an</option>
+                  <option value="Ramtha" {% if product.city == 'Ramtha' %}selected{% endif %}>Ramtha</option>
+                  <option value="Sahab" {% if product.city == 'Sahab' %}selected{% endif %}>Sahab</option>
+                  <option value="Russeifa" {% if product.city == 'Russeifa' %}selected{% endif %}>Russeifa</option>
+                  <option value="Al-Quwaysimah" {% if product.city == 'Al-Quwaysimah' %}selected{% endif %}>Al-Quwaysimah</option>
+                  <option value="Wadi as-Ser" {% if product.city == 'Wadi as-Ser' %}selected{% endif %}>Wadi as-Ser</option>
+                  <option value="Tila al-Ali" {% if product.city == 'Tila al-Ali' %}selected{% endif %}>Tila al-Ali</option>
+                  <option value="Baqa'a" {% if product.city == 'Baqa\'a' %}selected{% endif %}>Baqa'a</option>
+                  <option value="Zarqa Camp" {% if product.city == 'Zarqa Camp' %}selected{% endif %}>Zarqa Camp</option>
+                  <option value="Suwaylih" {% if product.city == 'Suwaylih' %}selected{% endif %}>Suwaylih</option>
+                  <option value="Um al-Jimal" {% if product.city == 'Um al-Jimal' %}selected{% endif %}>Um al-Jimal</option>
+                  <option value="Petra" {% if product.city == 'Petra' %}selected{% endif %}>Petra</option>
+                  <option value="Azraq" {% if product.city == 'Azraq' %}selected{% endif %}>Azraq</option>
+                </select>
+              </div>
+              
+              <!-- Map and location fields - only shown for physical stores -->
+              <div id="physical-store-fields" {% if product.store_type != 'physical' %}style="display: none;"{% endif %}>
+                <div class="form-group">
+                  <label>Pick Location on Map</label>
+                  <div id="map-container" style="height: 300px; margin-bottom: 15px;"></div>
+                  <p class="map-help">Drag the marker to the exact store location</p>
+                  
+                  <!-- Hidden fields to store coordinates -->
+                  <input type="hidden" id="latitude" name="latitude" value="{{ product.latitude|default_if_none:'' }}">
+                  <input type="hidden" id="longitude" name="longitude" value="{{ product.longitude|default_if_none:'' }}">
+                  <input type="hidden" id="formatted_address" name="formatted_address" value="{{ product.formatted_address|default_if_none:'' }}">
+                </div>
+                
+                <div class="form-group" id="location-display">
+                  <div class="location-preview">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="selected-location">{% if product.formatted_address %}{{ product.formatted_address }}{% else %}No location selected{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <h3>Deal Expiration</h3>
+              
+              <div class="form-group">
+                <label>Expiration Options</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="expiration_type" value="default" checked>
+                    <span>Default (10 days from now)</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="expiration_type" value="custom">
+                    <span>Custom date</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group" id="custom-expiration-container" style="display: none;">
+                <label for="expiration-date">Custom Expiration Date</label>
+                <input type="date" id="expiration-date" name="expiration_date" 
+                       min="{{ min_date|date:'Y-m-d' }}" 
+                       max="{{ max_date|date:'Y-m-d' }}" 
+                       value="{% if product.expires_at %}{{ product.expires_at|date:'Y-m-d' }}{% endif %}">
+                <small>Date must be within 30 days from today</small>
+              </div>
+              
+              <div class="form-group">
+                <div class="expiration-preview">
+                  <i class="fas fa-clock"></i>
+                  <span>Current expiration: {% if product.expires_at %}{{ product.expires_at|date:"F j, Y" }}{% else %}Not set{% endif %}</span>
+                </div>
+              </div>
             </div>
 
             <div class="form-section">
@@ -83,7 +194,7 @@
               
               <div class="form-group">
                 <div class="current-image">
-                  <img src="{{ product.image.url }}" alt="Current product image" class="preview-image">
+                  <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/placeholder.jpg' %}{% endif %}" alt="Current product image" class="preview-image">
                   <p>Current image</p>
                 </div>
                 <label for="deal-image">Upload New Image (optional)</label>
@@ -144,6 +255,138 @@
         reader.readAsDataURL(this.files[0]);
       }
     });
+    
+    // Store type toggle
+    const storeTypeRadios = document.querySelectorAll('input[name="store_type"]');
+    const physicalStoreFields = document.getElementById('physical-store-fields');
+    
+    storeTypeRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === 'physical') {
+          physicalStoreFields.style.display = 'block';
+          initMap();
+        } else {
+          physicalStoreFields.style.display = 'none';
+        }
+      });
+    });
+    
+    // Expiration date toggle
+    const expirationTypeRadios = document.querySelectorAll('input[name="expiration_type"]');
+    const customExpirationContainer = document.getElementById('custom-expiration-container');
+    
+    expirationTypeRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        customExpirationContainer.style.display = this.value === 'custom' ? 'block' : 'none';
+      });
+    });
+    
+    // Initialize map for physical store location if needed
+    let map, marker;
+    
+    function initMap() {
+      if (physicalStoreFields.style.display === 'none') return;
+      
+      // Check if map container exists
+      const mapContainer = document.getElementById('map-container');
+      if (!mapContainer) return;
+      
+      // Initial coordinates (defaults to Amman, Jordan if no coordinates are set)
+      const initialLat = {{ product.latitude|default:"31.9539" }};
+      const initialLng = {{ product.longitude|default:"35.9106" }};
+      
+      // Initialize map
+      map = new google.maps.Map(mapContainer, {
+        center: { lat: initialLat, lng: initialLng },
+        zoom: 13,
+        mapTypeControl: true,
+        streetViewControl: true
+      });
+      
+      // Add marker
+      marker = new google.maps.Marker({
+        position: { lat: initialLat, lng: initialLng },
+        map: map,
+        draggable: true,
+        animation: google.maps.Animation.DROP
+      });
+      
+      // Update hidden fields when marker is dragged
+      google.maps.event.addListener(marker, 'dragend', function() {
+        const position = marker.getPosition();
+        document.getElementById('latitude').value = position.lat();
+        document.getElementById('longitude').value = position.lng();
+        
+        // Reverse geocode to get address
+        reverseGeocode(position.lat(), position.lng());
+      });
+      
+      // Update marker position when user clicks on map
+      google.maps.event.addListener(map, 'click', function(event) {
+        marker.setPosition(event.latLng);
+        document.getElementById('latitude').value = event.latLng.lat();
+        document.getElementById('longitude').value = event.latLng.lng();
+        
+        // Reverse geocode to get address
+        reverseGeocode(event.latLng.lat(), event.latLng.lng());
+      });
+      
+      // Add search box for locations
+      const citySelect = document.getElementById('deal-location');
+      
+      citySelect.addEventListener('change', function() {
+        if (this.value) {
+          // Geocode the selected city to get coordinates
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ 'address': this.value + ', Jordan' }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+              const location = results[0].geometry.location;
+              
+              // Center map on the selected city
+              map.setCenter(location);
+              marker.setPosition(location);
+              
+              // Update form fields
+              document.getElementById('latitude').value = location.lat();
+              document.getElementById('longitude').value = location.lng();
+              document.getElementById('formatted_address').value = results[0].formatted_address;
+              document.getElementById('selected-location').textContent = results[0].formatted_address;
+            }
+          });
+        }
+      });
+      
+      // Initially set values
+      document.getElementById('latitude').value = initialLat;
+      document.getElementById('longitude').value = initialLng;
+      
+      // If we already have coordinates but no formatted address, get it
+      if (initialLat && initialLng && !document.getElementById('formatted_address').value) {
+        reverseGeocode(initialLat, initialLng);
+      }
+    }
+    
+    // Reverse geocoding function to get address from coordinates
+    function reverseGeocode(lat, lng) {
+      const geocoder = new google.maps.Geocoder();
+      const latlng = { lat: lat, lng: lng };
+      
+      geocoder.geocode({ 'location': latlng }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+          const address = results[0].formatted_address;
+          document.getElementById('formatted_address').value = address;
+          document.getElementById('selected-location').textContent = address;
+        } else {
+          console.error('Geocoder failed due to: ' + status);
+        }
+      });
+    }
+    
+    // Initialize map if physical store is selected
+    if (document.querySelector('input[name="store_type"][value="physical"]').checked) {
+      // Initialize after a small delay to ensure DOM is ready
+      setTimeout(initMap, 500);
+    }
   });
 </script>
 {% endblock %}

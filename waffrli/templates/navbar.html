@@ -116,7 +116,12 @@
         document.body.classList.toggle('sidebar-open');
     }
     
-    // Function to update the notification counter periodically
+    // Global variables
+    let notificationPollingInterval = null;
+    let lastNotificationCount = null;
+    const POLLING_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+    
+    // Function to update the notification counter
     function updateNotificationCounter() {
         fetch('/get_notification_count/')
             .then(response => {
@@ -128,24 +133,59 @@
             .then(data => {
                 const counter = document.querySelector('.cart-badge');
                 if (counter) {
-                    counter.textContent = data.count;
-                    
-                    if (data.count > 0) {
-                        counter.style.display = 'block';
-                    } else {
-                        counter.style.display = 'none';
+                    // Only update DOM if count has changed
+                    if (lastNotificationCount === null || lastNotificationCount !== data.count) {
+                        counter.textContent = data.count;
+                        
+                        if (data.count > 0) {
+                            counter.style.display = 'block';
+                        } else {
+                            counter.style.display = 'none';
+                        }
+                        
+                        // Update the last known count
+                        lastNotificationCount = data.count;
                     }
                 }
             })
             .catch(error => console.error('Error fetching notification count:', error));
     }
     
-    // Update the counter when page loads and periodically afterward
-    document.addEventListener('DOMContentLoaded', function() {
+    // Start notification polling
+    function startNotificationPolling() {
+        // Clear any existing interval
+        if (notificationPollingInterval) {
+            clearInterval(notificationPollingInterval);
+        }
+        
         // Initial update
         updateNotificationCounter();
         
-        // Set interval for updates (every 60 seconds)
-        setInterval(updateNotificationCounter, 60000);
+        // Set up polling interval (every 5 minutes instead of every minute)
+        notificationPollingInterval = setInterval(updateNotificationCounter, POLLING_INTERVAL);
+    }
+    
+    // Stop polling when page is not visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            // Clear interval when page is not visible
+            if (notificationPollingInterval) {
+                clearInterval(notificationPollingInterval);
+                notificationPollingInterval = null;
+            }
+        } else {
+            // Restart polling when page becomes visible again
+            startNotificationPolling();
+        }
+    });
+    
+    // Listen for custom events to update notifications
+    window.addEventListener('notificationUpdate', function() {
+        updateNotificationCounter();
+    });
+    
+    // Update the counter when page loads and start polling
+    document.addEventListener('DOMContentLoaded', function() {
+        startNotificationPolling();
     });
 </script>

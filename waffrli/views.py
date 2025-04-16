@@ -16,10 +16,9 @@ from .utils import *
 from waffrliApp.settings import db
 from django.utils import timezone
 from datetime import datetime
+from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrapper
 
 
-def test(request):
-    return render(request,'test.html',{})
 def home(request):
     Product.objects.filter(expires_at__lte=timezone.now()).delete()
     products = Product.objects.all()
@@ -27,43 +26,9 @@ def home(request):
 
 
 
-# def category(request, foo):
-#     foo = foo.replace('-', ' ').strip()
-#     try:
-#         category = Category.objects.get(name__iexact=foo)
-#         products = Product.objects.filter(category=category)
-        
-#         # Get unique store names from products in this category
-#         stores = Product.objects.filter(category=category).values_list('store', flat=True).distinct()
-        
-#         # Get unique city names (instead of location)
-#         cities = Product.objects.filter(category=category).values_list('city', flat=True).distinct()
-        
-#         # Get unique brand names
-#         brands = Product.objects.filter(category=category).values_list('brand', flat=True).distinct()
-
-#         return render(request, 'category.html', {
-#             'products': products, 
-#             'category': category, 
-#             'stores': stores,
-#             'locations': cities,  # Pass cities as locations for the template
-#             'brands': brands
-#         })
-#     except Category.DoesNotExist:
-#         messages.error(request, 'That category does not exist')
-#     except Exception as e:
-#         print(f"Unexpected error: {e}")
-#         messages.error(request, 'An unexpected error occurred')
-
-#     return redirect('home')
-
 
 def product_list_base(request, page_type=None, category=None):
-    """
-    Base view function for all product listings with filtering
-    Handles hot deals, popular deals, and category filtering
-    """
-    # Start with the appropriate base query depending on page type
+
     if page_type == 'hot_deals':
         # Hot deals filter: calculate discount ≥ 70%
         # Using database-level filtering for better performance
@@ -166,6 +131,55 @@ def product_list_base(request, page_type=None, category=None):
             # Handle invalid input silently
             pass
     
+    # Check if user is logged in and has location data
+    user_has_location = False
+    user_lat = None
+    user_lng = None
+    
+    if request.user.is_authenticated:
+        try:
+            customer = request.user.customer
+            if customer.latitude is not None and customer.longitude is not None:
+                user_has_location = True
+                user_lat = customer.latitude
+                user_lng = customer.longitude
+        except (AttributeError, Customer.DoesNotExist):
+            # User doesn't have a customer profile or location data
+            pass
+    
+    # Handle distance-based sorting
+    sort_by = request.GET.get('sort_by', '')
+    
+    # Get all the products with filters applied (for filter options)
+    # Use a copy to avoid modifying the original queryset
+    filtered_products = products
+    
+    # Apply distance-based sorting if requested
+    # Important: This happens AFTER all other filters are applied
+    if sort_by == 'distance' and user_has_location:
+        # Get products for distance calculation
+        products_list = list(products)
+        
+        # Calculate distances for all products
+        for product in products_list:
+            if product.latitude is not None and product.longitude is not None:
+                product.distance_to = product.distance_to(user_lat, user_lng)
+            else:
+                # For products without location data, set to a high value
+                # so they appear last when sorted
+                product.distance_to = float('inf')
+        
+        # Sort by distance
+        products_list.sort(key=lambda x: x.distance_to if isinstance(x.distance_to, (int, float)) else float('inf'))
+        
+        # Convert back to a Django queryset with preserved order
+        product_ids = [p.id for p in products_list]
+        
+        if product_ids:
+            # Use Case/When to preserve the sort order in the database query
+            preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
+            products = products.filter(id__in=product_ids).order_by(preserved_order)
+    
     # Handle JSON response for AJAX requests
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET:
         products_data = []
@@ -184,6 +198,11 @@ def product_list_base(request, page_type=None, category=None):
             # Check if the current user has liked this product
             liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
             
+            # Calculate distance if needed
+            distance = None
+            if user_has_location and product.latitude and product.longitude:
+                distance = product.distance_to(user_lat, user_lng)
+            
             products_data.append({
                 'id': product.id,
                 'name': product.Name,
@@ -191,6 +210,7 @@ def product_list_base(request, page_type=None, category=None):
                 'sale_price': str(product.sale_price) if product.sale_price else None,
                 'description': product.Description,
                 'store': product.store,
+                'store_type': product.store_type,
                 'city': product.city,
                 'brand': product.brand,
                 'category_name': product.category.name,
@@ -200,14 +220,11 @@ def product_list_base(request, page_type=None, category=None):
                 'customer_pic_url': customer_pic_url,
                 'discount_percentage': round(discount_percentage, 2) if discount_percentage else 0,
                 'likes_count': product.number_of_likes(),
-                'comment_count': 0,  # Replace with actual comment count if available
                 'liked_by_user': liked_by_user,
+                'distance': distance,  # Include distance in kilometers
             })
         
         return JsonResponse({'products': products_data})
-    
-    # Regular HTML response
-    # --------------------
     
     # Apply pagination
     paginator = Paginator(products, 20)  # Show 20 products per page
@@ -222,17 +239,50 @@ def product_list_base(request, page_type=None, category=None):
         # If page is out of range, deliver last page
         page_obj = paginator.page(paginator.num_pages)
     
-    # Get data for filter dropdowns
-    # Only fetch distinct values for better performance
-    stores_list = Product.objects.values_list('store', flat=True).distinct()
-    cities_list = Product.objects.values_list('city', flat=True).distinct()
-    brands_list = Product.objects.values_list('brand', flat=True).distinct()
+    # Calculate distance for each product in the current page
+    if user_has_location:
+        for product in page_obj:
+            if product.latitude and product.longitude:
+                product.distance_to = product.distance_to(user_lat, user_lng)
+            else:
+                product.distance_to = None
+    
+    # Get distinct store, city, and brand values for filter dropdowns
+    # Use .order_by().distinct('field') to ensure uniqueness
+    # Get unique store names (case-insensitive)
+    store_values = filtered_products.values_list('store', flat=True)
+    stores_list = sorted(set(store.strip().lower() for store in store_values if store), key=lambda x: x.lower())
+    
+    # Get unique city names (case-insensitive)
+    city_values = filtered_products.values_list('city', flat=True)
+    cities_list = sorted(set(city.strip().lower() for city in city_values if city), key=lambda x: x.lower())
+    
+    # Get unique brand names (case-insensitive)
+    brand_values = filtered_products.values_list('brand', flat=True)
+    brands_list = sorted(set(brand.strip().lower() for brand in brand_values if brand), key=lambda x: x.lower())
+    
+    # Define list of main Jordan cities
+    jordan_cities = [
+        'Amman', 'Zarqa', 'Irbid', 'Aqaba', 'Salt', 'Madaba', 'Jerash',
+        'Ajloun', 'Mafraq', 'Tafilah', 'Karak', 'Ma\'an', 'Ramtha', 'Sahab', 
+        'Russeifa', 'Al-Quwaysimah', 'Wadi as-Ser', 'Tila al-Ali', 'Baqa\'a',
+        'Zarqa Camp', 'Suwaylih', 'Um al-Jimal', 'Petra', 'Azraq'
+    ]
+    
+    # If we have cities in the database that aren't in our predefined list, add them
+    for city in cities_list:
+        if city and city.capitalize() not in jordan_cities:
+            jordan_cities.append(city.capitalize())
+    
+    # Sort the cities alphabetically for better UI
+    jordan_cities.sort()
     
     context = {
         'products': page_obj,
         'page_obj': page_obj,
         'stores': stores_list,
-        'locations': cities_list,
+        'locations': cities_list,  # Keep for backward compatibility
+        'jordan_cities': jordan_cities,  # Add the list of Jordan cities
         'brands': brands_list,
         'selected_stores': stores,
         'selected_locations': locations,
@@ -243,6 +293,8 @@ def product_list_base(request, page_type=None, category=None):
         'page_title': page_title,
         'page_type': page_type,
         'category': category,
+        'sort_by': sort_by,
+        'user_has_location': user_has_location,
     }
     
     # Choose the appropriate template
@@ -290,25 +342,34 @@ def product(request, pk):
             '-create_at'  # Sort by newest first
         )[:6]  # Limit to 6 products
         
-        # Calculate discount percentage for product and related products
+        # Calculate discount percentage for product
         if product.Price and product.sale_price:
-            product.discount_percentage = round(((product.Price - product.sale_price) / product.Price) * 100)
+            product.discount_percentage = product.get_discount_percentage()
         else:
             product.discount_percentage = 0
         
         # Calculate discount for related products
         for related_product in related_products:
             if related_product.Price and related_product.sale_price:
-                discount = ((related_product.Price - related_product.sale_price) / related_product.Price) * 100
-                related_product.discount_percentage = round(discount)
+                related_product.discount_percentage = related_product.get_discount_percentage()
             else:
                 related_product.discount_percentage = 0
-                
-            # Add a flag for popular products (e.g., products with high views or likes)
+            
+            # Add a flag for popular products
             related_product.is_popular = related_product.views > 100 or related_product.likes.count() > 10
             
             # Add time ago for display
             related_product.time_ago = related_product.create_at
+        
+        # Get the user's following status if logged in
+        is_following = False
+        if request.user.is_authenticated and request.user != product.user:
+            # Assuming you have a following relationship model
+            # is_following = Following.objects.filter(follower=request.user, followed=product.user).exists()
+            pass
+        
+        # Count deals by this user
+        deal_count = Product.objects.filter(user=product.user).count()
         
         # Handle POST request for comment submission
         if request.method == 'POST':
@@ -345,8 +406,13 @@ def product(request, pk):
             'product': product,
             'comments': comments,
             'related_products': related_products,
+            'is_following': is_following,
+            'deal_count': deal_count,
             'user': request.user,  # Ensure user is in context
         }
+        
+        # Debug image URLs
+        print(f"Product image URL: {product.image.url if product.image else 'No image'}")
         
         return render(request, 'product.html', context)
         
@@ -373,7 +439,7 @@ def register(request):
         formatted_address = request.POST.get('formatted_address')
         
         # Generate username from email (or use a field in your form for username)
-        username = email.split('@')[0]
+        username = first_name
         
         # Basic validation
         if password != confirm_password:
@@ -549,7 +615,6 @@ def logout_user(request):
 
 
 def restPassword(request):
-
     if request.method == 'POST':
         email = request.POST.get('email')
         new_password = request.POST.get('new_password')
@@ -557,12 +622,20 @@ def restPassword(request):
         if not email or not new_password:
             messages.error(request, "Email and new password are required.")
             return render(request, 'restPassword.html')
-            
+        
         try:
             # Update Django user password
             user = User.objects.get(email=email)
             user.set_password(new_password)
             user.save()
+            
+            # Update Customer model password
+            try:
+                customer = Customer.objects.get(user=user)
+                customer.password = new_password  # Note: This stores plaintext password which is not recommended
+                customer.save()
+            except Customer.DoesNotExist:
+                messages.warning(request, "User found but customer profile not found.")
             
             # Update Firebase user password
             try:
@@ -577,7 +650,7 @@ def restPassword(request):
             except Exception as firebase_e:
                 messages.warning(request, "Password reset successful in our system, but not synchronized with authentication provider.")
                 print(f"Firebase password update error: {str(firebase_e)}")
-                
+            
             return redirect('login')
             
         except User.DoesNotExist:
@@ -589,7 +662,6 @@ def restPassword(request):
             
     # For GET requests
     return render(request, 'restPassword.html')
-
 
 def forgot_password(request):
     """Handle forgot password requests"""
@@ -689,10 +761,34 @@ def post_deal(request):
         brand = request.POST.get('brand')
         category_id = request.POST.get('category')
         location = request.POST.get('location')
+        store_type = request.POST.get('store-type', 'online')  # Get store type (physical/online)
+        
+        # Get location data (only relevant for physical stores)
+        latitude = None
+        longitude = None
+        formatted_address = None
+        if store_type == 'physical':
+            latitude_str = request.POST.get('latitude')
+            longitude_str = request.POST.get('longitude')
+            formatted_address = request.POST.get('formatted_address')
+            
+            # Validate location data for physical stores
+            if not latitude_str or not longitude_str or not formatted_address:
+                messages.error(request, "Please specify the store location on the map.")
+                return redirect('post_deal')
+                
+            # Convert to float
+            try:
+                latitude = float(latitude_str)
+                longitude = float(longitude_str)
+            except (ValueError, TypeError):
+                messages.error(request, "Invalid location coordinates.")
+                return redirect('post_deal')
         
         # Get expiration date info
         expiration_type = request.POST.get('expiration-type', 'default')
         expiration_date_str = request.POST.get('expiration-date')
+        
         # Validate required fields
         if not name or not store or not category_id or not location:
             messages.error(request, "Please fill in all required fields.")
@@ -718,8 +814,7 @@ def post_deal(request):
             messages.error(request, "Invalid price format.")
             return redirect('post_deal')
         
-        
-# Set expiration date
+        # Set expiration date
         if expiration_type == 'custom' and expiration_date_str:
             try:
                 # Parse the date from the string (format: YYYY-MM-DD)
@@ -740,7 +835,8 @@ def post_deal(request):
                 return redirect('post_deal')
         else:
             # Default: 10 days from now
-            expiration_date = timezone.now() + timezone.timedelta(days=1)
+            expiration_date = timezone.now() + timezone.timedelta(days=10)
+        
         # Create and save the product
         deal = Product.objects.create(
             user=request.user,
@@ -754,15 +850,17 @@ def post_deal(request):
             image=pic,
             category=category,
             city=location,
-            expires_at=expiration_date,  
+            expires_at=expiration_date,
+            store_type=store_type,  # Add store type (physical/online)
+            latitude=latitude,  # Add latitude (may be None for online stores)
+            longitude=longitude,  # Add longitude (may be None for online stores)
+            formatted_address=formatted_address,  # Add formatted address (may be None for online stores)
         )
 
         # Check for wishlist matches and create notifications
         check_deal_against_wishlist(deal)
 
-
         messages.success(request, "Deal posted successfully!")
-            
         return redirect('product', pk=deal.id)
     
     # For GET requests - just display the form
@@ -1012,31 +1110,77 @@ def settings(request):
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
+                    # Check if username already exists
+                    if User.objects.filter(username=new_username).exists():
+                        messages.error(request, "Username already exists. Please choose another one.")
+                        return redirect('settings')
+                    
                     request.user.username = new_username
                     request.user.save()
                     messages.success(request, 'Username updated successfully!')
                     return redirect('settings')
             
+            # Handle the main form with Save Changes button
             if 'update_profile' in request.POST:
                 email = request.POST.get('email')
+                
+                # Check if email has changed
                 if email and email != request.user.email:
-                    request.user.email = email
-                    request.user.save()
-                    # If email changed, you might want to set email_verified to False
-                    customer.email_verified = False
-                    customer.save()
-                    messages.success(request, 'Email updated successfully! Please verify your new email.')
-                    return redirect('settings')
+                    # Check if email already exists for another user
+                    if User.objects.filter(email=email).exclude(id=request.user.id).exists():
+                        messages.error(request, "Email already in use by another account.")
+                        return redirect('settings')
+                    
+                    # Store old email for reference
+                    old_email = request.user.email
+                    
+                    try:
+                        # Update Django User model
+                        request.user.email = email
+                        request.user.save()
+                        
+                        # Update Customer model
+                        customer.email = email
+                        customer.save()
+                        
+                        # Update Firebase
+                        try:
+                            firebase_user = FirebaseUser.objects.get(user=request.user)
+                            
+                            import firebase_admin
+                            from firebase_admin import auth
+                            
+                            # Update Firebase email
+                            auth.update_user(
+                                firebase_user.firebase_uid,
+                                email=email
+                            )
+                            
+                            messages.success(request, 'Email updated successfully!')
+                        
+                        except FirebaseUser.DoesNotExist:
+                            messages.warning(request, "Email updated in our system but not in authentication system. Please contact support.")
+                        
+                    except Exception as e:
+                        # Revert changes if something went wrong
+                        request.user.email = old_email
+                        request.user.save()
+                        if hasattr(customer, 'email'):
+                            customer.email = old_email
+                            customer.save()
+                        messages.error(request, f"Failed to update email: {str(e)}")
+                
+                messages.success(request, 'Settings updated successfully!')
+                return redirect('settings')
         
         context = {
             'allow_username_edit': allow_username_edit,
         }
         return render(request, 'settings.html', context)
-        
-    except AttributeError:
-        messages.error(request, 'Customer profile not found. Please contact support.')
+    
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
         return redirect('home')
-
 
 
     
@@ -1047,18 +1191,34 @@ def update_info(request):
         customer = request.user.customer
         
         if request.method == 'POST':
+            # Get updated information
+            first_name = request.POST.get('first_name', '')
+            last_name = request.POST.get('last_name', '')
             
-            
-            request.user.first_name = request.POST.get('first_name', '')
-            request.user.last_name = request.POST.get('last_name', '')
+            # Update user information in Django User model
+            request.user.first_name = first_name
+            request.user.last_name = last_name
             request.user.save()
             
-            # Update customer profile information
+            # Update customer profile information including first_name and last_name
+            customer.first_name = first_name
+            customer.last_name = last_name
             customer.phone = request.POST.get('phone', '')
-            customer.address = request.POST.get('address', '')
-            customer.city = request.POST.get('city', '')
-            customer.country = request.POST.get('country', '')
-
+            
+            # Get location data from form
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+            formatted_address = request.POST.get('formatted_address')
+            
+            # Update location data if provided
+            if latitude and longitude:
+                customer.latitude = float(latitude)
+                customer.longitude = float(longitude)
+            
+            if formatted_address:
+                customer.formatted_address = formatted_address
+            
+            # Update profile image if provided
             if request.FILES.get('image'):
                 customer.image = request.FILES.get('image')
             
@@ -1372,34 +1532,107 @@ def popular_deals(request):
 def edit_deal(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
-
+    # Check if the user is the owner of the deal
+    if product.user != request.user:
+        messages.error(request, "You do not have permission to edit this deal.")
+        return redirect('product', pk=product_id)
+    
     if request.method == "POST":
         try:
+            # Basic information
             product.Name = request.POST.get('Name')
             product.Description = request.POST.get('Description')
             product.Price = request.POST.get('Price')
             product.sale_price = request.POST.get('sale_price')
             product.Dealurl = request.POST.get('Dealurl')
             product.store = request.POST.get('store')
+            product.brand = request.POST.get('brand')
             
+            # Handle store type and location
+            store_type = request.POST.get('store_type')
+            if store_type:
+                product.store_type = store_type
+                
+                # If it's a physical store, update location information
+                if store_type == 'physical':
+                    product.city = request.POST.get('location')
+                    
+                    # Get location coordinates
+                    latitude_str = request.POST.get('latitude')
+                    longitude_str = request.POST.get('longitude')
+                    formatted_address = request.POST.get('formatted_address')
+                    
+                    # Validate location data for physical stores
+                    if latitude_str and longitude_str:
+                        try:
+                            product.latitude = float(latitude_str)
+                            product.longitude = float(longitude_str)
+                            product.formatted_address = formatted_address
+                        except (ValueError, TypeError):
+                            messages.warning(request, "Invalid location coordinates. Location not updated.")
+                else:
+                    # For online stores, clear location data
+                    product.city = request.POST.get('location')  # Still keep the city/location
+                    product.latitude = None
+                    product.longitude = None
+                    product.formatted_address = None
+            
+            # Handle expiration date
+            expiration_type = request.POST.get('expiration_type', 'default')
+            expiration_date_str = request.POST.get('expiration_date')
+            
+            if expiration_type == 'custom' and expiration_date_str:
+                try:
+                    # Parse the date from the string (format: YYYY-MM-DD)
+                    expiration_date = timezone.make_aware(datetime.strptime(expiration_date_str, '%Y-%m-%d'))
+                    
+                    # Validate that the expiration date is in the future
+                    if expiration_date <= timezone.now():
+                        messages.warning(request, "Expiration date must be in the future. Using default (10 days).")
+                        expiration_date = timezone.now() + timezone.timedelta(days=10)
+                    
+                    # Validate that the expiration date is not more than 30 days in the future
+                    max_date = timezone.now() + timezone.timedelta(days=30)
+                    if expiration_date > max_date:
+                        messages.warning(request, "Expiration date cannot be more than 30 days. Set to maximum allowed.")
+                        expiration_date = max_date
+                        
+                    product.expires_at = expiration_date
+                except ValueError:
+                    messages.warning(request, "Invalid date format. Expiration date not updated.")
+            elif expiration_type == 'default':
+                # Default: 10 days from now
+                product.expires_at = timezone.now() + timezone.timedelta(days=10)
+            
+            # Handle image upload
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
-
+            
+            # Save the updated product
             product.save()
             
             messages.success(request, "Your deal has been updated successfully!")
-            return redirect('product', pk=product_id) 
+            return redirect('product', pk=product_id)
             
         except Exception as e:
             print(f"Error updating deal: {str(e)}")
             messages.error(request, "An error occurred while updating the deal. Please try again.")
-            context = {'product': product}
-            return render(request, 'edit_deal.html', context)
     
-    # Add this part to handle GET requests
-    else:
-        context = {'product': product}
-        return render(request, 'edit_deal.html', context)
+    # For GET requests, calculate the discount percentage for display
+    discount_percentage = product.get_discount_percentage()
+    
+    # Calculate min and max dates for the date picker
+    today = timezone.now().date()
+    max_date = today + timezone.timedelta(days=30)
+    
+    context = {
+        'product': product,
+        'discount_percentage': discount_percentage,
+        'min_date': today,
+        'max_date': max_date,
+    }
+    
+    return render(request, 'edit_deal.html', context)
         
         
         

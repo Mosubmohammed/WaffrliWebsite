@@ -85,23 +85,23 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',  # Use the default database instead
-#         'USER': 'Mosab',
-#         'PASSWORD': '3Nksory_2309',
-#         'HOST': 'wafrlliwebsite.cts24g66cvk9.eu-north-1.rds.amazonaws.com',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',  # Use the default database instead
+        'USER': 'Mosab',
+        'PASSWORD': '3Nksory_2309',
+        'HOST': 'wafrlliwebsite.cts24g66cvk9.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',
+    }
+}
 
 
 
@@ -152,7 +152,7 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-cred = credentials.Certificate("C:/Users/mosup/WaffrliWebsite/firebase_config.json")
+cred = credentials.Certificate(os.path.join(BASE_DIR, "waffrli-30386-firebase-adminsdk-fbsvc-fba7e0c47b.json"))
 firebase_app = firebase_admin.initialize_app(cred)
 
 # Initialize Firestore

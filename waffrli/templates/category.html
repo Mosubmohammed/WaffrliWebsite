@@ -77,168 +77,180 @@
 <!-- Main Content -->
 <div class="main-content">
     <!-- Filters -->
-    <aside class="filters">
-        <h2>Filters</h2>
-        <form method="GET" action="{% url 'hot_deals' %}">
-            <!-- Stores -->
-            <div class="filter-section">
-                <h3>Stores</h3>
-                {% for store in stores %}
+    <!-- Updated Filter Section for hot_deals.html, popular_deals.html, and category.html -->
+<aside class="filters">
+    <h2>Filters</h2>
+    <form method="GET" action="{{ request.path }}">
+        <!-- Store Type (New) -->
+        <div class="filter-section">
+            <h3>Store Type</h3>
+            <div class="store-type-filters">
                 <label class="checkbox-label">
-                    <input type="checkbox" name="store" value="{{ store }}" 
-                          {% if store in selected_stores %}checked{% endif %}> 
-                    <span>{{ store }}</span>
+                    <input type="checkbox" name="store_type" value="online" 
+                           {% if 'online' in request.GET.getlist 'store_type' %}checked{% endif %}>
+                    <span>Online Stores</span>
                 </label>
-                {% endfor %}
-            </div>
-    
-            <!-- Rating -->
-            <div class="filter-section">
-                <h3>Rating</h3>
-                <div class="rating-filters">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
-                        <span class="stars">★★★★★</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
-                        <span class="stars">★★★★☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
-                        <span class="stars">★★★☆☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
-                        <span class="stars">★★☆☆☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
-                        <span class="stars">★☆☆☆☆</span>
-                    </label>
-                </div>
-            </div>
-    
-            <!-- Location -->
-            <div class="filter-section">
-                <h3>Location</h3>
-                {% for location in locations %}
                 <label class="checkbox-label">
-                    <input type="checkbox" name="location" value="{{ location }}" 
-                          {% if location in selected_locations %}checked{% endif %}> 
-                    <span>{{ location }}</span>
+                    <input type="checkbox" name="store_type" value="physical" 
+                           {% if 'physical' in request.GET.getlist 'store_type' %}checked{% endif %}>
+                    <span>Physical Stores</span>
                 </label>
-                {% endfor %}
             </div>
-    
-            <!-- Brands -->
-            <div class="filter-section">
-                <h3>Brands</h3>
-                {% for brand in brands %}
-                <label class="checkbox-label">
-                    <input type="checkbox" name="brand" value="{{ brand }}" 
-                          {% if brand in selected_brands %}checked{% endif %}>
-                    <span>{{ brand }}</span>
-                </label>
-                {% endfor %}
-            </div>
-    
-            <!-- Price Range -->
-            <div class="filter-section">
-                <h3>Price Range</h3>
-                <div class="price-slider">
-                    <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
-                    <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
-                    <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
-                    <div class="price-values">
-                        <span>$0</span>
-                        <span id="currentPrice">${{ max_price|default:'100' }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Filter Buttons -->
-            <div class="filter-buttons">
-                <button type="submit" id="applyFilter" class="filter-btn apply">Apply Filters</button>
-                <a href="{% url 'hot_deals' %}" id="resetFilter" class="filter-btn reset">Reset Filters</a>
-            </div>
-        </form>
-    </aside>
+        </div>
 
-    <!-- Products Grid -->
-    <main class="Subproducts-grid">
-        {% if products %}
-            {% for product in products %}
-            <div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
-                <div class="product-image">
-                    <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
-                    <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-title">{{ product.Name }}</h3>
-                    <div class="price-rating">
-                        <span class="current-price">${{ product.sale_price }}</span>
-                        <span class="original-price">${{ product.Price }}</span>
-                    </div>
-                    <div class="store">{{ product.store }}</div>
-                    <div class="brand">{{ product.brand }}</div>
-                    <div class="location" style="display: none;">{{ product.city }}</div>
-                    <a href="{% url 'product' product.id %}">            
-                        <button class="view-deal-btn">
-                            <span class="bag-icon">🛍️</span>
-                            View Deal
-                        </button>
-                    </a>
-                    {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                        {% csrf_token %}
-                        <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                            <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                            <span class="like-count">{{ product.likes.count }}</span>
-                        </button>
-                    </form>
-                    {% endif %}
+        <!-- Stores -->
+        <div class="filter-section">
+            <h3>Stores</h3>
+            {% for store in stores %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="store" value="{{ store }}" 
+                      {% if store in selected_stores %}checked{% endif %}> 
+                <span>{{ store }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-section">
+            <h3>Rating</h3>
+            <div class="rating-filters">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
+                    <span class="stars">★★★★★</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
+                    <span class="stars">★★★★☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
+                    <span class="stars">★★★☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
+                    <span class="stars">★★☆☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
+                    <span class="stars">★☆☆☆☆</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="filter-section">
+            <h3>Location</h3>
+            {% for location in locations %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="location" value="{{ location }}" 
+                      {% if location in selected_locations %}checked{% endif %}> 
+                <span>{{ location }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Brands -->
+        <div class="filter-section">
+            <h3>Brands</h3>
+            {% for brand in brands %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="brand" value="{{ brand }}" 
+                      {% if brand in selected_brands %}checked{% endif %}>
+                <span>{{ brand }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-section">
+            <h3>Price Range</h3>
+            <div class="price-slider">
+                <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
+                <div class="price-values">
+                    <span>$0</span>
+                    <span id="currentPrice">${{ max_price|default:'100' }}</span>
                 </div>
             </div>
-            {% endfor %}
-            
-            <!-- Pagination -->
-            {% if page_obj.has_other_pages %}
-            <div class="pagination">
-                <ul>
-                    {% if page_obj.has_previous %}
-                    <li>
-                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" class="first-page">«</a>
-                    </li>
-                    <li>
-                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" class="prev-page">‹</a>
-                    </li>
-                    {% endif %}
-                    
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                        <li><span class="current-page">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li><a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
-                    <li>
-                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" class="next-page">›</a>
-                    </li>
-                    <li>
-                        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="last-page">»</a>
-                    </li>
-                    {% endif %}
-                </ul>
+        </div>
+        
+        <!-- Sort By (New) -->
+        {% if user_has_location %}
+        <div class="filter-section">
+            <h3>Sort By</h3>
+            <div class="sort-options">
+                <label class="radio-label">
+                    <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
+                    <span>Default</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
+                    <span>Distance (Nearest First)</span>
+                </label>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button type="submit" id="applyFilter" class="filter-btn apply">Apply Filters</button>
+            <a href="{{ request.path }}" id="resetFilter" class="filter-btn reset">Reset Filters</a>
+        </div>
+    </form>
+</aside>
+
+
+<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+    <div class="product-image">
+        <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+    </div>
+    <div class="product-details">
+        <h3 class="product-title">{{ product.Name }}</h3>
+        <div class="price-rating">
+            <span class="current-price">${{ product.sale_price }}</span>
+            <span class="original-price">${{ product.Price }}</span>
+        </div>
+        <div class="store-info">
+            <div class="store">{{ product.store }}</div>
+            <!-- Store Type Badge (New) -->
+            {% if product.store_type %}
+            <div class="store-type-badge {{ product.store_type }}">
+                {{ product.store_type|title }}
             </div>
             {% endif %}
+        </div>
+        <div class="brand">{{ product.brand }}</div>
+        <div class="location">
+            <i class="fas fa-map-marker-alt"></i> {{ product.city }}
             
-        {% else %}
-            <p class="no-results">No products found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+            <!-- Distance Information (New) -->
+            {% if user_has_location and product.store_type == 'physical' and product.latitude and product.longitude %}
+            <div class="distance-info">
+                <i class="fas fa-route"></i>
+                <span>{{ product.distance_to|floatformat:1 }} km away</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <a href="{% url 'product' product.id %}">            
+            <button class="view-deal-btn">
+                <span class="bag-icon">🛍️</span>
+                View Deal
+            </button>
+        </a>
+        {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+            {% csrf_token %}
+            <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                <span class="like-count">{{ product.likes.count }}</span>
+            </button>
+        </form>
         {% endif %}
-    </main>
+    </div>
+</div>
 </div>
 
 <div class="quote-section">
@@ -248,6 +260,71 @@
 </div>
 
 <script>
+    // Add this JavaScript to the existing scripts in hot_deals.html, popular_deals.html, and category.html
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle sort option changes
+    const sortRadios = document.querySelectorAll('input[name="sort_by"]');
+    
+    // Add change event listener to each radio button
+    sortRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Submit the form when a sort option is selected
+            this.closest('form').submit();
+        });
+    });
+    
+    // Handle store type filter
+    const storeTypeCheckboxes = document.querySelectorAll('input[name="store_type"]');
+    const allCards = document.querySelectorAll('.product-card');
+    
+    // Function to enhance product cards with distance info animations
+    function enhanceDistanceInfo() {
+        const distanceInfoElements = document.querySelectorAll('.distance-info');
+        
+        distanceInfoElements.forEach(element => {
+            // Add subtle animation to highlight distance when a user hovers over a product
+            const parentCard = element.closest('.product-card');
+            
+            if (parentCard) {
+                parentCard.addEventListener('mouseenter', () => {
+                    element.style.transform = 'scale(1.05)';
+                    element.style.fontWeight = '500';
+                });
+                
+                parentCard.addEventListener('mouseleave', () => {
+                    element.style.transform = 'scale(1)';
+                    element.style.fontWeight = 'normal';
+                });
+            }
+        });
+    }
+    
+    // Call the enhancement function
+    enhanceDistanceInfo();
+    
+    // Highlight nearest deals if sorted by distance
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('sort_by') === 'distance') {
+        const cards = Array.from(document.querySelectorAll('.product-card'));
+        
+        // Find the first 3 cards (they should be the nearest ones)
+        const nearestCards = cards.slice(0, 3);
+        
+        // Add a subtle highlight to them
+        nearestCards.forEach(card => {
+            card.classList.add('nearest-highlight');
+            
+            // Add a "Nearby" label to the first card
+            if (card === nearestCards[0]) {
+                const nearbyBadge = document.createElement('div');
+                nearbyBadge.className = 'nearby-badge';
+                nearbyBadge.innerHTML = '<i class="fas fa-map-marker-alt"></i> Nearest to you';
+                card.appendChild(nearbyBadge);
+            }
+        });
+    }
+});
     document.addEventListener('DOMContentLoaded', () => {
         // Price range slider functionality
         const priceRange = document.getElementById('priceRange');
