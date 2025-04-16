@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 # from firebase_admin import auth as firebase_auth
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils import *
-from waffrliApp.settings import db
+# from waffrliApp.settings import db
 from django.utils import timezone
 from datetime import datetime
 
