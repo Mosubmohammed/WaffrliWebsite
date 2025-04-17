@@ -1,41 +1,31 @@
 {% load static %}
-
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
     <title>Ankasory</title>
     <!-- Favicon-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <link
       rel="icon"
       type="image/x-icon"
       href="{% static 'assets/favicon.ico'%}"
     />
 
-    <link href="{% static 'css/style2.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/style8.css' %}" rel="stylesheet" />
 
 
-    {% comment %}
-    <link href="{% static 'css/postDeal.css' %}" rel="stylesheet" />
-    {% endcomment %}
     <script
       src="https://code.jquery.com/jquery-3.7.1.min.js"
       integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
       crossorigin="anonymous"
     ></script>
-
   </head>
   <body>
     <!-- Navigation-->
     <!-- Navigation-->
-    {% include 'navbar.html'%} 
- {% if messages %} {% for messge in messages%}
+    {% include 'navbar.html'%} {% if messages %} {% for messge in messages%}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
       {{messge}}
       <button
@@ -45,29 +35,84 @@
         aria-label="Close"
       ></button>
     </div>
-    {%endfor%} {%endif%}  
-    
-    {% block content %} {% endblock %}
+    {%endfor%} {%endif%} {% block content %} {% endblock %}
 
     <!-- Footer-->
-    <footer class="footer">
-      <div class="footer-content">
-          <div class="footer-quote">
-              <p class="quote-text">"Your Gateway to Smart Shopping"</p>
-              <p class="quote-subtext">Discover the best deals, save more, live better.</p>
+  <!-- Red Line -->
+  <div class="red-line"></div>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>About Us</h3>
+        <p>Your trusted destination for the best deals across Jordan. <br> We bring together exclusive
+          offers and discounts from your favorite stores, making smart shopping easier for everyone.</p>
+
+        <div class="contact-info">
+          <div>
+            <i class="fas fa-map-marker-alt"></i>
+            <span>JORDAN</span>
           </div>
-          <div class="footer-links">
-              <a href="#">Privacy Policy</a>
-              <span class="divider">•</span>
-              <a href="#">Terms of Service</a>
-              <span class="divider">•</span>
-              <a href="#">Contact Us</a>
-          </div>
-          <div class="footer-copyright">
-              <p>&copy; 2025 WAFFRLI . All rights reserved.</p>
-          </div>
+          <!--
+                <div>
+                    <i class="fas fa-phone"></i>
+                    <span>+021-95-51-84</span>
+                </div>
+                <div>
+                    <i class="fas fa-envelope"></i>
+                    <span>email@email.com</span>
+                </div>
+                  -->
+        </div>
+
       </div>
+
+      <div class="footer-section">
+        <h3>Categories</h3>
+        <ul>
+          <li><a href="#">Hot deals</a></li>
+          <li><a href="#">Popular deals </a></li>
+          <li><a href="#">Nearby You</a></li>
+          <li><a href="#">Cameras</a></li>
+          <li><a href="#">Accessories</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Information</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms & Conditions</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Service</h3>
+        <ul>
+          <li><a href="#">My Account</a></li>
+          <li><a href="#">Post a deal</a></li>
+          <li><a href="#">Wishlist</a></li>
+          <li><a href="#">Save List</a></li>
+          <li><a href="#">Help</a></li>
+        </ul>
+      </div>
+    </div>
   </footer>
+
+  <div class="payment-methods">
+    <div class="payment-icons">
+      <a href="#"><i class="fa-brands fa-cc-visa fa-3x"></i></a>
+      <a href="#"><i class="fa-brands fa-cc-mastercard fa-3x"></i></a>
+      <a href="#"><i class="fa-brands fa-cc-paypal fa-3x"></i></a>
+    </div>
+  </div>
+
+
+  <div class="copyright">
+    <p>Copyright ©2025 All rights reserved | Graduation Project by <span class="heart">♥</span> JUST Students</p>
+  </div>
 
     <script src="{% static 'js/scripts.js'%}"></script>
 

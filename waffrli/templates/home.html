@@ -1,123 +1,564 @@
 {% extends "base.html" %} {% load static %} {% block content %}
 <link href="{% static 'css/style.css' %}" rel="stylesheet" />
 
-<div class="main-container">
-  <div class="content-wrapper">
-    <!-- Product Grid -->
-    <div class="products-grid">
-      {% for product in products %}
-      <div class="product-card-wrapper">
-        <div class="product-card">
-          <div class="card-header">
-            <div class="user-info">
-              {% if product.customer_pic_id and product.customer_pic_id.image %}
-              <img
-                style="width: 20px; height: 24px"
-                src="{{ product.customer_pic_id.image.url }}"
-                alt="User Icon"
-                class="profile-pic"
-                width="30"
-                height="30"
-              />
-              {% else %}
-              <img
-                style="width: 20px; height: 24px"
-                src="{% static 'images/default-profile.png' %}"
-                alt="Default User"
-                class="profile-pic"
-                width="30"
-                height="30"
-              />
-              {% endif %}
-              <div class="user-details">
-                <span class="username"
-                  >Found by <strong>@{{ product.user.username }}</strong></span
-                >
-                <span class="deal-time"
-                  >{{ product.create_at|date:"d-m" }}</span
-                >
+<main>
+  <div class="Category-container">
+    <!-- Category Banners -->
+    <div class="category-banners fade-in">
+      <div class="category-banner">
+        <div class="banner-content">
+          <h3>Laptop Collection</h3>
+          <p>Exclusive deals</p>
+        </div>
+        <div class="banner-image">
+          <img src="{% static 'img/product04.png' %}" alt="Laptop">
+        </div>
+      </div>
+      <div class="category-banner">
+        <div class="banner-content">
+          <h3>Accessories Collection</h3>
+          <p>Top brands</p>
+        </div>
+        <div class="banner-image">
+          <img src="{% static 'img/product02.png' %}" alt="Accessories">
+        </div>
+      </div>
+      <div class="category-banner">
+        <div class="banner-content">
+          <h3>Cameras Collection</h3>
+          <p>Special offers</p>
+        </div>
+        <div class="banner-image">
+          <img src="{% static 'img/product09.png' %}" alt="Cameras">
+        </div>
+      </div>
+    </div>
+
+    <!-- Nearby Products -->
+    <div class="section-heading slide-up">
+      <h2><i class="fas fa-map-marker-alt"></i> NearBy You</h2>
+      <div class="slider-controls">
+        <button class="prev-grid-btn"><i class="fas fa-chevron-left"></i></button>
+        <button class="next-grid-btn"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+
+    <div class="product-grid slide-up">
+
+        {% for product in products %}
+          {% if product.distance_to is not None %}
+          <div class="product-card">
+            <div class="card-header">
+              <div class="user-info">
+                {% if product.customer_pic_id and product.customer_pic_id.image %}
+                <img src="{{ product.customer_pic_id.image.url }}" alt="User Avatar" class="profile-pic">
+                {% else %}
+                <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
+                {% endif %}
+                <div class="user-details">
+                  <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+                  <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+                </div>
+              </div>
+              <div class="product-badge">{{ product.get_discount_percentage }}%</div>
+            </div>
+    
+            <div class="product-image">
+              <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+              <div class="quick-actions">
+                <div class="action-btn"><i class="fas fa-eye"></i></div>
+                <div class="action-btn"><i class="fa-regular fa-bookmark"></i></div>
               </div>
             </div>
-            <div class="sale-tag">{{ product.get_discount_percentage }}%</div>
-          </div>
-
-          <!-- Product image with link -->
-          <a href="{% url 'product' product.id %}" class="product-image-link">
-            <img src="{{ product.image.url }}" alt="Product" />
-          </a>
-
-          <!-- Product info with link -->
-          <a href="{% url 'product' product.id %}" class="product-info-link">
+    
             <div class="product-info">
-              <h3>{{ product.Name }}</h3>
-              <p class="description">{{ product.Description }}</p>
-
-              <div class="price-container">
+              <div class="product-category">{{ product.category.name }}</div>
+              <div class="product-Store">{{ product.store }}</div>
+              <h3 class="product-title">{{ product.Name }}</h3>
+              <div class="product-price">
                 <span class="current-price">${{ product.sale_price }}</span>
-                <span class="original-price">${{ product.Price }}</span>
+                <span class="old-price">${{ product.Price }}</span>
               </div>
             </div>
-          </a>
-
-          <div class="card-footer">
-            <button class="like-btn" data-product-id="{{ product.id }}">
-              <i
-                class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"
-              ></i>
-              <span class="like-count">{{ product.likes.count }}</span>
-            </button>
-            <a
-              href="{% url 'product' product.id %}#comment-section"
-              class="comment-btn"
-            >
-              <i class="far fa-comment"></i> {{ product.comments.count }}
-            </a>
+    
+            <!-- Card Footer with Buttons -->
+            <div class="card-footer">
+              <button class="like-btn" data-product-id="{{ product.id }}">
+                <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+              </button>
+              <h3 class="rating-count">{{ product.likes.count }}</h3>
+              <button class="comment-btn">
+                <i class="far fa-comment"></i>
+              </button>
+              <a href="{% url 'product' product.id %}">
+                <button class="add-to-cart">Show the deal</button>
+              </a>
+            </div>
           </div>
+          {% endif %}
+        {% empty %}
+          <div class="no-products-message">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3>No Nearby Deals Found</h3>
+            <p>We couldn't find any deals near your location. Try expanding your search area in settings.</p>
+          </div>
+        {% endfor %}
+    </div>
+
+    <br>
+    <br>
+
+    <div class="separator-container">
+      <div class="separator-line"></div>
+      <div class="separator-text">
+        <div class="slider-controls">
+          <h2>Waffrli Deals</h2>
+        </div>
+      </div>
+      <div class="separator-line"></div>
+    </div>
+
+    <!-- All Products -->
+    <div class="All-product-grid">
+      {% for product in products %}
+      <div class="All-product-card">
+        <div class="card-header">
+          <div class="user-info">
+            {% if product.customer_pic_id and product.customer_pic_id.image %}
+            <img src="{{ product.customer_pic_id.image.url }}" alt="User Avatar" class="profile-pic">
+            {% else %}
+            <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
+            {% endif %}
+            <div class="user-details">
+              <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+              <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+            </div>
+          </div>
+          <div class="product-badge">{{ product.get_discount_percentage }}%</div>
+        </div>
+
+        <div class="product-image">
+          <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+          <div class="quick-actions">
+            <div class="action-btn"><i class="fas fa-heart"></i></div>
+            <div class="action-btn"><i class="fas fa-eye"></i></div>
+            <div class="action-btn"><i class="fa-regular fa-bookmark"></i></div>
+          </div>
+        </div>
+
+        <div class="product-info">
+          <div class="product-category">{{ product.category.name }}</div>
+          <h3 class="product-title">{{ product.Name }}</h3>
+          <div class="product-price">
+            <span class="current-price">${{ product.sale_price }}</span>
+            <span class="old-price">${{ product.Price }}</span>
+          </div>
+        </div>
+
+        <!-- Card Footer with Buttons -->
+        <div class="card-footer">
+          <button class="like-btn" data-product-id="{{ product.id }}">
+            <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+          </button>
+          <button class="comment-btn">
+            <i class="far fa-comment"></i>
+          </button>
+          <a href="{% url 'product' product.id %}">
+            <button class="add-to-cart">Show the deal</button>
+          </a>
         </div>
       </div>
       {% endfor %}
     </div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="ad-section">
-        <h3>Sponsored Deals</h3>
-        <div class="ad-card">
-          <img
-            src="{% static 'media/uploads/product/Smart Buy (1).jpg' %}"
-            alt="Ad 1"
-          />
-          <p>Get 50% off on electronics!</p>
-        </div>
-        <div class="ad-card">
-          <img
-            src="{% static 'pictures/pic/mekka-mall-fashion.png' %}"
-            alt="Ad 2"
-          />
-          <p>Buy one, get one free on fashion!</p>
+    <!--hot Products Grid  -->
+    <div class="container">
+      <div class="section-heading slide-up">
+        <h2><i class="fas fa-fire"></i> Hot Deals</h2>
+        <div class="slider-controls">
+          <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+          <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
         </div>
       </div>
-    </aside>
+
+      <div class="mini-products-slider">
+        <div class="mini-products-container">
+          {% for product in products %}
+            {% if product.get_discount_percentage >= 70 %}
+              <div class="mini-product">
+                <div class="mini-product-image">
+                  <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+                </div>
+                <div class="mini-product-info">
+                  <div class="discount-badge">{{ product.get_discount_percentage }}%</div>
+                  <div class="mini-product-category">{{ product.category.name }}</div>
+                  <h4 class="mini-product-title">{{ product.Name }}</h4>
+                  <div class="mini-product-price">${{ product.sale_price }}</div>
+                </div>
+              </div>
+            {% endif %}
+          {% empty %}
+            <div class="no-products-message">
+              <i class="fas fa-fire"></i>
+              <h3>No Hot Deals Available</h3>
+              <p>Check back soon for amazing discounts!</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="featured-deals-slider">
+      <button class="slider-btn prev-btn">❮</button>
+      <div class="featured-deals-container">
+        <!-- H&M Deal -->
+        <div class="featured-deal">
+          <div class="featured-content">
+            <div class="featured-text">
+              <h3>H&M Special! 🛍️</h3>
+              <p>Fashion Collection - Up to 70% OFF</p>
+              <button class="shop-now-btn">Shop Now</button>
+            </div>
+            <img
+              src="{% static 'img\photo-1573855619003-97b4799dcd8b.avif' %}"
+              alt="H&M Fashion Sale" class="featured-image">
+          </div>
+        </div>
+
+        <!-- Mecca Mall Deal -->
+        <div class="featured-deal">
+          <div class="featured-content">
+            <div class="featured-text">
+              <h3>Mecca Mall-Amman Deals! 🏬</h3>
+              <p>Multi-Brand Sale - Up to 50% OFF</p>
+              <button class="shop-now-btn">Shop Now</button>
+            </div>
+            <img
+              src="{% static 'img\photo-1567958451986-2de427a4a0be.jpeg' %}"
+              alt="Mecca Mall Shopping" class="featured-image">
+          </div>
+        </div>
+
+        <!-- SmartBuy Deal -->
+        <div class="featured-deal">
+          <div class="featured-content">
+            <div class="featured-text">
+              <h3>SmartBuy! 💻</h3>
+              <p>Latest Gadgets - 30% OFF</p>
+              <button class="shop-now-btn">Shop Now</button>
+            </div>
+            <img
+              src="{% static 'img\photo-1525547719571-a2d4ac8945e2.avif' %}"
+              alt="Tech Gadgets Sale" class="featured-image">
+          </div>
+        </div>
+
+        <!-- Irbid City Center Deal -->
+        <div class="featured-deal">
+          <div class="featured-content">
+            <div class="featured-text">
+              <h3>Irbid City Center Flash Sale! 🌟</h3>
+              <p>Weekend Special - Up to 60% OFF</p>
+              <button class="shop-now-btn">Shop Now</button>
+            </div>
+            <img
+              src="{% static 'img\photo-1555529669-e69e7aa0ba9a.avif' %}"
+              alt="Shopping Center Sale" class="featured-image">
+          </div>
+        </div>
+      </div>
+      <button class="slider-btn next-btn">❯</button>
+    </div>
+
+    <!--popular Products Grid -->
+    <div class="container">
+      <div class="section-heading slide-up">
+        <h2><i class="fas fa-star"></i> Popular Deals</h2>
+        <div class="popularity-badge">
+          <div class="slider-controls">
+            <span class="popular-prev-btn"><i class="fas fa-chevron-left"></i></span>
+            <span class="popular-next-btn"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+      </div>
+
+  <!-- Mini products grid (smaller items) -->
+  <div class="popular-products-slider">
+    <div class="popular-products-container">
+      {% for product in products %}
+          <div class="mini-product">
+            <div class="mini-product-image">
+              <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+            </div>
+            <div class="mini-product-info">
+              <div class="discount-badge">{{ product.get_discount_percentage }}%</div>
+              <div class="mini-product-category">{{ product.category.name }}</div>
+              <h4 class="mini-product-title">{{ product.Name }}</h4>
+              <div class="mini-product-price">${{ product.sale_price }}</div>
+              <div class="popularity-indicators">
+                <span><i class="fas fa-heart"></i> {{ product.likes.count }}</span>
+                <span><i class="fas fa-eye"></i> {{ product.views }}</span>
+              </div>
+            </div>
+          </div>
+
+      {% endfor %}
+    </div>
   </div>
 </div>
 
+    <!-- Category Products Grid Section -->
+    <div class="separator-container">
+      <div class="separator-line"></div>
+      <div class="separator-text">
+        <div class="category-links">
+          <a href="#electronics">Electronics</a>
+          <span class="separator">•</span>
+          <a href="#fashion">Fashion</a>
+          <span class="separator">•</span>
+          <a href="#home">Home & Living</a>
+          <span class="separator">•</span>
+          <a href="#beauty">Beauty</a>
+          <span class="separator">•</span>
+          <a href="#sports">Sports</a>
+        </div>
+      </div>
+      <div class="separator-line"></div>
+    </div>
+    <div class="container">
+      <div class="Categoy-selling-section">
+        <div class="Categoy-selling-row">
+          <!-- First Column -->
+          <div class="Categoy-selling-column">
+            <div class="column-header">
+              <h3>Electronics</h3>
+              <div class="nav-controls">
+                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+              </div>
+            </div>
+
+            <!-- Product 1 -->
+            <div class="mini-product-item">
+              <div class="category-label">phones</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product04.png" alt="Smartphone">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="mini-product-item">
+              <div class="category-label">labtop</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product01.png" alt="Laptop">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$980.00</span>
+                    <span class="old-price">$990.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="mini-product-item">
+              <div class="category-label">headphones</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product06.png" alt="Accessory">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-product-item">
+              <div class="category-label">headphones</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product06.png" alt="Accessory">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Second Column -->
+          <div class="category-selling-column">
+            <div class="column-header">
+              <h3>Fashion</h3>
+              <div class="nav-controls">
+                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+              </div>
+            </div>
+
+            <!-- Product 1 -->
+            <div class="mini-product-item">
+              <div class="category-label">Clothing</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product08.png" alt="Tablet">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="mini-product-item">
+              <div class="category-label">Shoes</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product02.png" alt="Headphones">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="mini-product-item">
+              <div class="category-label">Bags</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product04.png" alt="Laptop">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$580.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Third Column -->
+          <div class="category-selling-column">
+            <div class="column-header">
+              <h3>Home & Living</h3>
+              <div class="nav-controls">
+                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+              </div>
+            </div>
+
+            <!-- Product 1 -->
+            <div class="mini-product-item">
+              <div class="category-label">Furniture</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product04.png" alt="Laptop">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$80.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="mini-product-item">
+              <div class="category-label">Kitchen & Dining</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product04.png" alt="Headphones">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$90.00</span>
+                    <span class="old-price">$990.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="mini-product-item">
+              <div class="category-label">Home Decor</div>
+              <div class="mini-product-content">
+                <div class="mini-product-image">
+                  <img src="img/product04.png" alt="Laptop">
+                </div>
+                <div class="mini-product-details">
+                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+                  <div class="mini-product-price">
+                    <span class="current-price">$50.00</span>
+                    <span class="old-price">$590.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</main>
+
+<!-- Red Line -->
+<div class="red-line"></div>
+
+
+
 <script>
-  document.querySelectorAll(".like-btn").forEach((button) => {
-    button.addEventListener("click", function (event) {
-      event.stopPropagation(); // Prevent clicking the card when liking
-      event.preventDefault(); // Prevent the link from being followed
+  document.addEventListener('DOMContentLoaded', function () {
+    // Like button functionality
+    document.querySelectorAll(".like-btn").forEach((button) => {
+      button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        event.preventDefault();
 
-      let productId = this.getAttribute("data-product-id");
-      let likeIcon = this.querySelector("i");
-      let likeCount = this.querySelector(".like-count");
+        let productId = this.getAttribute("data-product-id");
+        let likeIcon = this.querySelector("i");
+        let likeCount = this.closest('.card-footer').querySelector(".rating-count");
 
-      fetch(`/like/${productId}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": "{{ csrf_token }}",
-        },
-      })
-
+        fetch(`/like/${productId}/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
+        })
+        .then(response => response.json())
         .then((data) => {
           if (data) {
             if (data.liked) {
@@ -127,11 +568,208 @@
               likeIcon.classList.remove("fas");
               likeIcon.classList.add("far");
             }
-            likeCount.innerText = data.like_count;
+            if (likeCount) {
+              likeCount.innerText = data.like_count;
+            }
           }
         });
+      });
     });
+
+    // Nearby deals 
+    const productGrid = document.querySelector('.product-grid');
+    const products = productGrid.querySelectorAll('.product-card');
+    const prevBtn = document.querySelector('.prev-grid-btn');
+    const nextBtn = document.querySelector('.next-grid-btn');
+    const productsPerPage = 6;
+    let currentPage = 0;
+    const totalPages = Math.ceil(products.length / productsPerPage);
+
+    function showProducts(page) {
+      const start = page * productsPerPage;
+      const end = start + productsPerPage;
+
+      products.forEach((product, index) => {
+        if (index >= start && index < end) {
+          product.style.display = 'block';
+          product.style.animation = 'fadeIn 0.5s ease-in-out';
+        } else {
+          product.style.display = 'none';
+        }
+      });
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 0) {
+        currentPage--;
+        showProducts(currentPage);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        showProducts(currentPage);
+      }
+    });
+
+    // Initialize first page
+    showProducts(0);
+
+    // Hot deals
+    const container = document.querySelector('.mini-products-container');
+    const hotProducts = container.querySelectorAll('.mini-product');
+    const hotPrevBtn = document.querySelector('.prev-btn');
+    const hotNextBtn = document.querySelector('.next-btn');
+    let hotCurrentIndex = 0;
+    const hotProductsPerSlide = 3;
+    const hotTotalSlides = Math.ceil(hotProducts.length / hotProductsPerSlide);
+
+    function updateHotSlider() {
+      const translateX = -hotCurrentIndex * (100 / hotProductsPerSlide);
+      container.style.transform = `translateX(${translateX}%)`;
+    }
+
+    hotPrevBtn.addEventListener('click', () => {
+      if (hotCurrentIndex > 0) {
+        hotCurrentIndex--;
+        updateHotSlider();
+      }
+    });
+
+    hotNextBtn.addEventListener('click', () => {
+      if (hotCurrentIndex < hotTotalSlides - 1) {
+        hotCurrentIndex++;
+        updateHotSlider();
+      }
+    });
+
+
+
+    // Popular deals 
+    const popularContainer = document.querySelector('.popular-products-container');
+    const popularProducts = popularContainer.querySelectorAll('.mini-product');
+    const popularPrevBtn = document.querySelector('.popular-prev-btn');
+    const popularNextBtn = document.querySelector('.popular-next-btn');
+    let popularCurrentIndex = 0;
+    const productsPerSlide = 3;
+    const totalSlides = Math.ceil(popularProducts.length / productsPerSlide);
+
+    function updatePopularSlider() {
+      const translateX = -popularCurrentIndex * (100 / productsPerSlide);
+      popularContainer.style.transform = `translateX(${translateX}%)`;
+    }
+
+    popularPrevBtn.addEventListener('click', () => {
+      if (popularCurrentIndex > 0) {
+        popularCurrentIndex--;
+        updatePopularSlider();
+      }
+    });
+
+    popularNextBtn.addEventListener('click', () => {
+      if (popularCurrentIndex < totalSlides - 1) {
+        popularCurrentIndex++;
+        updatePopularSlider();
+      }
+    });
+
+    // Category sections navigation
+    const columns = document.querySelectorAll('.category-selling-column, .Categoy-selling-column');
+
+    columns.forEach(column => {
+      const products = column.querySelectorAll('.mini-product-item');
+      const prevBtn = column.querySelector('.prev-btn');
+      const nextBtn = column.querySelector('.next-btn');
+      let currentIndex = 0;
+      const productsPerView = 2;
+
+      // Initially show first two products
+      products.forEach((product, index) => {
+        if (index < productsPerView) {
+          product.style.display = 'block';
+          product.style.opacity = '1';
+        } else {
+          product.style.display = 'none';
+          product.style.opacity = '0';
+        }
+      });
+
+      function showProducts(startIndex) {
+        products.forEach(product => {
+          product.style.display = 'none';
+          product.style.opacity = '0';
+        });
+
+        for (let i = 0; i < productsPerView; i++) {
+          const index = (startIndex + i) % products.length;
+          products[index].style.display = 'block';
+          setTimeout(() => {
+            products[index].style.opacity = '1';
+          }, 50);
+        }
+      }
+
+      prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - productsPerView + products.length) % products.length;
+        showProducts(currentIndex);
+      });
+
+      nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + productsPerView) % products.length;
+        showProducts(currentIndex);
+      });
+    });
+
+    // Animations for scroll reveal
+    const animateOnScroll = function () {
+      const elements = document.querySelectorAll('.fade-in, .slide-up, .scale-in');
+
+      elements.forEach(element => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+
+        if (elementPosition < windowHeight - 50) {
+          element.style.opacity = "1";
+          element.style.transform = element.classList.contains('slide-up') ? 'translateY(0)' :
+            element.classList.contains('scale-in') ? 'scale(1)' : 'none';
+        }
+      });
+    };
+
+    // Run animation check on load and scroll
+    window.addEventListener('load', animateOnScroll);
+    window.addEventListener('scroll', animateOnScroll);
+
+    // Featured Deals Slider functionality
+    const featuredContainer = document.querySelector('.featured-deals-container');
+    const featuredSlides = document.querySelectorAll('.featured-deal');
+    const featuredPrevBtn = document.querySelector('.featured-deals-slider .prev-btn');
+    const featuredNextBtn = document.querySelector('.featured-deals-slider .next-btn');
+    let featuredCurrentIndex = 0;
+
+    // Function to update slider position
+    function updateFeaturedSlider() {
+      featuredContainer.style.transform = `translateX(-${featuredCurrentIndex * 100}%)`;
+    }
+
+    // Previous button click handler
+    featuredPrevBtn.addEventListener('click', () => {
+      featuredCurrentIndex = (featuredCurrentIndex - 1 + featuredSlides.length) % featuredSlides.length;
+      updateFeaturedSlider();
+    });
+
+    // Next button click handler
+    featuredNextBtn.addEventListener('click', () => {
+      featuredCurrentIndex = (featuredCurrentIndex + 1) % featuredSlides.length;
+      updateFeaturedSlider();
+    });
+
+    // Auto-slide every 5 seconds
+    setInterval(() => {
+      featuredCurrentIndex = (featuredCurrentIndex + 1) % featuredSlides.length;
+      updateFeaturedSlider();
+    }, 5000);
   });
 </script>
-
 {% endblock %}
