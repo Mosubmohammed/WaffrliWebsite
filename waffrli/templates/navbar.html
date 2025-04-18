@@ -94,7 +94,7 @@
         <a href="{% url 'hot_deals' %}">Hot Deals</a>
         <a href="{% url 'popular_deals' %}">Popular Deals</a>
         <div class="dropdown">
-          <button class="dropdown-toggle">Categories</button>
+          <a class="dropdown-toggle">Categories</a>
           <div class="dropdown-content">
             {% for category in categories %}
               <a href="{% url 'category' category.name|slugify %}">{{ category.name }}</a>
