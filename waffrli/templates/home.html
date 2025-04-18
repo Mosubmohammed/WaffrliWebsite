@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% load static %} {% block content %}
-<link href="{% static 'css/style4.css' %}" rel="stylesheet" />
+<link href="{% static 'css/style44.css' %}" rel="stylesheet" />
 
 <main>
   <div class="Category-container">
@@ -80,15 +80,13 @@
             </div>
     
             <div class="product-info">
-              <div class="product-category">{{ product.category.name }}</div>
-              <div class="product-Store">{{ product.store }}</div>
-              <h3 class="product-title">{{ product.Name }}</h3>
+              <h3 class="product-Store">{{ product.Name }}</h3>
+              <div class="product-title">{{ product.store }}</div>
               <div class="product-price">
                 <span class="current-price">${{ product.sale_price }}</span>
                 <span class="old-price">${{ product.Price }}</span>
               </div>
             </div>
-    
             <!-- Card Footer with Buttons -->
             <div class="card-footer">
               <button class="like-btn" data-product-id="{{ product.id }}">
@@ -98,6 +96,7 @@
               <button class="comment-btn">
                 <i class="far fa-comment"></i>
               </button>
+              <h3 class="rating-count">{{ product.comments.count }}</h3> <!-- Added comment count -->
               <a href="{% url 'product' product.id %}">
                 <button class="add-to-cart">Show the deal</button>
               </a>
@@ -126,58 +125,61 @@
       <div class="separator-line"></div>
     </div>
 
-    <!-- All Products -->
-    <div class="All-product-grid">
-      {% for product in products %}
-      <div class="All-product-card">
-        <div class="card-header">
-          <div class="user-info">
-            {% if product.customer_pic_id and product.customer_pic_id.image %}
-            <img src="{{ product.customer_pic_id.image.url }}" alt="User Avatar" class="profile-pic">
-            {% else %}
-            <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
-            {% endif %}
-            <div class="user-details">
-              <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-              <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
-            </div>
-          </div>
-          <div class="product-badge">{{ product.get_discount_percentage }}%</div>
-        </div>
-
-        <div class="product-image">
-          <img src="{{ product.image.url }}" alt="{{ product.Name }}">
-          <div class="quick-actions">
-            <div class="action-btn"><i class="fas fa-heart"></i></div>
-            <div class="action-btn"><i class="fas fa-eye"></i></div>
-            <div class="action-btn"><i class="fa-regular fa-bookmark"></i></div>
-          </div>
-        </div>
-
-        <div class="product-info">
-          <div class="product-category">{{ product.category.name }}</div>
-          <h3 class="product-title">{{ product.Name }}</h3>
-          <div class="product-price">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="old-price">${{ product.Price }}</span>
-          </div>
-        </div>
-
-        <!-- Card Footer with Buttons -->
-        <div class="card-footer">
-          <button class="like-btn" data-product-id="{{ product.id }}">
-            <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
-          </button>
-          <button class="comment-btn">
-            <i class="far fa-comment"></i>
-          </button>
-          <a href="{% url 'product' product.id %}">
-            <button class="add-to-cart">Show the deal</button>
-          </a>
+<!-- All Products -->
+<div class="All-product-grid">
+  {% for product in products %}
+  <div class="All-product-card">
+    <div class="card-header">
+      <div class="user-info">
+        {% if product.customer_pic_id and product.customer_pic_id.image %}
+        <img src="{{ product.customer_pic_id.image.url }}" alt="User Avatar" class="profile-pic">
+        {% else %}
+        <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
+        {% endif %}
+        <div class="user-details">
+          <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+          <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
         </div>
       </div>
-      {% endfor %}
+      <div class="product-badge">{{ product.get_discount_percentage }}%</div>
     </div>
+    
+    <div class="product-image">
+      <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+      <div class="quick-actions">
+        <div class="action-btn"><i class="fas fa-heart"></i></div>
+        <div class="action-btn"><i class="fas fa-eye"></i></div>
+        <div class="action-btn"><i class="fa-regular fa-bookmark"></i></div>
+      </div>
+    </div>
+    
+    <div class="product-info">
+      <h3 class="product-Store">{{ product.Name }}</h3>
+      <div class="product-title">{{ product.store }}</div>
+      <p class="product-description">{{ product.Description|truncatewords:5 }}</p>
+      <div class="product-price">
+        <span class="current-price">${{ product.sale_price }}</span>
+        <span class="old-price">${{ product.Price }}</span>
+      </div>
+    </div>
+
+    <!-- Card Footer with Buttons -->
+    <div class="card-footer">
+      <button class="like-btn" data-product-id="{{ product.id }}">
+        <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
+      </button>
+      <h3 class="rating-count">{{ product.likes.count }}</h3>
+      <button class="comment-btn">
+        <i class="far fa-comment"></i>
+      </button>
+      <h3 class="rating-count">{{ product.comments.count }}</h3>
+      <a href="{% url 'product' product.id %}">
+        <button class="add-to-cart">Show the deal</button>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 
     <!--hot Products Grid  -->
     <div class="container">
@@ -199,7 +201,7 @@
                 </div>
                 <div class="mini-product-info">
                   <div class="discount-badge">{{ product.get_discount_percentage }}%</div>
-                  <div class="mini-product-category">{{ product.category.name }}</div>
+                  <div class="mini-product-category">{{ product.store }}</div>
                   <h4 class="mini-product-title">{{ product.Name }}</h4>
                   <div class="mini-product-price">${{ product.sale_price }}</div>
                 </div>

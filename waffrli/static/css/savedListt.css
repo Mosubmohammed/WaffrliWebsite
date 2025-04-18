@@ -2,7 +2,9 @@
   flex: 1;
   padding: 20px;
 }
-
+/* body a{
+  text-decoration: none;
+} */
 .favorites-header {
   display: flex;
   justify-content: space-between;
@@ -14,7 +16,10 @@
   margin: 0;
   color: #333;
 }
+.empty-saved-items a{
+  text-decoration: none;
 
+}
 .make-public-btn {
   padding: 8px 16px;
   background: #00332ebd;

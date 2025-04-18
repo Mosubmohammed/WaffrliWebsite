@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% load static %} {% block content %}
 <link href="{% static 'css/settings.css' %}" rel="stylesheet" />
-<link href="{% static 'css/savedList.css' %}" rel="stylesheet" />
+<link href="{% static 'css/savedListt.css' %}" rel="stylesheet" />
 
 
 <nav class="navbar">
@@ -71,6 +71,7 @@
           <div class="empty-saved-items">
 
               <h3>You haven't saved any items yet</h3>
+              <br/>
               <a href="{% url 'home' %}" class="btn btn-primary">Browse Deals</a>
           </div>
       {% endif %}
