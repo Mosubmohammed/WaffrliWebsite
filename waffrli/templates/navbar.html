@@ -39,9 +39,9 @@
         <form method="POST" action="{% url 'search' %}">
           {% csrf_token %}
           <div class="dropdown">
-            <div class="dropdown-select">All Categories</div>
+            <div class="dropdown-select">Categories</div>
             <div class="dropdown-content">
-              <a href="#">All Categories</a>
+              <a href="{% url 'AllCategory' %}">All Categories</a>
               {% for category in categories %}
                 <a href="{% url 'category' category.name|slugify %}">{{ category.name }}</a>
               {% endfor %}
@@ -99,10 +99,8 @@
             {% for category in categories %}
               <a href="{% url 'category' category.name|slugify %}">{{ category.name }}</a>
             {% endfor %}
-            <a href="{% url 'AllCategory' %}">All Categories</a>
           </div>
         </div>
-        <a href="#">Nearby You</a>
         <br> <br>
       </div>
     </div>

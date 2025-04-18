@@ -1,36 +1,44 @@
 {% extends "base.html" %} {% load static %} {% block content %}
-<link href="{% static 'css/style.css' %}" rel="stylesheet" />
+<link href="{% static 'css/style4.css' %}" rel="stylesheet" />
 
 <main>
   <div class="Category-container">
     <!-- Category Banners -->
     <div class="category-banners fade-in">
       <div class="category-banner">
-        <div class="banner-content">
-          <h3>Laptop Collection</h3>
-          <p>Exclusive deals</p>
-        </div>
-        <div class="banner-image">
-          <img src="{% static 'img/product04.png' %}" alt="Laptop">
-        </div>
+        <a href="{% url 'category' 'Laptops' %}">
+          <div class="banner-content">
+            <h3>Laptop Collection</h3>
+            <p>Exclusive deals</p>
+          </div>
+          <div class="banner-image">
+            <img src="{% static 'img/product04.png' %}" alt="Laptop">
+          </div>
+        </a>
       </div>
+      
       <div class="category-banner">
-        <div class="banner-content">
-          <h3>Accessories Collection</h3>
-          <p>Top brands</p>
-        </div>
-        <div class="banner-image">
-          <img src="{% static 'img/product02.png' %}" alt="Accessories">
-        </div>
+        <a href="{% url 'category' 'ComputersAccessories' %}">
+          <div class="banner-content">
+            <h3>Accessories Collection</h3>
+            <p>Top brands</p>
+          </div>
+          <div class="banner-image">
+            <img src="{% static 'img/product02.png' %}" alt="Accessories">
+          </div>
+        </a>
       </div>
+      
       <div class="category-banner">
-        <div class="banner-content">
-          <h3>Cameras Collection</h3>
-          <p>Special offers</p>
-        </div>
-        <div class="banner-image">
-          <img src="{% static 'img/product09.png' %}" alt="Cameras">
-        </div>
+        <a href="{% url 'category' 'cameras' %}">
+          <div class="banner-content">
+            <h3>Cameras Collection</h3>
+            <p>Special offers</p>
+          </div>
+          <div class="banner-image">
+            <img src="{% static 'img/product09.png' %}" alt="Cameras">
+          </div>
+        </a>
       </div>
     </div>
 

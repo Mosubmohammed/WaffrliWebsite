@@ -28,10 +28,8 @@ def home(request):
 
 
 def product_list_base(request, page_type=None, category=None):
-
-    if page_type == 'hot_deals':
-        # Hot deals filter: calculate discount ≥ 70%
-        # Using database-level filtering for better performance
+    if page_type == 'hot_deals' and not request.GET.getlist('store') and not request.GET.getlist('location') and not request.GET.getlist('brand'):
+        # Only apply hot deals filter if no other filters are active
         products = Product.objects.filter(
             sale_price__isnull=False,
             Price__gt=0
@@ -45,7 +43,21 @@ def product_list_base(request, page_type=None, category=None):
         ).filter(discount_percentage__gte=70)
         
         page_title = "Hot Deals"
-    
+    elif page_type == 'hot_deals' and (request.GET.getlist('store') or request.GET.getlist('location') or request.GET.getlist('brand')):
+        # If other filters are active, just apply basic hot deals criteria without the 70% discount requirement
+        products = Product.objects.filter(
+            sale_price__isnull=False,
+            Price__gt=0
+        ).exclude(
+            sale_price__gte=F('Price')
+        ).annotate(
+            discount_percentage=ExpressionWrapper(
+                ((F('Price') - F('sale_price')) * 100) / F('Price'),
+                output_field=FloatField()
+            )
+        )
+        
+        page_title = "Hot Deals (Filtered)"
     elif page_type == 'popular':
         # Popular deals filter: based on likes and views
         products = Product.objects.annotate(
@@ -75,12 +87,13 @@ def product_list_base(request, page_type=None, category=None):
     # Get filter parameters
     # ---------------------
     
-    # Store filter - Get checkbox values directly
+    # Store filter - Updated version for more robust matching
     stores = request.GET.getlist('store')
     if stores:
         query = Q()
         for store in stores:
-            query |= Q(store__iexact=store.strip())
+            clean_store = store.strip().lower()
+            query |= Q(store__iexact=clean_store)
         products = products.filter(query)
     
     # Location/City filter - Get checkbox values directly
@@ -99,21 +112,28 @@ def product_list_base(request, page_type=None, category=None):
             query |= Q(brand__iexact=brand.strip())
         products = products.filter(query)
     
-    # Price range filter
+    # Price range filter - Modified to work better with store filters
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     
     if min_price:
         try:
             min_price_value = float(min_price)
+            # Always apply min_price filter
             products = products.filter(sale_price__gte=min_price_value)
         except (ValueError, TypeError):
             # Handle invalid input silently
             pass
     
+    # Store the original store-filtered products before applying max_price
+    store_filtered_products = None
+    if stores and max_price:
+        store_filtered_products = products
+    
     if max_price:
         try:
             max_price_value = float(max_price)
+            # Apply max_price filter
             products = products.filter(sale_price__lte=max_price_value)
         except (ValueError, TypeError):
             # Handle invalid input silently
@@ -226,18 +246,34 @@ def product_list_base(request, page_type=None, category=None):
         
         return JsonResponse({'products': products_data})
     
-    # Apply pagination
-    paginator = Paginator(products, 20)  # Show 20 products per page
-    page_number = request.GET.get('page')
+    # If we're filtering by store and have fewer than 2 products after price filtering,
+    # restore the original store-filtered products
+    if stores and store_filtered_products and products.count() < 2 and store_filtered_products.count() >= 2:
+        products = store_filtered_products
     
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range, deliver last page
-        page_obj = paginator.page(paginator.num_pages)
+    # FIXED pagination logic that properly handles when filters are applied
+    if stores or locations or brands or min_price or max_price or rating:
+        # Use a much larger per-page count when filters are applied
+        # This effectively disables pagination while keeping the same interface
+        paginator = Paginator(products, 1000)  # Set to a large number to show all results
+        
+        try:
+            page_obj = paginator.page(1)  # Always show first page for filtered results
+        except EmptyPage:
+            page_obj = paginator.page(paginator.num_pages)
+    else:
+        # Normal pagination for unfiltered results
+        paginator = Paginator(products, 20)  # Show 20 products per page
+        page_number = request.GET.get('page')
+        
+        try:
+            page_obj = paginator.page(page_number)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page
+            page_obj = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range, deliver last page
+            page_obj = paginator.page(paginator.num_pages)
     
     # Calculate distance for each product in the current page
     if user_has_location:

@@ -454,6 +454,7 @@
         enhanceDistanceDisplay();
         
         // Highlight nearest deals if sorted by distance
+// Highlight nearest deals if sorted by distance
         function highlightNearestProducts() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('sort_by') === 'distance' || anyCitySelected()) {
@@ -506,5 +507,24 @@
             }, 5000);
         }
     });
+    // Add this at the end of your DOMContentLoaded function
+console.log("Total product cards in DOM:", document.querySelectorAll('.product-card').length);
+console.log("Visible product cards:", [...document.querySelectorAll('.product-card')].filter(card => 
+    window.getComputedStyle(card).display !== 'none'
+).length);
+
+// Look for products with the same store
+const storeProducts = {};
+document.querySelectorAll('.product-card').forEach(card => {
+    const storeElement = card.querySelector('.store');
+    if (storeElement) {
+        const storeName = storeElement.textContent.trim();
+        if (!storeProducts[storeName]) storeProducts[storeName] = [];
+        storeProducts[storeName].push(card);
+    }
+});
+console.log("Products by store:", Object.entries(storeProducts).map(([store, cards]) => 
+    `${store}: ${cards.length} products`
+).join(', '));
 </script>
 {% endblock %}

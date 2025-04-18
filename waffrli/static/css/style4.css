@@ -23,7 +23,7 @@ body {
       /* Top Bar */
       .top-bar {
           background-color: #000000;
-          color: white;
+          color: red;
           padding: 1px 2%;
           display: flex;
           justify-content: space-between;
