@@ -1,312 +1,323 @@
-{% comment %} {% extends "base.html" %} {% endcomment %} {% load static %} 
+{% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<link href="{% static 'css/Register_Style.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Register_Stylee6.css' %}" rel="stylesheet" />
 
-<div class="container">
-  <div id="registerForm" class="signup-container">
-    <div class="left-side">
-      <h2>Join Our Community!</h2>
-      <p>Create an account to start shopping and enjoy exclusive benefits.</p>
-      <img src="{% static 'images/shopping.jpg' %}" alt="Shopping" />
+<div class="Register-container">
+    <div id="registerForm" class="signup-container">
+        <div class="left-side">
+            <div class="left-side-content">
+                <h2>Welcome to Waffrli</h2>
+                <p>The best bargains in Jordan are just one click away ! <br> </p>
+                <p style="display: flex;font-size:large; justify-content: center;"> REGISTER NOW !</p>
+            </div>
+        </div>
+
+        <div class="right-side">
+            <div class="form-header">
+                <h3>Create your Account</h3>
+                <p>Please fill in your details</p>
+            </div>
+
+            <form id="register" class="signup-form" method="POST" action="{% url 'register' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group-pic">
+                  <div class="profile-upload">
+                      <div class="profile-circle" id="profilePreview">
+                          <span class="upload-icon">+</span>
+                      </div>
+  
+                      <input type="file" name="image" id="profileInput" accept="image/*" class="hidden">
+                  </div>
+              </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <input type="text" name="first_name" id="first_name" required />
+                        <label for="first_name">First Name <span class="required-mark">*</span></label>
+                        <span class="error-message" id="firstNameError"></span>
+                    </div>
+
+                    <div class="form-group half">
+                        <input type="text" name="last_name" id="last_name" required />
+                        <label for="last_name">Last Name <span class="required-mark">*</span></label>
+                        <span class="error-message" id="lastNameError"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" name="email" id="email" required />
+                    <label for="email">Email Address <span class="required-mark">*</span></label>
+                    <span class="error-message" id="emailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="tel" name="phone" id="phone" pattern="[0-9]{10}" required />
+                    <label for="phone">Phone Number <span class="required-mark">*</span></label>
+                    <span class="error-message" id="phoneError"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" name="password" id="password" required />
+                    <label for="password">Password <span class="required-mark">*</span></label>
+                    <span class="error-message" id="passwordError"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" name="confirm_password" id="confirm_password" required />
+                    <label for="confirm_password">Confirm Password <span class="required-mark">*</span></label>
+                    <span class="error-message" id="confirmPasswordError"></span>
+                </div>
+
+                <div class="Grnder-form-group">
+                    <label class="gender-label">Gender</label>
+                    <div class="gender-options">
+                        <div class="radio-option">
+                            <input type="radio" id="male" name="gender" value="M" required>
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="female" name="gender" value="F">
+                            <label for="female">Female</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" name="address" id="address" placeholder="Search for your address..." required />
+                    <label for="address"></label>
+                </div>
+
+                <!-- Hidden fields for location data -->
+                <input type="hidden" name="latitude" id="latitude" />
+                <input type="hidden" name="longitude" id="longitude" />
+                <input type="hidden" name="formatted_address" id="formatted_address" />
+
+                <!-- Map container -->
+                <div class="form-group">
+                    <div id="map-container">
+                        <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Create Account</button>
+
+                <p class="login-link">
+                    Already have an account?
+                    <a href="{% url 'login'%}" id="showLogin">Sign in</a>
+                </p>
+            </form>
+        </div>
     </div>
-
-    <div class="right-side">
-      <div class="form-header">
-        <h3>Create Account</h3>
-        <p>Please fill in your details</p>
-      </div>
-
-      <form
-        id="register"
-        class="signup-form"
-        method="POST"
-        action="{% url 'register' %}"
-        enctype="multipart/form-data"
-      >
-        {% csrf_token %}
-
-        <div class="form-row">
-          <div class="form-group half">
-            <input type="text" name="first_name" id="first_name" required />
-            <label for="first_name">First Name</label>
-          </div>
-
-          <div class="form-group half">
-            <input type="text" name="last_name" id="last_name" required />
-            <label for="last_name">Last Name</label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <input type="email" name="email" id="email" required />
-          <label for="email">Email Address</label>
-        </div>
-
-        <div class="form-group">
-          <input
-            type="tel"
-            name="phone"
-            id="phone"
-            pattern="[0-9]{10}"
-            required
-          />
-          <label for="phone">Phone Number (10 digits)</label>
-        </div>
-
-        <div class="form-group">
-          <input type="password" name="password" id="password" required />
-          <label for="password">Password</label>
-        </div>
-
-        <div class="form-group">
-          <input
-            type="password"
-            name="confirm_password"
-            id="confirm_password"
-            required
-          />
-          <label for="confirm_password">Confirm Password</label>
-        </div>
-
-        <div class="form-group">
-          <select name="gender" id="gender" required>
-            <option value="" disabled selected>Select Gender</option>
-            <option value="M">Male</option>
-            <option value="F">Female</option>
-            <option value="O">Other</option>
-            <option value="N">Prefer not to say</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <input
-            type="text"
-            name="address"
-            id="address"
-            placeholder="Search for your address..."
-            required
-          />
-          <label for="address">Address</label>
-        </div>
-
-        <!-- Hidden fields for location data -->
-        <input type="hidden" name="latitude" id="latitude" />
-        <input type="hidden" name="longitude" id="longitude" />
-        <input type="hidden" name="formatted_address" id="formatted_address" />
-
-        <!-- Map container -->
-        <div class="form-group">
-          <div id="map-container">
-            <div
-              id="map"
-              style="height: 300px; width: 100%; border-radius: 8px"
-            ></div>
-          </div>
-          {% comment %} <button type="button" id="get-location-btn" class="location-btn">
-            Use My Current Location
-          </button> {% endcomment %}
-        </div>
-
-        {% comment %} <div class="form-group">
-          <input type="text" name="city" id="city" required />
-          <label for="city">City</label>
-        </div> {% endcomment %}
-
-        <div class="form-group">
-          {% comment %}
-          <label for="image" class="file-label">Profile Image (Optional)</label>
-          {% endcomment %}
-          <input type="file" name="image" id="image" accept="image/*" />
-        </div>
-
-        <button type="submit" class="submit-btn">Create Account</button>
-
-        <p class="login-link">
-          Already have an account?
-          <a href="{% url 'login' %}" id="showLogin">Sign in</a>
-        </p>
-      </form>
-    </div>
-  </div>
 </div>
 <div id="notification-container"></div>
 
-<!-- Google Maps JavaScript -->
 <script>
-    // Add this function to check if location is in Jordan
+    // this function to check if location is in Jordan
     function isLocationInJordan(addressComponents) {
-      if (!addressComponents || !Array.isArray(addressComponents)) {
-        return false;
-      }
-      
-      // Look for Jordan as the country
-      const countryComponent = addressComponents.find(
-        component => component.types.includes("country")
-      );
-      
-      if (!countryComponent) {
-        return false;
-      }
-      
-      // Check if the country is Jordan (both short and long names)
-      return countryComponent.short_name === "JO" || 
-             countryComponent.long_name.toLowerCase().includes("jordan");
-    }
-  
-    // Define the initMap function first
-    function initMap() {
-      // Default location (center of Jordan)
-      const defaultLocation = { lat: 31.9539, lng: 35.9106 };
-  
-      // Initialize map
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: defaultLocation,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      });
-  
-      // Initialize geocoder for address lookup
-      geocoder = new google.maps.Geocoder();
-  
-      // Create marker - using AdvancedMarkerElement to avoid deprecation warning
-      try {
-        // Try to use the new AdvancedMarkerElement if available
-        marker = new google.maps.marker.AdvancedMarkerElement({
-          position: defaultLocation,
-          map: map,
-          draggable: true,
-        });
-  
-        // Add click event to the map
-        map.addListener("click", (event) => {
-          marker.position = event.latLng;
-          updateLocationFields(event.latLng);
-        });
-  
-        // Update fields when marker is dragged
-        marker.addListener("dragend", () => {
-          updateLocationFields(marker.position);
-          map.panTo(marker.position);
-        });
-      } catch (e) {
-        // Fall back to the old Marker if AdvancedMarkerElement is not available
-        marker = new google.maps.Marker({
-          position: defaultLocation,
-          map: map,
-          draggable: true,
-          animation: google.maps.Animation.DROP,
-        });
-  
-        // Update fields when marker is dragged
-        marker.addListener("dragend", () => {
-          const position = marker.getPosition();
-          updateLocationFields(position);
-          map.panTo(position);
-        });
-  
-        // Add click event to the map
-        map.addListener("click", (event) => {
-          marker.setPosition(event.latLng);
-          updateLocationFields(event.latLng);
-        });
-      }
-  
-      // Set up address autocomplete
-      const addressInput = document.getElementById("address");
-      autocomplete = new google.maps.places.Autocomplete(addressInput);
-      autocomplete.setFields([
-        "geometry",
-        "formatted_address",
-        "address_components",
-      ]);
-  
-      // When a place is selected, update map and fields
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-  
-        if (!place.geometry) {
-          console.error("No geometry found for this place");
-          return;
+        if (!addressComponents || !Array.isArray(addressComponents)) {
+            return false;
         }
         
-        // Check if location is in Jordan
-        if (!isLocationInJordan(place.address_components)) {
-          alert("Sorry, our service is only available in Jordan at this time.");
-          // Clear the address field
-          document.getElementById("address").value = "";
-          document.getElementById("formatted_address").value = "";
-          return;
+        // Look for Jordan as the country
+        const countryComponent = addressComponents.find(
+            component => component.types.includes("country")
+        );
+        
+        if (!countryComponent) {
+            return false;
         }
-  
-        // Update map view
-        map.setCenter(place.geometry.location);
-  
-        // Update marker position based on which marker type we're using
-        if (marker.setPosition) {
-          marker.setPosition(place.geometry.location);
-        } else {
-          marker.position = place.geometry.location;
-        }
-  
-        map.setZoom(15);
-  
-        // Update fields
-        updateLocationFields(place.geometry.location);
-        document.getElementById("formatted_address").value =
-          place.formatted_address;
-      });
+        
+        // Check if the country is Jordan (both short and long names)
+        return countryComponent.short_name === "JO" || 
+               countryComponent.long_name.toLowerCase().includes("jordan");
     }
-  
-    function updateLocationFields(location) {
-      // Update hidden form fields
-      document.getElementById("latitude").value = location.lat();
-      document.getElementById("longitude").value = location.lng();
-  
-      // Get address from coordinates
-      geocoder.geocode(
-        { location: { lat: location.lat(), lng: location.lng() } },
-        (results, status) => {
-          if (status === "OK" && results[0]) {
-            // Check if location is in Jordan
-            if (!isLocationInJordan(results[0].address_components)) {
-              alert("Sorry, our service is only available in Jordan at this time.");
-              // Clear the form fields
-              document.getElementById("address").value = "";
-              document.getElementById("formatted_address").value = "";
-              return;
+    
+    // Define the initMap function first
+    function initMap() {
+        // Default location (center of Jordan)
+        const defaultLocation = { lat: 31.9539, lng: 35.9106 };
+    
+        // Initialize map
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: defaultLocation,
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+        });
+    
+        // Initialize geocoder for address lookup
+        geocoder = new google.maps.Geocoder();
+    
+        // Create marker - using AdvancedMarkerElement to avoid deprecation warning
+        try {
+            // Try to use the new AdvancedMarkerElement if available
+            marker = new google.maps.marker.AdvancedMarkerElement({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+            });
+    
+            // Add click event to the map
+            map.addListener("click", (event) => {
+                marker.position = event.latLng;
+                updateLocationFields(event.latLng);
+            });
+    
+            // Update fields when marker is dragged
+            marker.addListener("dragend", () => {
+                updateLocationFields(marker.position);
+                map.panTo(marker.position);
+            });
+        } catch (e) {
+            // Fall back to the old Marker if AdvancedMarkerElement is not available
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+            });
+    
+            // Update fields when marker is dragged
+            marker.addListener("dragend", () => {
+                const position = marker.getPosition();
+                updateLocationFields(position);
+                map.panTo(position);
+            });
+    
+            // Add click event to the map
+            map.addListener("click", (event) => {
+                marker.setPosition(event.latLng);
+                updateLocationFields(event.latLng);
+            });
+        }
+    
+        // Set up address autocomplete
+        const addressInput = document.getElementById("address");
+        autocomplete = new google.maps.places.Autocomplete(addressInput);
+        autocomplete.setFields([
+            "geometry",
+            "formatted_address",
+            "address_components",
+        ]);
+    
+        // When a place is selected, update map and fields
+        autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+    
+            if (!place.geometry) {
+                console.error("No geometry found for this place");
+                return;
             }
             
-            const address = results[0].formatted_address;
-            document.getElementById("formatted_address").value = address;
-  
-            // Don't update the address input if the user is currently typing
-            const addressInput = document.getElementById("address");
-            if (!addressInput.matches(":focus")) {
-              addressInput.value = address;
+            // Check if location is in Jordan
+            if (!isLocationInJordan(place.address_components)) {
+                alert("Sorry, our service is only available in Jordan at this time.");
+                // Clear the address field
+                document.getElementById("address").value = "";
+                document.getElementById("formatted_address").value = "";
+                return;
             }
-          }
-        }
-      );
+    
+            // Update map view
+            map.setCenter(place.geometry.location);
+    
+            // Update marker position based on which marker type we're using
+            if (marker.setPosition) {
+                marker.setPosition(place.geometry.location);
+            } else {
+                marker.position = place.geometry.location;
+            }
+    
+            map.setZoom(15);
+    
+            // Update fields
+            updateLocationFields(place.geometry.location);
+            document.getElementById("formatted_address").value =
+                place.formatted_address;
+        });
     }
-  
+    
+    function updateLocationFields(location) {
+        // Update hidden form fields
+        document.getElementById("latitude").value = location.lat();
+        document.getElementById("longitude").value = location.lng();
+    
+        // Get address from coordinates
+        geocoder.geocode(
+            { location: { lat: location.lat(), lng: location.lng() } },
+            (results, status) => {
+                if (status === "OK" && results[0]) {
+                    // Check if location is in Jordan
+                    if (!isLocationInJordan(results[0].address_components)) {
+                        alert("Sorry, our service is only available in Jordan at this time.");
+                        // Clear the form fields
+                        document.getElementById("address").value = "";
+                        document.getElementById("formatted_address").value = "";
+                        return;
+                    }
+                    
+                    const address = results[0].formatted_address;
+                    document.getElementById("formatted_address").value = address;
+    
+                    // Don't update the address input if the user is currently typing
+                    const addressInput = document.getElementById("address");
+                    if (!addressInput.matches(":focus")) {
+                        addressInput.value = address;
+                    }
+                }
+            }
+        );
+    }
+    
     // Initialize variables
     let map;
     let marker;
     let geocoder;
     let autocomplete;
-  </script>
+
+    // Simplified profile image preview functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileInput = document.getElementById('profileInput');
+        const profilePreview = document.getElementById('profilePreview');
+        
+        if (profileInput && profilePreview) {
+            const uploadIcon = profilePreview.querySelector('.upload-icon');
+            
+            profilePreview.addEventListener('click', function() {
+                profileInput.click();
+            });
+            
+            profileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        profilePreview.style.backgroundImage = `url(${e.target.result})`;
+                        if (uploadIcon) {
+                            uploadIcon.style.display = 'none';
+                        }
+                    };
+                    
+                    reader.readAsDataURL(this.files[0]);
+                    // No need to copy to another input since this is already the form input with name="image"
+                }
+            });
+        }
+    });
+</script>
+
 <!-- Load Google Maps API with proper pattern -->
 <script>
-  // Load Google Maps API
-  (function loadGoogleMapsScript() {
-    const script = document.createElement("script");
-    script.src =
-      "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-  })();
+    // Load Google Maps API
+    (function loadGoogleMapsScript() {
+        const script = document.createElement("script");
+        script.src =
+            "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    })();
 </script>
 {% endblock %}

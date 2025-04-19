@@ -2,328 +2,375 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'css/post_deal.css' %}" rel="stylesheet" />
+<link href="{% static 'css/post_deal5.css' %}" rel="stylesheet" />
 
-<div class="container">
-  <div class="progress-pie-chart" data-percent="0">
-      <div class="ppc-progress">
-          <div class="ppc-progress-fill"></div>
-      </div>
-      <div class="ppc-percents">
-          <div class="pcc-percents-wrapper">
-              <span>%</span>
-          </div>
-      </div>
-  </div>
+<div class="Post-container">
+    <div class="page-header">
+        <h1>Post a New Deal</h1>
+    </div>
 
-  <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" action="{% url 'post_deal' %}">
-      {% csrf_token %}
-      
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <input type="url" id="deal-url" name="deal-url" placeholder=" " required>
-              <label for="deal-url">Deal URL</label>
-              <div class="error-message" id="url-error">Please enter a valid URL.</div>
-          </div>
-          <div class="form-group floating-label">
-              <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
-              <label for="deal-title">Deal Title</label>
-              <div class="error-message" id="title-error">Please enter a valid title using only letters.</div>
-          </div>
-      </div>
+    <div class="progress-container">
+        <span class="progress-label">Form Completion</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-percentage" id="progress-percentage">0%</div>
+    </div>
 
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <input type="text" id="store" name="store" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
-              <label for="store">Store</label>
-              <div class="error-message" id="store-error">Please enter a valid store name using only letters.</div>
-          </div>
+    <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" action="{% url 'post_deal' %}">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="deal-url" class="required-field">Deal URL</label>
+                <input type="url" id="deal-url" name="deal-url" required>
+                <div class="error-message" id="url-error">Please enter a valid URL.</div>
+            </div>
+            <div class="form-group">
+                <label for="deal-title" class="required-field">Deal Title</label>
+                <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z0-9 ]+" title="Letters and numbers only" required>
+                <div class="error-message" id="title-error">Please enter a valid title using only letters and numbers.</div>
+            </div>
+        </div>
 
-          <div class="form-group floating-label">
-              <input type="text" id="brand" name="brand" pattern="[A-Za-z ]+" title="Letters only" placeholder=" " required>
-              <label for="brand">Brand</label>
-              <div class="error-message" id="brand-error">Please enter a valid brand using only letters.</div>
-          </div>
-      </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="sale-price" class="required-field">Sale Price (JD)</label>
+                <input type="number" id="sale-price" name="sale-price" min="0.01" step="0.01" required>
+                <div class="error-message" id="sale-price-error">Please enter a valid sale price.</div>
+            </div>
+            <div class="form-group">
+                <label for="list-price" class="required-field">List Price (JD)</label>
+                <input type="number" id="list-price" name="list-price" min="0.01" step="0.01" required>
+                <div class="error-message" id="list-price-error">Please enter a valid list price.</div>
+            </div>
+        </div>
 
-      <!-- New Store Type Selection -->
-      <div class="form-group">
-          <label for="store-type">Store Type</label>
-          <div class="store-type-options">
-              <div>
-                  <input type="radio" id="online-store" name="store-type" value="online" checked>
-                  <label for="online-store">Online Store</label>
-              </div>
-              <div>
-                  <input type="radio" id="physical-store" name="store-type" value="physical">
-                  <label for="physical-store">Physical Store</label>
-              </div>
-          </div>
-      </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="store" class="required-field">Store</label>
+                <input type="text" id="store" name="store" pattern="[A-Za-z ]+" title="Letters only" required>
+                <div class="error-message" id="store-error">Please enter a valid store name using only letters.</div>
+            </div>
+            <div class="form-group">
+                <label for="brand" class="required-field">Brand</label>
+                <input type="text" id="brand" name="brand" pattern="[A-Za-z ]+" title="Letters only" required>
+                <div class="error-message" id="brand-error">Please enter a valid brand name using only letters.</div>
+            </div>
+        </div>
 
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <input type="number" id="sale-price" name="sale-price" placeholder=" " step="0.01">
-              <label for="sale-price">Sale Price ($)</label>
-          </div>
-          <div class="form-group floating-label">
-              <input type="number" id="list-price" name="list-price" placeholder=" " step="0.01">
-              <label for="list-price">List Price ($)</label>
-          </div>
-      </div>
+        <div class="form-group">
+            <label for="description" class="required-field">Deal Description</label>
+            <textarea id="description" name="description" required></textarea>
+            <div class="error-message" id="description-error">Please provide a description for the deal.</div>
+        </div>
 
-      <div class="form-grid">
-          <div class="form-group floating-label">
-              <select id="location" name="location" required>
-                  <option value="" disabled selected></option>
-                  <option value="Amman">Amman</option>
-                  <option value="Zarqa">Zarqa</option>
-                  <option value="Irbid">Irbid</option>
-                  <option value="Aqaba">Aqaba</option>
-                  <option value="Madaba">Madaba</option>
-              </select>
-              <label for="location">Deal Location</label>
-          </div>
-          <div class="form-group floating-label">
-              <select id="category" name="category" required>
-                  <option value="" disabled selected></option>
-                  {% for category in categories %}
-                      <option value="{{ category.id }}">{{ category.name }}</option>
-                  {% endfor %}
-              </select>
-              <label for="category">Category</label>
-              <div class="error-message" id="category-error">Please select a category.</div>
-          </div>
-      </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="image">Upload Image</label>
+                <div class="file-upload-wrapper">
+                    <label for="image" class="file-upload-label">
+                        <i class="fas fa-upload"></i> Choose File
+                    </label>
+                    <input type="file" id="image" name="image" accept="image/*" style="display: none;" required>
+                    <div class="file-name" id="file-name">No file chosen</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="category" class="required-field">Category</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="error-message" id="category-error">Please select a category.</div>
+            </div>
+        </div>
 
-      <!-- Map container - Initially hidden, shown only for physical stores -->
-      <div id="location-map-container" style="display: none;">
-          <div class="form-group">
-              <label for="address">Store Address</label>
-              <input type="text" id="address" name="address" placeholder="Search for store address...">
-          </div>
-          
-          <!-- Hidden fields for location data -->
-          <input type="hidden" name="latitude" id="latitude">
-          <input type="hidden" name="longitude" id="longitude">
-          <input type="hidden" name="formatted_address" id="formatted_address">
-          
-          <div class="form-group">
-              <div id="map-container">
-                  <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
-              </div>
-          </div>
-      </div>
+        <!-- Expiration -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="expiration-type" class="required-field">Deal Expires After</label>
+                <div class="expiration-options">
+                    <div>
+                        <input type="radio" id="default-expiration" name="expiration-type" value="default" checked>
+                        <label for="default-expiration">Default (10 days)</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="custom-expiration" name="expiration-type" value="custom">
+                        <label for="custom-expiration">Custom date</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" id="custom-date-container" style="display: none;">
+                <label for="expiration-date">Expiration Date</label>
+                <input type="date" id="expiration-date" name="expiration-date">
+                <div class="error-message" id="date-error">Please select a valid future date.</div>
+            </div>
+        </div>
 
-      <!-- New Expiration Date Field -->
-      <div class="form-grid">
-          <div class="form-group">
-              <label for="expiration-type">Deal Expires After</label>
-              <div class="expiration-options">
-                  <div>
-                      <input type="radio" id="default-expiration" name="expiration-type" value="default" checked>
-                      <label for="default-expiration">Default (10 days)</label>
-                  </div>
-                  <div>
-                      <input type="radio" id="custom-expiration" name="expiration-type" value="custom">
-                      <label for="custom-expiration">Custom date</label>
-                  </div>
-              </div>
-          </div>
-          <div class="form-group floating-label" id="custom-date-container" style="display: none;">
-              <input type="date" id="expiration-date" name="expiration-date">
-              <label for="expiration-date">Expiration Date</label>
-              <div class="error-message" id="date-error">Please select a valid future date.</div>
-          </div>
-      </div>
+        <!-- Store Type -->
+        <div class="form-group">
+            <label for="store-type">Store Type</label>
+            <div class="store-type-options">
+                <div>
+                    <input type="radio" id="online-store" name="store-type" value="online" checked>
+                    <label for="online-store">Online Store</label>
+                </div>
+                <div>
+                    <input type="radio" id="physical-store" name="store-type" value="physical">
+                    <label for="physical-store">Physical Store</label>
+                </div>
+            </div>
+        </div>
 
-      <div class="form-group floating-label">
-          <textarea id="description" name="description" placeholder=" " required></textarea>
-          <label for="description">Deal Description</label>
-          <div class="error-message" id="description-error">Please provide a description for the deal.</div>
-      </div>
+        <!-- Online Store Location -->
+        <div class="form-grid" id="online-location-container">
+            <div class="form-group">
+                <label for="location" class="required-field">Deal Location</label>
+                <select id="location" name="location" required>
+                    <option value="" disabled selected>Select location</option>
+                    <option value="Amman">Amman</option>
+                    <option value="Zarqa">Zarqa</option>
+                    <option value="Irbid">Irbid</option>
+                    <option value="Aqaba">Aqaba</option>
+                    <option value="Madaba">Madaba</option>
+                </select>
+                <div class="error-message" id="location-error">Please select a location.</div>
+            </div>
+        </div>
 
-      <div class="form-group">
-          <label for="image">Upload Image</label>
-          <input type="file" id="image" name="image" accept="image/*" required>
-      </div>
+        <!-- Map Section -->
+        <div id="location-map-container" style="display: none;">
+            <div class="form-group">
+                <label for="address">Store Address</label>
+                <input type="text" id="address" name="address" placeholder="Search for store address...">
+            </div>
 
-      <div class="form-actions">
-          <button type="button" id="archive-btn">Archive Deal</button>
-          <button type="submit">Post Deal</button>
-      </div>
-  </form>
+            <!-- Hidden Fields -->
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+            <input type="hidden" name="formatted_address" id="formatted_address">
+
+            <div class="form-group">
+                <div id="map-container">
+                    <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" id="archive-btn"><i class="fas fa-archive"></i> Archive Deal</button>
+            <button type="submit"><i class="fas fa-paper-plane"></i> Post Deal</button>
+        </div>
+    </form>
 </div>
 
 <div id="notification-container"></div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('deal-form');
-    const steps = document.querySelectorAll('.progress-step');
-    const fields = Array.from(form.querySelectorAll('input, select, textarea'));
-    const archiveButton = document.getElementById('archive-btn');
-    
-    // Store type elements
-    const onlineStore = document.getElementById('online-store');
-    const physicalStore = document.getElementById('physical-store');
-    const locationMapContainer = document.getElementById('location-map-container');
-    
-    // Toggle map visibility based on store type
-    onlineStore.addEventListener('change', function() {
-        if (this.checked) {
-            locationMapContainer.style.display = 'none';
-            document.getElementById('latitude').value = '';
-            document.getElementById('longitude').value = '';
-            document.getElementById('formatted_address').value = '';
-        }
-    });
-    
-    physicalStore.addEventListener('change', function() {
-        if (this.checked) {
-            locationMapContainer.style.display = 'block';
-            // Initialize map if it hasn't been loaded yet
-            if (typeof map === 'undefined') {
-                initMap();
-            }
-        }
-    });
-    
-    // Expiration date elements
-    const defaultExpiration = document.getElementById('default-expiration');
-    const customExpiration = document.getElementById('custom-expiration');
-    const customDateContainer = document.getElementById('custom-date-container');
-    const expirationDateInput = document.getElementById('expiration-date');
-    
-    // Set minimum date for expiration to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    expirationDateInput.min = tomorrow.toISOString().split('T')[0];
-    
-    // Set default maximum date to 30 days from now
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 30);
-    expirationDateInput.max = maxDate.toISOString().split('T')[0];
-    
-    // Toggle custom date field visibility
-    defaultExpiration.addEventListener('change', function() {
-        if (this.checked) {
-            customDateContainer.style.display = 'none';
-            expirationDateInput.required = false;
-        }
-    });
-    
-    customExpiration.addEventListener('change', function() {
-        if (this.checked) {
-            customDateContainer.style.display = 'block';
-            expirationDateInput.required = true;
-        }
-    });
-  
-    // Function to show notification messages
-    const showNotification = (message, type = 'success') => {
-      const notificationContainer = document.getElementById('notification-container');
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      notificationContainer.appendChild(notification);
-  
-      setTimeout(() => {
-        notification.classList.add('show');
-      }, 10);
-  
-      setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-          notification.remove();
-        }, 500);
-      }, 3000);
-    };
-  
-    const updateProgress = () => {
-      let firstInvalidIndex = fields.findIndex(field => field.value.trim() === '' || !field.checkValidity());
-      firstInvalidIndex = firstInvalidIndex === -1 ? fields.length : firstInvalidIndex;
-      
-      if (steps) {
-        steps.forEach((step, index) => {
-          step.classList.toggle('completed', index < firstInvalidIndex);
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('deal-form');
+        const fields = Array.from(form.querySelectorAll('input:not([type="file"]):not([type="radio"]), select, textarea'));
+        const requiredFields = fields.filter(field => field.hasAttribute('required'));
+        const archiveButton = document.getElementById('archive-btn');
+        const fileInput = document.getElementById('image');
+        const fileName = document.getElementById('file-name');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercentage = document.getElementById('progress-percentage');
+        
+        // Store type elements
+        const onlineStore = document.getElementById('online-store');
+        const physicalStore = document.getElementById('physical-store');
+        const locationMapContainer = document.getElementById('location-map-container');
+        const onlineLocationContainer = document.getElementById('online-location-container');
+        const locationSelect = document.getElementById('location');
+        
+        // Expiration date elements
+        const defaultExpiration = document.getElementById('default-expiration');
+        const customExpiration = document.getElementById('custom-expiration');
+        const customDateContainer = document.getElementById('custom-date-container');
+        const expirationDateInput = document.getElementById('expiration-date');
+
+        // Set expiration date constraints
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        expirationDateInput.min = tomorrow.toISOString().split('T')[0];
+        
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 30);
+        expirationDateInput.max = maxDate.toISOString().split('T')[0];
+
+        // File upload display
+        fileInput.addEventListener('change', function() {
+            fileName.textContent = this.files && this.files[0] ? this.files[0].name : 'No file chosen';
+            updateProgressBar();
         });
-      }
-    };
-  
-    const showErrorMessage = (field, messageId) => {
-      const errorMessage = document.getElementById(messageId);
-      if (errorMessage) {
-        errorMessage.style.display = (!field.checkValidity() && field.value.trim() !== '') ? 'block' : 'none';
-      }
-    };
-  
-    form.addEventListener('input', (event) => {
-      const target = event.target;
-      target.classList.toggle('invalid', !target.checkValidity() && target.value.trim() !== '');
-  
-      const fieldErrorMap = {
-        'deal-url': 'url-error',
-        'deal-title': 'title-error',
-        'sale-price': 'sale-price-error',
-        'list-price': 'list-price-error',
-        'location': 'location-error',
-        'description': 'description-error',
-        'category': 'category-error',
-        'store': 'store-error',
-        'brand': 'brand-error',
-        'image': 'image-error',
-        'expiration-date': 'date-error'
-      };
-  
-      if (fieldErrorMap[target.id]) {
-        showErrorMessage(target, fieldErrorMap[target.id]);
-      }
-  
-      updateProgress();
+
+        // Store type handlers
+        onlineStore.addEventListener('change', function() {
+            if (this.checked) {
+                locationMapContainer.style.display = 'none';
+                onlineLocationContainer.style.display = 'block';
+                locationSelect.required = true;
+                document.getElementById('latitude').value = '';
+                document.getElementById('longitude').value = '';
+                document.getElementById('formatted_address').value = '';
+            }
+            updateProgressBar();
+        });
+        
+        physicalStore.addEventListener('change', function() {
+            if (this.checked) {
+                locationMapContainer.style.display = 'block';
+                onlineLocationContainer.style.display = 'none';
+                locationSelect.required = false;
+                if (typeof map === 'undefined') {
+                    loadGoogleMapsScript();
+                }
+            }
+            updateProgressBar();
+        });
+
+        // Expiration date handlers
+        defaultExpiration.addEventListener('change', function() {
+            if (this.checked) {
+                customDateContainer.style.display = 'none';
+                expirationDateInput.required = false;
+            }
+            updateProgressBar();
+        });
+        
+        customExpiration.addEventListener('change', function() {
+            if (this.checked) {
+                customDateContainer.style.display = 'block';
+                expirationDateInput.required = true;
+            }
+            updateProgressBar();
+        });
+
+        // Function to show notification messages
+        const showNotification = (message, type = 'success') => {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notificationContainer.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }, 3000);
+        };
+
+        // Function to update progress bar
+        const updateProgressBar = () => {
+            let filledFields = fields.filter(field => field.value.trim() !== '').length;
+            
+            if (document.getElementById('default-expiration').checked || 
+                document.getElementById('custom-expiration').checked) {
+                filledFields++;
+            }
+
+            if (fileInput.files && fileInput.files[0]) {
+                filledFields++;
+            }
+
+            const totalFields = fields.length + 1;
+            const percent = Math.round((filledFields / totalFields) * 100);
+
+            progressFill.style.width = `${percent}%`;
+            progressPercentage.textContent = `${percent}%`;
+        };
+
+        // Form validation
+        const showErrorMessage = (field, messageId) => {
+            const errorMessage = document.getElementById(messageId);
+            if (errorMessage) {
+                errorMessage.style.display = (!field.checkValidity() && field.value.trim() !== '') ? 'block' : 'none';
+            }
+        };
+
+        // Form input validation
+        form.addEventListener('input', (event) => {
+            const target = event.target;
+            target.classList.toggle('invalid', !target.checkValidity() && target.value.trim() !== '');
+
+            const fieldErrorMap = {
+                'deal-url': 'url-error',
+                'deal-title': 'title-error',
+                'sale-price': 'sale-price-error',
+                'list-price': 'list-price-error',
+                'location': 'location-error',
+                'description': 'description-error',
+                'category': 'category-error',
+                'store': 'store-error',
+                'brand': 'brand-error',
+                'expiration-date': 'date-error'
+            };
+
+            if (fieldErrorMap[target.id]) {
+                showErrorMessage(target, fieldErrorMap[target.id]);
+            }
+
+            updateProgressBar();
+        });
+
+        // Prevent form submission for demo but enable for production
+        /*
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let allValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.checkValidity() || field.value.trim() === '') {
+                    field.classList.add('invalid');
+                    const errorId = field.id + '-error';
+                    const errorElement = document.getElementById(errorId);
+                    if (errorElement) {
+                        errorElement.style.display = 'block';
+                    }
+                    allValid = false;
+                } else {
+                    field.classList.remove('invalid');
+                }
+            });
+
+            if (customExpiration.checked && !expirationDateInput.checkValidity()) {
+                expirationDateInput.classList.add('invalid');
+                document.getElementById('date-error').style.display = 'block';
+                allValid = false;
+            }
+
+            if (allValid) {
+                showNotification('Deal posted successfully!');
+                // Don't reset form for actual production
+                // form.reset();
+                // fileName.textContent = 'No file chosen';
+                // updateProgressBar();
+            } else {
+                showNotification('Please fill out all required fields correctly.', 'error');
+            }
+        });
+        */
+
+        // Archive button
+        archiveButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to archive this deal?')) {
+                showNotification('Deal archived successfully!');
+            }
+        });
+
+        // Initialize progress bar
+        updateProgressBar();
     });
-  
-    // Only use JS validation for immediate feedback, let the form submit for backend validation
-    archiveButton.addEventListener('click', () => {
-      if (confirm('Are you sure you want to archive this deal?')) {
-        showNotification('Deal archived successfully!');
-      }
-    });
-    
-    // Function to update the progress bar
-    function updateProgressBar() {
-      let totalFields = 9; // Updated to match required fields
-      let filledFields = 0;
-      
-      document.querySelectorAll('input, textarea, select').forEach(field => {
-        if (field.value.trim() !== "") {
-          filledFields++;
-        }
-      });
-      
-      let percent = Math.round((filledFields / totalFields) * 100);
-      
-      let progressBar = document.querySelector('.progress-pie-chart');
-      progressBar.setAttribute('data-percent', percent);
-      
-      let progressFill = progressBar.querySelector('.ppc-progress-fill');
-      progressFill.style.background = `conic-gradient(#81CE97 ${percent}%, #E5E5E5 0%)`;
-      
-      // Update the text display
-      let percentText = progressBar.querySelector('.ppc-percents span');
-      if (percentText) {
-        percentText.textContent = percent + "%";
-      }
-    }
-    
-    document.querySelectorAll('input, textarea, select').forEach(field => {
-      field.addEventListener('input', updateProgressBar);
-      field.addEventListener('change', updateProgressBar);
-      field.addEventListener('focusout', updateProgressBar);
-    });
-    
-    updateProgressBar();
-  });
 </script>
 
 <!-- Google Maps JavaScript -->
@@ -509,11 +556,15 @@
   }
   
   // Load maps when physical store option is selected
-  document.getElementById('physical-store').addEventListener('change', function() {
-    if (this.checked) {
-      loadGoogleMapsScript();
+  document.addEventListener('DOMContentLoaded', function() {
+    const physicalStoreRadio = document.getElementById('physical-store');
+    if (physicalStoreRadio) {
+      physicalStoreRadio.addEventListener('change', function() {
+        if (this.checked) {
+          loadGoogleMapsScript();
+        }
+      });
     }
   });
 </script>
-
 {% endblock %}

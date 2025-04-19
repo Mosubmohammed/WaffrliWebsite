@@ -4,38 +4,40 @@
 {% block title %}Messaging System{% endblock %}
 
 {% block content %}
-<link href="{% static 'css/settings.css' %}" rel="stylesheet" />
-<nav class="navbar">
-  <div class="nav-profile">
-    {% if user.customer and user.customer.image %}
-    <img
-      src="{{ user.customer.image.url }}"
-      alt="Profile-Picture"
-      class="profile-pic"
-    />
-    {% else %}
-    <img
-      src="{% static 'images/default-profile.png' %}"
-      alt="Profile-Picture"
-      class="profile-pic"
-    />
-    {% endif %}
-      <div class="profile-info">
-          <h2 class="username">{{ user.username }} <span class="badge">DEAL HUNTER</span></h2>
-      </div>
-  </div>
+<link href="{% static 'css/settings4.css' %}" rel="stylesheet" />
+<nav class="user-navbar">
   <ul>
-      <li><a href="{% url 'user_profile' user.id %}">My Profile</a></li>
-      <li class="active"><a href="{% url 'inbox' %}">Inbox</a></li>
-      <li><a href="{% url 'saved_items' %}">Saved Items</a></li>
-      <li><a href="{% url 'settings' %}">Settings & Options</a></li>
+      <li>
+          <a href="{% url 'user_profile' user.id %}" class="user-nav-link">
+              <span class="user-nav-icon">🏠</span>
+              My Profile
+          </a>
+      </li>
+      <li>
+          <a href="{% url 'inbox' %}" class="user-nav-link active">
+              <span class="user-nav-icon">📥</span>
+              Inbox
+          </a>
+      </li>
+      <li>
+          <a href="{% url 'saved_items' %}" class="user-nav-link">
+              <span class="user-nav-icon">🔖</span>
+              Saved Items
+          </a>
+      </li>
+      <li>
+          <a href="{% url 'settings' %}" class="user-nav-link">
+              <span class="user-nav-icon">⚙️</span>
+              Settings
+          </a>
+      </li>
   </ul>
-</nav> 
+</nav>
 
 <div class="SettingContainer">
   <div class="SettingSidebar">
     <ul class="nav-menu">
-        <li ><a href="{% url 'inbox' %}">Messages ({{ total_messages }})</a></li>
+        <li >Messages ({{ total_messages }})</li>
         <li class="active"><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
         <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
     </ul>
