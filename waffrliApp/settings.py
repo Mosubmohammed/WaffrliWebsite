@@ -16,7 +16,7 @@ import firebase_admin
 from firebase_admin import credentials, auth, firestore
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+import dj_database_url
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -33,13 +33,14 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "jazzmin",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'waffrli',  # your app
+    'waffrli',  
 
 ]
 
@@ -85,12 +86,12 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # DATABASES = {
 #     'default': {
@@ -102,7 +103,12 @@ DATABASES = {
 #         'PORT': '5432',
 #     }
 # }
-
+# filepath: c:\Users\mosup\WaffrliWebsite\waffrliApp\settings.py
+DATABASES = {
+    'default': dj_database_url.parse(
+        "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+    )
+}
 
 
 # Password validation
