@@ -17,9 +17,10 @@
         <div class="progress-percentage" id="progress-percentage">0%</div>
     </div>
 
-    <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" action="{% url 'post_deal' %}">
+    <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data"
+        action="{% url 'post_deal' %}">
         {% csrf_token %}
-        
+
         <div class="form-grid">
             <div class="form-group">
                 <label for="deal-url" class="required-field">Deal URL</label>
@@ -28,8 +29,10 @@
             </div>
             <div class="form-group">
                 <label for="deal-title" class="required-field">Deal Title</label>
-                <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z0-9 ]+" title="Letters and numbers only" required>
-                <div class="error-message" id="title-error">Please enter a valid title using only letters and numbers.</div>
+                <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z0-9 ]+"
+                    title="Letters and numbers only" required>
+                <div class="error-message" id="title-error">Please enter a valid title using only letters and numbers.
+                </div>
             </div>
         </div>
 
@@ -81,7 +84,7 @@
                 <select id="category" name="category" required>
                     <option value="" disabled selected>Select category</option>
                     {% for category in categories %}
-                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
                 </select>
                 <div class="error-message" id="category-error">Please select a category.</div>
@@ -179,14 +182,14 @@
         const fileName = document.getElementById('file-name');
         const progressFill = document.getElementById('progress-fill');
         const progressPercentage = document.getElementById('progress-percentage');
-        
+
         // Store type elements
         const onlineStore = document.getElementById('online-store');
         const physicalStore = document.getElementById('physical-store');
         const locationMapContainer = document.getElementById('location-map-container');
         const onlineLocationContainer = document.getElementById('online-location-container');
         const locationSelect = document.getElementById('location');
-        
+
         // Expiration date elements
         const defaultExpiration = document.getElementById('default-expiration');
         const customExpiration = document.getElementById('custom-expiration');
@@ -197,19 +200,19 @@
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         expirationDateInput.min = tomorrow.toISOString().split('T')[0];
-        
+
         const maxDate = new Date();
         maxDate.setDate(maxDate.getDate() + 30);
         expirationDateInput.max = maxDate.toISOString().split('T')[0];
 
         // File upload display
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', function () {
             fileName.textContent = this.files && this.files[0] ? this.files[0].name : 'No file chosen';
             updateProgressBar();
         });
 
         // Store type handlers
-        onlineStore.addEventListener('change', function() {
+        onlineStore.addEventListener('change', function () {
             if (this.checked) {
                 locationMapContainer.style.display = 'none';
                 onlineLocationContainer.style.display = 'block';
@@ -220,8 +223,8 @@
             }
             updateProgressBar();
         });
-        
-        physicalStore.addEventListener('change', function() {
+
+        physicalStore.addEventListener('change', function () {
             if (this.checked) {
                 locationMapContainer.style.display = 'block';
                 onlineLocationContainer.style.display = 'none';
@@ -234,15 +237,15 @@
         });
 
         // Expiration date handlers
-        defaultExpiration.addEventListener('change', function() {
+        defaultExpiration.addEventListener('change', function () {
             if (this.checked) {
                 customDateContainer.style.display = 'none';
                 expirationDateInput.required = false;
             }
             updateProgressBar();
         });
-        
-        customExpiration.addEventListener('change', function() {
+
+        customExpiration.addEventListener('change', function () {
             if (this.checked) {
                 customDateContainer.style.display = 'block';
                 expirationDateInput.required = true;
@@ -273,8 +276,8 @@
         // Function to update progress bar
         const updateProgressBar = () => {
             let filledFields = fields.filter(field => field.value.trim() !== '').length;
-            
-            if (document.getElementById('default-expiration').checked || 
+
+            if (document.getElementById('default-expiration').checked ||
                 document.getElementById('custom-expiration').checked) {
                 filledFields++;
             }
@@ -377,162 +380,162 @@
 <script>
     // Add this function to check if location is in Jordan
     function isLocationInJordan(addressComponents) {
-      if (!addressComponents || !Array.isArray(addressComponents)) {
-        return false;
-      }
-      
-      // Look for Jordan as the country
-      const countryComponent = addressComponents.find(
-        component => component.types.includes("country")
-      );
-      
-      if (!countryComponent) {
-        return false;
-      }
-      
-      // Check if the country is Jordan (both short and long names)
-      return countryComponent.short_name === "JO" || 
-             countryComponent.long_name.toLowerCase().includes("jordan");
+        if (!addressComponents || !Array.isArray(addressComponents)) {
+            return false;
+        }
+
+        // Look for Jordan as the country
+        const countryComponent = addressComponents.find(
+            component => component.types.includes("country")
+        );
+
+        if (!countryComponent) {
+            return false;
+        }
+
+        // Check if the country is Jordan (both short and long names)
+        return countryComponent.short_name === "JO" ||
+            countryComponent.long_name.toLowerCase().includes("jordan");
     }
-  
+
     // Define the initMap function first
     function initMap() {
-      // Default location (center of Jordan)
-      const defaultLocation = { lat: 31.9539, lng: 35.9106 };
-  
-      // Initialize map
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: defaultLocation,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      });
-  
-      // Initialize geocoder for address lookup
-      geocoder = new google.maps.Geocoder();
-  
-      // Create marker - using AdvancedMarkerElement to avoid deprecation warning
-      try {
-        // Try to use the new AdvancedMarkerElement if available
-        marker = new google.maps.marker.AdvancedMarkerElement({
-          position: defaultLocation,
-          map: map,
-          draggable: true,
+        // Default location (center of Jordan)
+        const defaultLocation = { lat: 31.9539, lng: 35.9106 };
+
+        // Initialize map
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: defaultLocation,
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
         });
-  
-        // Add click event to the map
-        map.addListener("click", (event) => {
-          marker.position = event.latLng;
-          updateLocationFields(event.latLng);
-        });
-  
-        // Update fields when marker is dragged
-        marker.addListener("dragend", () => {
-          updateLocationFields(marker.position);
-          map.panTo(marker.position);
-        });
-      } catch (e) {
-        // Fall back to the old Marker if AdvancedMarkerElement is not available
-        marker = new google.maps.Marker({
-          position: defaultLocation,
-          map: map,
-          draggable: true,
-          animation: google.maps.Animation.DROP,
-        });
-  
-        // Update fields when marker is dragged
-        marker.addListener("dragend", () => {
-          const position = marker.getPosition();
-          updateLocationFields(position);
-          map.panTo(position);
-        });
-  
-        // Add click event to the map
-        map.addListener("click", (event) => {
-          marker.setPosition(event.latLng);
-          updateLocationFields(event.latLng);
-        });
-      }
-  
-      // Set up address autocomplete
-      const addressInput = document.getElementById("address");
-      autocomplete = new google.maps.places.Autocomplete(addressInput);
-      autocomplete.setFields([
-        "geometry",
-        "formatted_address",
-        "address_components",
-      ]);
-  
-      // When a place is selected, update map and fields
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-  
-        if (!place.geometry) {
-          console.error("No geometry found for this place");
-          return;
+
+        // Initialize geocoder for address lookup
+        geocoder = new google.maps.Geocoder();
+
+        // Create marker - using AdvancedMarkerElement to avoid deprecation warning
+        try {
+            // Try to use the new AdvancedMarkerElement if available
+            marker = new google.maps.marker.AdvancedMarkerElement({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+            });
+
+            // Add click event to the map
+            map.addListener("click", (event) => {
+                marker.position = event.latLng;
+                updateLocationFields(event.latLng);
+            });
+
+            // Update fields when marker is dragged
+            marker.addListener("dragend", () => {
+                updateLocationFields(marker.position);
+                map.panTo(marker.position);
+            });
+        } catch (e) {
+            // Fall back to the old Marker if AdvancedMarkerElement is not available
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+            });
+
+            // Update fields when marker is dragged
+            marker.addListener("dragend", () => {
+                const position = marker.getPosition();
+                updateLocationFields(position);
+                map.panTo(position);
+            });
+
+            // Add click event to the map
+            map.addListener("click", (event) => {
+                marker.setPosition(event.latLng);
+                updateLocationFields(event.latLng);
+            });
         }
-        
-        // Check if location is in Jordan
-        if (!isLocationInJordan(place.address_components)) {
-          alert("Sorry, our service is only available in Jordan at this time.");
-          // Clear the address field
-          document.getElementById("address").value = "";
-          document.getElementById("formatted_address").value = "";
-          return;
-        }
-  
-        // Update map view
-        map.setCenter(place.geometry.location);
-  
-        // Update marker position based on which marker type we're using
-        if (marker.setPosition) {
-          marker.setPosition(place.geometry.location);
-        } else {
-          marker.position = place.geometry.location;
-        }
-  
-        map.setZoom(15);
-  
-        // Update fields
-        updateLocationFields(place.geometry.location);
-        document.getElementById("formatted_address").value =
-          place.formatted_address;
-      });
-    }
-  
-    function updateLocationFields(location) {
-      // Update hidden form fields
-      document.getElementById("latitude").value = location.lat();
-      document.getElementById("longitude").value = location.lng();
-  
-      // Get address from coordinates
-      geocoder.geocode(
-        { location: { lat: location.lat(), lng: location.lng() } },
-        (results, status) => {
-          if (status === "OK" && results[0]) {
+
+        // Set up address autocomplete
+        const addressInput = document.getElementById("address");
+        autocomplete = new google.maps.places.Autocomplete(addressInput);
+        autocomplete.setFields([
+            "geometry",
+            "formatted_address",
+            "address_components",
+        ]);
+
+        // When a place is selected, update map and fields
+        autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                console.error("No geometry found for this place");
+                return;
+            }
+
             // Check if location is in Jordan
-            if (!isLocationInJordan(results[0].address_components)) {
-              alert("Sorry, our service is only available in Jordan at this time.");
-              // Clear the form fields
-              document.getElementById("address").value = "";
-              document.getElementById("formatted_address").value = "";
-              return;
+            if (!isLocationInJordan(place.address_components)) {
+                alert("Sorry, our service is only available in Jordan at this time.");
+                // Clear the address field
+                document.getElementById("address").value = "";
+                document.getElementById("formatted_address").value = "";
+                return;
             }
-            
-            const address = results[0].formatted_address;
-            document.getElementById("formatted_address").value = address;
-  
-            // Don't update the address input if the user is currently typing
-            const addressInput = document.getElementById("address");
-            if (!addressInput.matches(":focus")) {
-              addressInput.value = address;
+
+            // Update map view
+            map.setCenter(place.geometry.location);
+
+            // Update marker position based on which marker type we're using
+            if (marker.setPosition) {
+                marker.setPosition(place.geometry.location);
+            } else {
+                marker.position = place.geometry.location;
             }
-          }
-        }
-      );
+
+            map.setZoom(15);
+
+            // Update fields
+            updateLocationFields(place.geometry.location);
+            document.getElementById("formatted_address").value =
+                place.formatted_address;
+        });
     }
-  
+
+    function updateLocationFields(location) {
+        // Update hidden form fields
+        document.getElementById("latitude").value = location.lat();
+        document.getElementById("longitude").value = location.lng();
+
+        // Get address from coordinates
+        geocoder.geocode(
+            { location: { lat: location.lat(), lng: location.lng() } },
+            (results, status) => {
+                if (status === "OK" && results[0]) {
+                    // Check if location is in Jordan
+                    if (!isLocationInJordan(results[0].address_components)) {
+                        alert("Sorry, our service is only available in Jordan at this time.");
+                        // Clear the form fields
+                        document.getElementById("address").value = "";
+                        document.getElementById("formatted_address").value = "";
+                        return;
+                    }
+
+                    const address = results[0].formatted_address;
+                    document.getElementById("formatted_address").value = address;
+
+                    // Don't update the address input if the user is currently typing
+                    const addressInput = document.getElementById("address");
+                    if (!addressInput.matches(":focus")) {
+                        addressInput.value = address;
+                    }
+                }
+            }
+        );
+    }
+
     // Initialize variables
     let map;
     let marker;
@@ -542,29 +545,29 @@
 
 <!-- Load Google Maps API with proper pattern -->
 <script>
-  // Load Google Maps API lazily - only when physical store is selected
-  function loadGoogleMapsScript() {
-    if (document.getElementById('physical-store').checked && !window.googleMapsLoaded) {
-      const script = document.createElement("script");
-      script.src =
-        "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-      window.googleMapsLoaded = true;
-    }
-  }
-  
-  // Load maps when physical store option is selected
-  document.addEventListener('DOMContentLoaded', function() {
-    const physicalStoreRadio = document.getElementById('physical-store');
-    if (physicalStoreRadio) {
-      physicalStoreRadio.addEventListener('change', function() {
-        if (this.checked) {
-          loadGoogleMapsScript();
+    // Load Google Maps API lazily - only when physical store is selected
+    function loadGoogleMapsScript() {
+        if (document.getElementById('physical-store').checked && !window.googleMapsLoaded) {
+            const script = document.createElement("script");
+            script.src =
+                "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+            window.googleMapsLoaded = true;
         }
-      });
     }
-  });
+
+    // Load maps when physical store option is selected
+    document.addEventListener('DOMContentLoaded', function () {
+        const physicalStoreRadio = document.getElementById('physical-store');
+        if (physicalStoreRadio) {
+            physicalStoreRadio.addEventListener('change', function () {
+                if (this.checked) {
+                    loadGoogleMapsScript();
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
