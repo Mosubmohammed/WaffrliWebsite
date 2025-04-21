@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/hotDeals55.css' %}" rel="stylesheet" />
+<link href="{% static 'css/hotDeals3.css' %}" rel="stylesheet" />
 <!-- Hero Section -->
 <div class="hero-section">
     <div class="hero-content">
@@ -87,7 +87,7 @@
                 <label class="checkbox-label">
                     <input type="checkbox" name="store" value="{{ store }}" 
                           {% if store in selected_stores %}checked{% endif %}> 
-                    <span>{{ store }}</span>
+                    <span style="color: black;">{{ store }}</span>
                 </label>
                 {% endfor %}
             </div>
@@ -140,7 +140,7 @@
                 <label class="checkbox-label">
                     <input type="checkbox" name="brand" value="{{ brand }}" 
                           {% if brand in selected_brands %}checked{% endif %}>
-                    <span>{{ brand }}</span>
+                    <span style="color: black;">{{ brand }}</span>
                 </label>
                 {% endfor %}
             </div>
@@ -165,11 +165,11 @@
                 <div class="sort-options">
                     <label class="radio-label">
                         <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
-                        <span>Default</span>
+                        <span style="color: black;">Default</span>
                     </label>
                     <label class="radio-label">
                         <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
-                        <span>Distance (Nearest First)</span>
+                        <span style="color: black;">Distance (Nearest First)</span>
                     </label>
                 </div>
             </div>
@@ -204,23 +204,28 @@
                         <span class="current-price">${{ product.sale_price }}</span>
                         <span class="original-price">${{ product.Price }}</span>
                     </div>
+               
                     <div class="store-info">
                         <div class="store">{{ product.store }}</div>
+                            <!-- 
                         {% if product.store_type %}
                         <div class="store-type-badge {{ product.store_type }}">
                             {{ product.store_type|title }}
                         </div>
-                        {% endif %}
+                        {% endif %}    
+                          -->
                     </div>
+                
                     <div class="brand">{{ product.brand }}</div>
+                 
                     <div class="location">
                         <i class="fas fa-map-marker-alt"></i> {{ product.city }}
-                        
+                       
                         <!-- Distance Information -->
                         {% if user_has_location and product.latitude and product.longitude %}
                         <div class="distance-info">
                             <i class="fas fa-route"></i>
-                            <span>{{ product.distance_to|floatformat:1 }} km away</span>
+                            <span style="color: black;" >{{ product.distance_to|floatformat:1 }} km away</span>
                         </div>
                         {% endif %}
                     </div>
@@ -236,10 +241,11 @@
                     {% if user.is_authenticated %}
                     <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
                         {% csrf_token %}
-                        <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                       <!-- <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
                             <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
                             <span class="like-count">{{ product.likes.count }}</span>
                         </button>
+                        -->
                     </form>
                     {% endif %}
                     {% else %}

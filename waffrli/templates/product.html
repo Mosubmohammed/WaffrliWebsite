@@ -1,169 +1,192 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/DealDetailsStyle22.css' %}" rel="stylesheet" />
+
+<link href="{% static 'css/DealDetailsStyle245.css' %}" rel="stylesheet" />
+
 
 <div class="container">
     <div class="content-wrapper">
-        <main class="main-content">
+        <!-- Main Content -->
+        <div class="main-content">
             <div class="deal-card">
+                <div class="deal-image">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
+                    {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" class="img-fluid rounded-start" alt="Product Image" />
+                    {% endif %}                   
+                    <span class="tag-popular">Popular</span>
+                    <a href="{% url 'user_profile' product.user.username %}">
+                        <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
+                    </a>
+                </div>
+                
                 <div class="deal-content">
-                    <div class="deal-image">
-                        {% if product.image %}
-                        <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
-                        {% else %}
-                        <img src="{% static 'images/placeholder.jpg' %}" class="img-fluid rounded-start" alt="Product Image" />
+                    <div class="deal-header">
+                        <h1>{{ product.Name }}</h1>
+                        {% if user == product.user %}
+                        <button class="menu-btn" id="menuBtn">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="menu-dropdown" id="menuDropdown">
+                            <button class="menu-item">
+                                <a href="{% url 'edit_deal' product.id %}">
+                                    <i class="fas fa-edit"></i> Edit</a> 
+                            </button>
+                            <button class="menu-item"><i class="fas fa-archive"></i> Archive</button>
+                            <button class="menu-item" onclick="confirmDelete({{ product.id }})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
                         {% endif %}
                     </div>
-                    <div class="deal-details">
-                        <div class="deal-tags">
-                            <span class="tag tag-popular">Popular</span>
-                            <a href="{% url 'user_profile' product.user.username %}">
-                                <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
-                            </a>
+    
+                    <div class="price-info">
+                        <span class="current-price">JD{{ product.sale_price }}</span>
+                        <span class="original-price">JD{{ product.Price }}</span>
+                        <span class="discount">{{ product.discount_percentage }}% OFF</span>
+                    </div>
+    
+                    <div class="deal-actions">
+                        <a class="get-deal-btn" 
+                           href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+                           target="_blank" rel="noopener noreferrer">
+                            <i class="fas fa-external-link-alt"></i> Get Deal at {{product.store}}
+                        </a>
+                        <button class="save-btn" data-product-id="{{ product.id }}" 
+                                title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+                            <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
+                        </button>
+                        <div class="vote-actions">
+                            <button class="vote-btn" id="thumbsUpBtn">
+                                <i class="fa-solid fa-thumbs-up {% if user in product.likes.all %}active{% endif %}"></i>
+                            </button>
+                            <span class="vote-count" id="voteCount">0</span>
+                            <button class="vote-btn" id="downvote"><i class="fas fa-thumbs-down"></i></button>
                         </div>
+                    </div>
+    
+                    <div class="deal-stats">
+                        <span class="comments"> 
+                            <a href="#comment-section"><i class="far fa-comment"></i> {{ comments|length }} Comments</a>
+                        </span>
+                        <span><i class="far fa-eye"></i> {{ product.views }} Views</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!--under section-->
+            <div class="profile-card">
+                <!-- Navigation Tabs -->
+                <nav class="Details-tabs">
+                    <ul>
+                        <li><button class="Details-tab-btn Detailsactive" data-tab="details">Deal Description</button></li>
+                        <li><button class="Details-tab-btn" data-tab="community">Community Voting</button></li>
+                        <li><button class="Details-tab-btn" data-tab="poster">About the Poster</button></li>
+                    </ul>
+                </nav>
 
-                        <div class="deal-header">
-                            <h1>{{ product.Name }}</h1>
-                            {% if user == product.user %}
-                            <div class="menu-container">
-                                <button class="btn btn-menu" id="menuBtn">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="menu-dropdown" id="menuDropdown">
-                                    <button class="menu-item">
-                                        <a href="{% url 'edit_deal' product.id %}">
-                                            <i class="fas fa-edit"></i> Edit Post
-                                        </a>
-                                    </button>
-                                    <button class="menu-item">
-                                        <i class="fas fa-archive"></i> Archive Post
-                                    </button>
-                                    <button class="menu-item" onclick="confirmDelete({{ product.id }})">
-                                        <i class="fas fa-trash-alt"></i> Remove Post
-                                    </button>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
+                <!-- Tab Content -->
+                <div class="Details-tab-content Detailsactive" id="details">
+                    <div class="product-description">
+                        <h3>About This Deal</h3>
+                        <div class="deal-highlights">
+                            <p class="deal-intro">{{ product.Description|truncatewords:20 }}</p>
 
-                        <div class="price-info">
-                            <span class="current-price">${{ product.sale_price }}</span>
-                            <span class="original-price">${{ product.Price }}</span>
-                            <span class="discount-badge">{{ product.discount_percentage }}% OFF</span>
-                        </div>
-
-                        <div class="action-buttons">
-                            <a class="get-deal-btn"
-                                href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-                                target="_blank" rel="noopener noreferrer">
-                                Get Deal at {{product.store}}
-                            </a>
-
-                            <div class="vote-buttons">
-                                <button class="btn btn-vote" id="thumbsUpBtn">
-                                    <i class="fa-solid fa-thumbs-up {% if user in product.likes.all %}active{% endif %}"></i>
-                                </button>
-
-                                <button class="save-btn" data-product-id="{{ product.id }}" 
-                                    title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-                                    <i class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %}far fa-bookmark{% endif %}"></i>
-                                </button>
-
-                                <div>
-                                    <a href="#comment-section">
-                                        <span class="comments">
-                                            <i class="fa-regular fa-comment"></i>
-                                            {{ comments|length }} Comments
-                                        </span>
-                                    </a>
-                                    <span class="views"><i class="fa-regular fa-eye"></i> {{ product.views }} Views</span>
-                                </div>
+                            <div class="price-highlight">
+                                <p><strong>Amazing Value:</strong> ${{ product.get_savings_amount }} ({{ product.discount_percentage }}% off) from the regular price!</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Under section with tabs -->
-            <div class="container">
-                <div class="profile-card">
-                    <!-- Navigation Tabs -->
-                    <nav class="tabs">
-                        <ul>
-                            <li><button class="tab-btn active" data-tab="details">Deal Description</button></li>
-                            <li><button class="tab-btn" data-tab="community">Community Voting</button></li>
-                            <li><button class="tab-btn" data-tab="poster">About the Poster</button></li>
-                        </ul>
-                    </nav>
-
-                    <!-- Tab Content -->
-                    <div class="tab-content active" id="details">
-                        <div class="product-description">
-                            <h3>About This Deal</h3>
-                            <div class="deal-highlights">
-                                <p class="deal-intro">{{ product.Description|truncatewords:20 }}</p>
-
-                                <div class="key-features">
-                                    <div class="feature">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>{{ product.Description|truncatewords:5 }}</span>
-                                    </div>
-                                    <div class="feature">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>Brand: {{ product.brand }}</span>
-                                    </div>
-                                    <div class="feature">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>Store: {{ product.store }}</span>
-                                    </div>
-                                    <div class="feature">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>Location: {{ product.city }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="price-highlight">
-                                    <p><strong>Amazing Value:</strong> Save ${{ product.get_savings_amount }} ({{ product.discount_percentage }}% off) from the regular price!</p>
-                                </div>
-                            </div>
+                <div class="Details-tab-content" id="community">
+                    <h3 style="color: black;">Community Voting</h3>
+                    <div class="voting-section">
+                        <div class="vote-score">
+                            <div class="score">+{{ product.likes.count }}</div>
+                            <div class="score-label">Deal Score</div>
+                        </div>
+                        <div class="vote-buttons">
+                            <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
+                                👍 Good Deal
+                            </button>
+                            <button class="vote-btn bad-deal">
+                                👎 Bad Deal
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <div class="tab-content" id="community">
-                        <h3>Community Voting</h3>
-                        <div class="voting-section">
-                            <div class="vote-score">
-                                <div class="score">+{{ product.likes.count }}</div>
-                                <div class="score-label">Deal Score</div>
-                            </div>
-                            <div class="vote-buttons">
-                                <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
-                                    👍 Good Deal
-                                </button>
-                                <button class="vote-btn bad-deal">
-                                    👎 Bad Deal
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="poster">
-                        <div class="profile-content">
-                            <div class="profile-header">
-                                <div class="Section-user-info">
-                                    {% if product.user.customer.image %}
-                                    <img src="{{ product.user.customer.image.url }}" alt="Profile" class="Section-avatar" />
-                                    {% else %}
-                                    <img src="{% static 'images/default-avatar.jpg' %}" alt="Profile" class="Section-avatar" />
-                                    {% endif %}
-                                    <div class="user-details">
+                <div class="Details-tab-content" id="poster">
+                    <div class="profile-content">
+                        <div class="profile-header">
+                            <div class="Section-user-info">
+                            {% if product.user.customer.image %}
+                                <img src="{{ product.user.customer.image.url }}" alt="Profile" class="Section-avatar" />
+                                {% else %}
+                                <img src="{% static 'images/default-avatar.jpg' %}" alt="Profile" class="Section-avatar" />
+                                {% endif %}
+                                <div class="user-details">
+                                    <a style="text-decoration: none;" href="{% url 'user_profile' product.user.username %}">
                                         <h2>{{ product.user.username }}</h2>
-                                        <div class="Section-user-badges">
-                                            <a href="{% url 'user_profile' product.user.username %}">
-                                                <span class="Section-badge">Staff</span>
-                                            </a>
-                                            <span class="join-date">Joined {{ product.user.date_joined|date:"M Y" }}</span>
+                                    </a>  
+                                    <div class="Section-user-badges">
+                                        <span class="Section-badge">Trusted</span>
+                                        <span class="join-date">Joined in {{ product.user.date_joined|date:"M Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="Section-action-buttons">
+                                {% if user.is_authenticated and user != product.user %}
+                                <form method="POST" action="{% url 'follow' product.user.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="Section-btn comm-btn">
+                                        <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
+                                        {% if is_following %}Unfollow{% else %}Follow{% endif %}
+                                    </button>
+                                </form>
+                                <a href="{% url 'send_message' product.user.id %}" class="Section-btn comm-btn">
+                                    <i class="fas fa-paper-plane"></i> Message
+                                </a>
+                                <button class="Section-btn report-btn" id="reportButton">
+                                    <i class="fas fa-flag"></i> Report
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Overlay -->
+                        <div class="report-modal-overlay" id="reportModal">
+                            <div class="report-modal-box">
+                                <div class="report-modal-header">
+                                    <h2 class="report-modal-title">Report Post</h2>
+                                    <button class="report-close-button" id="closeModal">×</button>
+                                </div>
+                                <form id="reportForm">
+                                    <div class="report-form-group">
+                                        <label class="report-form-label">Choose your reason</label>
+                                        <div class="report-radio-option">
+                                            <input type="radio" id="reason-expired" name="reason" value="expired">
+                                            <label for="reason-expired">Expired</label>
+                                        </div>
+                                        <div class="report-radio-option">
+                                            <input type="radio" id="reason-spam" name="reason" value="spam">
+                                            <label for="reason-spam">Spam</label>
+                                        </div>
+                                        <div class="report-radio-option">
+                                            <input type="radio" id="reason-repost" name="reason" value="repost">
+                                            <label for="reason-repost">Repost</label>
+                                        </div>
+                                        <div class="report-radio-option">
+                                            <input type="radio" id="reason-troll" name="reason" value="troll">
+                                            <label for="reason-troll">Troll</label>
+                                        </div>
+                                        <div class="report-radio-option">
+                                            <input type="radio" id="reason-other" name="reason" value="other">
+                                            <label for="reason-other">Other</label>
                                         </div>
                                     </div>
                                 </div>
@@ -187,38 +210,44 @@
                                     {% endif %}
                                 </div>
                             </div>
-
-                            <div class="stats-grid">
-                                <div class="stat-card">
-                                    <i class="fas fa-gift"></i>
-                                    <span class="stat-value">{{ deal_count }}</span>
-                                    <span class="stat-label">Deal Posts</span>
-                                </div>
-                                <div class="stat-card">
-                                    <i class="fas fa-comment-alt"></i>
-                                    <span class="stat-value">34,526</span>
-                                    <span class="stat-label">Comments Posts</span>
-                                </div>
-                                <div class="stat-card">
-                                    <i class="fas fa-award"></i>
-                                    <span class="stat-value">123,558</span>
-                                    <span class="stat-label">Reputation Points</span>
-                                </div>
-                                <div class="stat-card">
-                                    <i class="fas fa-thumbs-up"></i>
-                                    <span class="stat-value">33,704</span>
-                                    <span class="stat-label">Votes Submitted</span>
-                                </div>
+                        </div>
+                       
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-gift"></i>
+                                <span class="stat-value">{{ deal_count }}</span>
+                                <span class="stat-label">Deal Posts</span>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-comment-alt"></i>
+                                <span class="stat-value">{{ comment_count }}</span>
+                                <span class="stat-label">Comments Posts</span>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-award"></i>
+                                <span class="stat-value">{{ reputation_points }}</span>
+                                <span class="stat-label">Reputation Points</span>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span class="stat-value">{{ total_likes_received }}</span>
+                                <span class="stat-label">Votes Submitted</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-
             <!-- Related Deals Slider -->
             <div class="related-deals">
-                <h2>Related Deals</h2>
+                <div class="separator-container">
+                    <div class="separator-line"></div>
+                    <div class="separator-text">
+                        <h2>Related Deals</h2>
+                    </div>
+                    <div class="separator-line"></div>
+                </div>
+         
                 <div class="slider-container">
                     <div class="deals-slider">
                         {% for related_product in related_products %}
@@ -264,7 +293,7 @@
             <div id="comment-section" class="community-section">
                 <h2 class="section-title">Share Your Thoughts 💭</h2>
                 <div class="comment-section">
-                    <!-- Display existing comments -->
+                    <!-- Existing comments -->
                     {% for comment in comments %}
                     <div class="comment">
                         <div class="comment-header">
@@ -272,11 +301,19 @@
                             <img src="{{ comment.customer.image.url }}" alt="User Avatar" class="Section-avatar">
                             {% else %}
                             <img src="{% static 'images/default-avatar.jpg' %}" alt="User Avatar" class="Section-avatar">
-                            {% endif %}
+                            {% endif %}                       
                             <div class="user-details">
                                 <h3>{{ comment.customer.user.username }}</h3>
                                 <div class="comment-meta">
                                     <span class="time">{{ comment.timestamp|timesince }} ago</span>
+                                    <div class="comment-actions">
+                                        <button class="btn-vote">
+                                            <i class="fas fa-thumbs-up"></i>
+                                        </button>
+                                        <button class="btn-vote">
+                                            <i class="fas fa-thumbs-down"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -289,48 +326,50 @@
                     {% endfor %}
 
                     <!-- Comment form -->
-                    {% if user.is_authenticated %}
-                    <form method="POST" action="{{ request.path }}" class="comment-form" id="comment-form">
-                        {% csrf_token %}
-                        {% if user.customer.image %}
-                        <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
-                        {% else %}
-                        <img src="{% static 'images/default-avatar.jpg' %}" alt="Current User Avatar" class="Section-avatar">
-                        {% endif %}
-                        <div class="form-wrapper">
-                            <textarea id="comment-input" name="comment" placeholder="What are your thoughts on this deal?" rows="3"></textarea>
-                            <div class="form-actions">
-                                <button type="submit" id="post-comment-btn" class="btn btn-primary">
-                                    <i class="fas fa-paper-plane"></i>
-                                    Post Comment
-                                </button>
+                    <div class="comment-form">
+                        {% if user.is_authenticated %}
+                        <form method="POST" action="{{ request.path }}" class="comment-form" id="comment-form">
+                            {% csrf_token %}
+                            {% if user.customer.image %}
+                            <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
+                            {% else %}
+                            <img src="{% static 'images/default-avatar.jpg' %}" alt="Current User Avatar" class="Section-avatar">
+                            {% endif %}
+                            <div class="form-wrapper">
+                                <textarea id="comment-input" name="text" placeholder="What are your thoughts on this deal?" rows="3"></textarea>
+                                <div class="form-actions">
+                                    <button type="submit" id="post-comment-btn" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Post Comment
+                                    </button>
+                                </div>
                             </div>
+                        </form>
+                        {% else %}
+                        <div class="login-to-comment">
+                            <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
                         </div>
-                    </form>
-                    {% else %}
-                    <div class="login-to-comment">
-                        <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
-        </main>
+        </div>
 
-        <!-- Sidebar for Ads -->
+        <!-- Aside for Ads -->
         <aside class="sidebar">
             <div class="ad-space">
-                <a href="https://smartbuy-me.com/" target="_blank">
-                    <img src="{% static 'img\Smart Buy (1).jpg' %}" alt="Ad 1" class="ad-image">
+                <a href="https://smartbuy-me.com/?srsltid=AfmBOoqHbGg-VtlF4ftqnps7Yccv8l6bkxu-Fi35wgiycujPP5R60Rkj" target="_blank">
+                    <img src="{% static 'img/Smart_Buy.jpg' %}" alt="Ad 1" class="ad-image">
                 </a>
             </div>
             <div class="ad-space">
                 <a href="https://www.facebook.com/upimjordan/" target="_blank">
-                    <img src="{% static 'img\irbidCityCenter.jpg' %}" alt="Ad 2" class="ad-image">
+                    <img src="{% static 'img/irbidCityCenter.jpg' %}" alt="Ad 2" class="ad-image">
                 </a>
             </div>
             <div class="ad-space">
-                <a href="https://smartbuy-me.com/" target="_blank">
-                    <img src="{% static 'img\Sale-clothes.jpg' %}" alt="Ad 3" class="ad-image">
+                <a href="https://smartbuy-me.com/?srsltid=AfmBOoqHbGg-VtlF4ftqnps7Yccv8l6bkxu-Fi35wgiycujPP5R60Rkj" target="_blank">
+                    <img src="{% static 'img/Sale-clothes.jpg' %}" alt="Ad 3" class="ad-image">
                 </a>
             </div>
         </aside>
@@ -385,6 +424,7 @@
 <!-- Replace the entire script section in your template with this combined version -->
 
 <script>
+
     // Organize all functionality within a single DOMContentLoaded event
     document.addEventListener('DOMContentLoaded', function() {
         // Tab functionality
@@ -745,4 +785,6 @@
         }
     });
     </script>
+
+
 {% endblock %}
