@@ -2027,7 +2027,7 @@ def delete_archived_deal(request, deal_id):
     return redirect('archived_deals')
 
 def publish_archived_deal(request, deal_id):
-    """View to publish an archived deal"""
+    """View to publish an archived deal with proper validation"""
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to publish deals.")
         return redirect('login')
@@ -2035,6 +2035,32 @@ def publish_archived_deal(request, deal_id):
     if request.method == "POST":
         try:
             deal = Product.objects.get(id=deal_id, user=request.user, is_archived=True)
+            
+            # Validate required fields before publishing
+            validation_errors = []
+            
+            # Check required fields
+            if not deal.Name or deal.Name == "Draft Deal":
+                validation_errors.append("Deal title is required")
+                
+            if not deal.store:
+                validation_errors.append("Store name is required")
+                
+            if not deal.category:
+                validation_errors.append("Category is required")
+                
+            # Validate prices
+            if deal.Price <= 0:
+                validation_errors.append("List price must be greater than zero")
+                
+            # If there's a sale price, make sure it's less than the regular price
+            if deal.sale_price > 0 and deal.sale_price >= deal.Price:
+                validation_errors.append("Sale price must be less than list price")
+                
+            # Location validation
+            if deal.store_type == 'physical':
+                if not deal.latitude or not deal.longitude:
+                    validation_errors.append("Physical store location is required")
             
             # If city is missing but formatted_address exists, try to extract city
             if not deal.city and deal.formatted_address:
@@ -2051,25 +2077,17 @@ def publish_archived_deal(request, deal_id):
             if not deal.city and deal.store_type == 'online':
                 deal.city = "Amman"  # Default city for online stores
             
-            # Debug logging to check actual values
-            missing_fields = []
-            if not deal.Name:
-                missing_fields.append("name")
-            if not deal.store:
-                missing_fields.append("store")
-            if not deal.category_id:  # Check the foreign key ID instead of the object
-                missing_fields.append("category")
-            if not deal.city:
-                missing_fields.append("city")
-            if not deal.image:
-                missing_fields.append("image")
-                
-            # If there are missing fields, show specifically which ones
-            if missing_fields:
-                messages.error(request, f"This deal is missing required information: {', '.join(missing_fields)}. It cannot be published yet.")
+            # Check expiration date
+            if not deal.expires_at or deal.expires_at <= timezone.now():
+                # Set a default expiration date (10 days from now)
+                deal.expires_at = timezone.now() + timezone.timedelta(days=10)
+            
+            # If there are validation errors, show a single message and redirect to edit page
+            if validation_errors:
+                messages.error(request, "This deal cannot be published because some required information is missing. Please complete all required fields.")
                 return redirect('continue_archived_deal', deal_id=deal.id)
             
-            # Change status to published
+            # All validation passed, change status to published
             deal.is_archived = False
             deal.archived_at = None
             deal.save()
@@ -2084,4 +2102,59 @@ def publish_archived_deal(request, deal_id):
             messages.error(request, "Archived deal not found.")
     
     return redirect('archived_deals')
+
+
+
+
+
+@login_required
+def report_deal(request, product_id):
+    """AJAX view for reporting a deal"""
+    product = get_object_or_404(Product, id=product_id)
+    
+    # Get the customer profile for the logged-in user
+    try:
+        customer = Customer.objects.get(user=request.user)
+    except Customer.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'You need a customer profile to report deals.'
+        }, status=400)
+    
+    # Get form data
+    reason = request.POST.get('reason')
+    details = request.POST.get('message')
+    
+    # Validate data
+    if not reason or reason not in dict(ReportedDeal.REPORT_REASONS):
+        return JsonResponse({
+            'success': False,
+            'message': 'Please select a valid reason.'
+        }, status=400)
+    
+    # Check if user already reported this product with the same reason
+    existing_report = ReportedDeal.objects.filter(
+        product=product,
+        reporter=customer,
+        reason=reason
+    ).exists()
+    
+    if existing_report:
+        return JsonResponse({
+            'success': False,
+            'message': f"You've already reported this deal as '{dict(ReportedDeal.REPORT_REASONS).get(reason)}'."
+        })
+    
+    # Create the report
+    report = ReportedDeal.objects.create(
+        product=product,
+        reporter=customer,
+        reason=reason,
+        details=details
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Thank you for your report. Our team will review it soon.'
+    })
 

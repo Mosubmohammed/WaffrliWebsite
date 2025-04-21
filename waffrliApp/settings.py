@@ -93,17 +93,6 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',  # Use the default database instead
-#         'USER': 'Mosab',
-#         'PASSWORD': '3Nksory_2309',
-#         'HOST': 'wafrlliwebsite.cts24g66cvk9.eu-north-1.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
-# filepath: c:\Users\mosup\WaffrliWebsite\waffrliApp\settings.py
 DATABASES = {
     'default': dj_database_url.parse(
         "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"

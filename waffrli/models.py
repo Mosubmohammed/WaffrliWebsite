@@ -235,3 +235,39 @@ class Notification(models.Model):
     class Meta:
         ordering = ['-created_at']
         
+
+
+class ReportedDeal(models.Model):
+    REPORT_REASONS = (
+        ('expired', 'Expired'),
+        ('spam', 'Spam'),
+        ('repost', 'Repost'),
+        ('troll', 'Troll'),
+        ('other', 'Other')
+    )
+    
+    STATUS_CHOICES = (
+        ('pending', 'Pending Review'),
+        ('approved', 'Report Approved'),
+        ('rejected', 'Report Rejected'),
+        ('resolved', 'Issue Resolved')
+    )
+    
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reports')
+    reporter = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reported_deals')
+    reason = models.CharField(max_length=20, choices=REPORT_REASONS)
+    details = models.TextField(blank=True, help_text="Additional details about the report")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, help_text="Admin notes on resolution")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Report on {self.product.Name} by {self.reporter.first_name} {self.reporter.last_name} - {self.get_reason_display()}"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Reported Deal"
+        verbose_name_plural = "Reported Deals"
+        # Prevent multiple reports for the same reason by the same user
+        unique_together = ('product', 'reporter', 'reason')
