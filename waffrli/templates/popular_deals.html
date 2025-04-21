@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/popularDeals4.css' %}">
+<link rel="stylesheet" href="{% static 'css/popularDeals445.css' %}">
 
 <!-- Popular Deals Section -->
 <div class="deals-section">
@@ -123,21 +123,21 @@
         </div>
         
         <!-- Sort By (New) -->
-        {% if user_has_location %}
+        
         <div class="filter-section">
             <h3>Sort By</h3>
             <div class="sort-options">
                 <label class="radio-label">
                     <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
-                    <span>Default</span>
+                    <span style="color: black;">Default</span>
                 </label>
                 <label class="radio-label">
                     <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
-                    <span>Distance (Nearest First)</span>
+                    <span style="color: black;">Distance (Nearest First)</span>
                 </label>
             </div>
         </div>
-        {% endif %}
+        
         
         <!-- Filter Buttons -->
         <div class="filter-buttons">
@@ -160,32 +160,38 @@
                         {% endif %}
                         <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
                         {% if user_has_location and product.distance_to <= 5 %}
-                        <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
+                        <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i>Near You</div>
                         {% endif %}
                     </div>
                     <div class="product-details">
                         <h3 class="product-title">{{ product.Name }}</h3>
                         <div class="price-rating">
                             <span class="current-price">${{ product.sale_price }}</span>
-                            <span class="original-price">${{ product.Price }}</span>
+                            <span style="text-decoration: line-through; color: black;" class="original-price">${{ product.Price }}</span>
                         </div>
+                     
                         <div class="store-info">
                             <div class="store">{{ product.store }}</div>
+                     <!-- 
                             {% if product.store_type %}
                             <div class="store-type-badge {{ product.store_type }}">
                                 {{ product.store_type|title }}
                             </div>
                             {% endif %}
+                            -->
                         </div>
+
                         <div class="brand">{{ product.brand }}</div>
+                      
                         <div class="location">
+                     
                             <i class="fas fa-map-marker-alt"></i> {{ product.city }}
-                            
+                         
                             <!-- Distance Information -->
                             {% if user_has_location and product.latitude and product.longitude %}
                             <div class="distance-info">
                                 <i class="fas fa-route"></i>
-                                <span>{{ product.distance_to|floatformat:1 }} km away</span>
+                                <span style="color: black;">{{ product.distance_to|floatformat:1 }} km away</span>
                             </div>
                             {% endif %}
                         </div>
@@ -197,14 +203,14 @@
                                 View Deal
                             </button>
                         </a>
-                        
+                       
                         {% if user.is_authenticated %}
                         <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
                             {% csrf_token %}
-                            <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                             <!--  <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
                                 <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
                                 <span class="like-count">{{ product.likes.count }}</span>
-                            </button>
+                            </button>--> 
                         </form>
                         {% endif %}
                         {% else %}

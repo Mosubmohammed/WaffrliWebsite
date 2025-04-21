@@ -376,8 +376,12 @@ header {
 }
 
 .nav-links {
-  display: flex;
-  gap: 20px;
+  display: flex
+  ;
+      gap: 20px;
+      padding: 0px 103px;
+      position: relative;
+      bottom: -15px;
 }
 
 .nav-links a {
