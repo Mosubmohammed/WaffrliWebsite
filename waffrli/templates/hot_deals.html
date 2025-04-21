@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/hotDeals666.css' %}" rel="stylesheet" />
+<link href="{% static 'css/hotDeals55.css' %}" rel="stylesheet" />
 <!-- Hero Section -->
 <div class="hero-section">
     <div class="hero-content">
@@ -127,7 +127,7 @@
                     <label class="checkbox-label">
                         <input type="checkbox" name="location" value="{{ city }}" 
                               {% if city in selected_locations %}checked{% endif %}> 
-                        <span>{{ city }}</span>
+                        <span style="color: black;">{{ city }}</span>
                     </label>
                     {% endfor %}
                 </div>
@@ -153,8 +153,8 @@
                     <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
                     <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
                     <div class="price-values">
-                        <span>$0</span>
-                        <span id="currentPrice">${{ max_price|default:'100' }}</span>
+                        <span style="color: black;">$0</span>
+                        <span  style="color: black;" id="currentPrice">${{ max_price|default:'100' }}</span>
                     </div>
                 </div>
             </div>

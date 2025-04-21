@@ -791,6 +791,16 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 16px;
 }
 
+/* Product Card 
+.product-card {
+  background-color: white;
+  overflow: hidden;
+
+  width: 17rem;
+  height: 34rem;
+}
+
+*/
 .Subproduct-card, .product-card {
   background-color: white;
   border-radius: 10px;
@@ -1084,6 +1094,9 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 4px;
   transition: background-color 0.2s;
 }
+
+
+
 
 .cities-filter .checkbox-label:hover {
   background-color: #f0f0f0;

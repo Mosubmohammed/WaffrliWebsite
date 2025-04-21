@@ -1,13 +1,15 @@
+
+
 /* Main Layout */
 .all-Category-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 2rem;
 }
 
 /* Top Deals Section */
 .all-Category-top-deals {
-  margin-bottom: 3rem;
+  margin: 4rem 6rem;
 }
 
 .all-Category-top-deals h2 {
@@ -77,7 +79,7 @@
 
 /* Featured Categories Section */
 .all-Category-featured-categories {
-  padding: 2rem 0;
+  padding: 6rem 75px;
 }
 
 .all-Category-featured-categories h2 {

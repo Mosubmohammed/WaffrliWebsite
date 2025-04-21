@@ -95,7 +95,12 @@ span {
   justify-content: space-between;
   align-items: center;
 }
-
+button[type="submit"] {
+  background-color: #b40707a6;
+  color: white;
+  border: 2px solid #3f030333;
+  border-radius: 33px;
+}
 .search-container {
   display: flex;
   flex-grow: 1;
@@ -361,7 +366,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 2rem 21rem;
+  margin: 0rem 21rem;
 }
 
 .logo {

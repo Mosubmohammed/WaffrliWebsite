@@ -152,6 +152,7 @@ input[type="radio"] {
 /* File Upload */
 .file-upload-wrapper {
   margin-top: 5px;
+  margin-right: 15rem;
 }
 
 .file-upload-label {
