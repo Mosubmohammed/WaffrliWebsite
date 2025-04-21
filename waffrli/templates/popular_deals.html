@@ -35,12 +35,12 @@
                 <label class="checkbox-label">
                     <input type="checkbox" name="store_type" value="online" 
                     {% if 'online' in selected_store_types %}checked{% endif %}>
-                    <span>Online Stores</span>
+                    <span style="color: black;" >Online Stores</span>
                 </label>
                 <label class="checkbox-label">
                     <input type="checkbox" name="store_type" value="physical" 
                     {% if 'physical' in selected_store_types %}checked{% endif %}>
-                    <span>Physical Stores</span>
+                    <span style="color: black;" >Physical Stores</span>
                 </label>
             </div>
         </div>
@@ -50,9 +50,9 @@
             <h3>Stores</h3>
             {% for store in stores %}
             <label class="checkbox-label">
-                <input type="checkbox" name="store" value="{{ store }}" 
+                <input  type="checkbox" name="store" value="{{ store }}" 
                       {% if store in selected_stores %}checked{% endif %}> 
-                <span>{{ store }}</span>
+                <span style="color: black;">{{ store }}</span>
             </label>
             {% endfor %}
         </div>
@@ -91,7 +91,7 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="location" value="{{ location }}" 
                       {% if location in selected_locations %}checked{% endif %}> 
-                <span>{{ location }}</span>
+                <span style="color: black;">{{ location }}</span>
             </label>
             {% endfor %}
         </div>
@@ -103,7 +103,7 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="brand" value="{{ brand }}" 
                       {% if brand in selected_brands %}checked{% endif %}>
-                <span>{{ brand }}</span>
+                <span style="color: black;">{{ brand }}</span>
             </label>
             {% endfor %}
         </div>
@@ -116,8 +116,8 @@
                 <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
                 <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
                 <div class="price-values">
-                    <span>$0</span>
-                    <span id="currentPrice">${{ max_price|default:'100' }}</span>
+                    <span style="color: black;" >$0</span>
+                    <span style="color: black;" id="currentPrice">${{ max_price|default:'100' }}</span>
                 </div>
             </div>
         </div>

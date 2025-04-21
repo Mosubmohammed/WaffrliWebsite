@@ -70,6 +70,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
+  width: 13rem;
 }
 
 .input-group button:hover {
@@ -153,13 +154,15 @@
 
 .modal-content {
   background-color: white;
-  max-width: 600px;
+  max-width: 599px;
   margin: 2rem auto;
   padding: 2rem;
   border-radius: 12px;
   position: relative;
-  top: 50%;
+  top: 34rem;
   transform: translateY(-50%);
+  height: fit-content;
+  width: inherit;
 }
 
 /* Responsive Design */
