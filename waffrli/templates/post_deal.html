@@ -260,29 +260,44 @@
             });
         }
         
-        // Function to update city field based on store type
+        // Enhanced function to update city field based on store type
         const updateCityField = () => {
             if (onlineStore && onlineStore.checked && locationSelect) {
                 // For online stores, copy the selected city value
                 cityField.value = locationSelect.value;
+                return true;
             } else if (physicalStore && physicalStore.checked) {
-                // For physical stores, extract city from formatted address
+                // For physical stores, validate and extract city from formatted address
                 const formattedAddress = document.getElementById('formatted_address');
-                if (formattedAddress && formattedAddress.value) {
+                const latitude = document.getElementById('latitude');
+                const longitude = document.getElementById('longitude');
+                
+                // Check if we have valid location data
+                if (!formattedAddress.value || !latitude.value || !longitude.value) {
+                    return false;
+                }
+                
+                if (formattedAddress.value) {
                     // Try to extract city from the formatted address
-                    // This is an estimate - address formats vary by country
                     const addressParts = formattedAddress.value.split(',');
                     if (addressParts.length >= 2) {
-                        // Typically city is the second-to-last part in most address formats
-                        // But let's be cautious and just grab what might be a city
-                        const possibleCity = addressParts[1].trim();
-                        cityField.value = possibleCity;
+                        // Typically city is the second part in most address formats
+                        cityField.value = addressParts[1].trim();
                     } else {
-                        // Fallback to full address if we can't extract a city part
-                        cityField.value = formattedAddress.value;
+                        // Fallback to the first part if we can't extract a city part
+                        cityField.value = addressParts[0].trim();
                     }
+                    
+                    // If we still don't have a city, use Amman as default
+                    if (!cityField.value) {
+                        cityField.value = "Amman"; // Default fallback
+                    }
+                    
+                    return true;
                 }
             }
+            
+            return false;
         };
         
         // Store type handlers
@@ -434,17 +449,20 @@
         
         // Archive button handler
         if (archiveButton) {
-            archiveButton.addEventListener('click', () => {
+            archiveButton.addEventListener('click', (e) => {
+                // Prevent default behavior
+                e.preventDefault();
+                
                 const message = isEditMode 
                     ? 'Save this deal as a draft to complete later?' 
                     : 'Archive this deal to save and complete later?';
                     
                 if (confirm(message)) {
-                    // Update city field before submission
-                    updateCityField();
-                    
                     // Set the action value to 'archive'
                     actionInput.value = 'archive';
+                    
+                    // Try to update city field - but don't prevent submission if it fails
+                    updateCityField();
                     
                     // Remove required attribute from fields to allow incomplete submissions
                     requiredFields.forEach(field => {
@@ -459,22 +477,62 @@
         }
         
         // Post button handler
-        if (postButton) {
-            postButton.addEventListener('click', () => {
-                // Update city field before submission
-                updateCityField();
+// Update the postButton click handler with a direct fix
+if (postButton) {
+    postButton.addEventListener('click', (e) => {
+        // Prevent default form submission
+        e.preventDefault();
+        
+        // FIRST: Set action to post
+        actionInput.value = 'post';
+        
+        // SECOND: For physical stores, force values if they exist in the map
+        if (physicalStore && physicalStore.checked) {
+            // Get map values
+            const formattedAddress = document.getElementById('formatted_address');
+            const latitude = document.getElementById('latitude');
+            const longitude = document.getElementById('longitude');
+            
+            // If map has been used, use its values
+            if (formattedAddress.value && latitude.value && longitude.value) {
+                // Set a default city if missing
+                if (!document.getElementById('city-field').value) {
+                    // Try to extract from address or use default
+                    const addressParts = formattedAddress.value.split(',');
+                    if (addressParts.length >= 2) {
+                        document.getElementById('city-field').value = addressParts[1].trim();
+                    } else {
+                        // Use Amman as default city
+                        document.getElementById('city-field').value = "Amman";
+                    }
+                }
                 
-                // Clear the action value for normal submission
-                actionInput.value = '';
-            });
+                // Submit the form if we have the necessary map data
+                console.log("Physical store form submitted with city: " + document.getElementById('city-field').value);
+                form.submit();
+                return;
+            } else {
+                // Show error if map location is missing
+                showNotification('Please select a location on the map for the physical store.', 'error');
+                return;
+            }
         }
+        
+        // For online stores, make sure city is selected
+        if (onlineStore && onlineStore.checked) {
+            if (locationSelect && locationSelect.value) {
+                document.getElementById('city-field').value = locationSelect.value;
+            }
+        }
+        
+        // Submit the form
+        form.submit();
+    });
+}
         
         // Form submission handler
         if (form) {
             form.addEventListener('submit', function(e) {
-                // Update city field regardless of action
-                updateCityField();
-                
                 // Only validate if we're NOT archiving
                 if (actionInput.value !== 'archive') {
                     let allValid = true;
@@ -498,6 +556,18 @@
                     if (!cityField.value) {
                         allValid = false;
                         showNotification('Please provide a city location.', 'error');
+                    }
+                    
+                    // Special check for physical store
+                    if (physicalStore && physicalStore.checked) {
+                        const latitude = document.getElementById('latitude');
+                        const longitude = document.getElementById('longitude');
+                        const formattedAddress = document.getElementById('formatted_address');
+                        
+                        if (!latitude.value || !longitude.value || !formattedAddress.value) {
+                            allValid = false;
+                            showNotification('Please select a location on the map for the physical store.', 'error');
+                        }
                     }
                     
                     // In edit mode, we don't require a new image if one already exists

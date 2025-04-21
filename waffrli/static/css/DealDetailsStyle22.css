@@ -485,7 +485,116 @@ body {
 .ad-image:hover {
   transform: scale(1.05);
 }
+/* Add these CSS styles to your DealDetailsStyle2.css file or in a style tag in your template */
+.report-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999; /* Make sure this is higher than other elements */
+  justify-content: center;
+  align-items: center;
+}
 
+.report-modal-box {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease;
+  position: relative;
+  z-index: 10000;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.report-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.report-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #343a40;
+}
+
+.report-close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.15s ease-in-out;
+}
+
+.report-close-button:hover {
+  color: #343a40;
+}
+
+#reportForm {
+  padding: 20px;
+}
+
+.report-form-group {
+  margin-bottom: 20px;
+}
+
+.report-form-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.report-radio-option {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.report-radio-option input[type="radio"] {
+  margin-right: 10px;
+}
+
+.report-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.report-submit-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.report-submit-button:hover {
+  background-color: #ff5252;
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
   .content-wrapper {

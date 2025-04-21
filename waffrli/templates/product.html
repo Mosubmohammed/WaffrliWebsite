@@ -1,7 +1,7 @@
 {% extends "base.html" %} 
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/DealDetailsStyle2.css' %}" rel="stylesheet" />
+<link href="{% static 'css/DealDetailsStyle22.css' %}" rel="stylesheet" />
 
 <div class="container">
     <div class="content-wrapper">
@@ -180,9 +180,10 @@
                                     <a href="{% url 'send_message' product.user.id %}" class="Section-btn">
                                         <i class="fas fa-paper-plane"></i> Message
                                     </a>
+
                                     <button class="Section-btn report-btn">
                                         <i class="fas fa-flag"></i> Report
-                                    </button>
+                                      </button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -334,6 +335,46 @@
             </div>
         </aside>
     </div>
+    
+</div>
+<div class="report-modal-overlay" id="reportModal">
+    <div class="report-modal-box">
+        <div class="report-modal-header">
+            <h2 class="report-modal-title">Report Post</h2>
+            <button class="report-close-button" id="closeModal">×</button>
+        </div>
+        <form id="reportForm">
+            {% csrf_token %}
+            <div class="report-form-group">
+                <label class="report-form-label">Choose your reason</label>
+                <div class="report-radio-option">
+                    <input type="radio" id="reason-expired" name="reason" value="expired" required>
+                    <label for="reason-expired">Expired</label>
+                </div>
+                <div class="report-radio-option">
+                    <input type="radio" id="reason-spam" name="reason" value="spam">
+                    <label for="reason-spam">Spam</label>
+                </div>
+                <div class="report-radio-option">
+                    <input type="radio" id="reason-repost" name="reason" value="repost">
+                    <label for="reason-repost">Repost</label>
+                </div>
+                <div class="report-radio-option">
+                    <input type="radio" id="reason-troll" name="reason" value="troll">
+                    <label for="reason-troll">Troll</label>
+                </div>
+                <div class="report-radio-option">
+                    <input type="radio" id="reason-other" name="reason" value="other">
+                    <label for="reason-other">Other</label>
+                </div>
+            </div>
+            <div class="report-form-group">
+                <label class="report-form-label" for="message">Message</label>
+                <textarea id="message" name="message" class="report-textarea" placeholder="Please provide additional details..."></textarea>
+            </div>
+            <button type="submit" class="report-submit-button">Submit</button>
+        </form>
+    </div>
 </div>
 
 <!-- Hidden form for delete submission -->
@@ -341,104 +382,206 @@
     {% csrf_token %}
 </form>
 
+<!-- Replace the entire script section in your template with this combined version -->
+
 <script>
-// Organize all functionality within a single DOMContentLoaded event
-document.addEventListener('DOMContentLoaded', function() {
-    // Tab functionality
-    function setupTabs() {
-        const tabs = document.querySelectorAll('.tab-btn');
-        const contents = document.querySelectorAll('.tab-content');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
-                tabs.forEach(t => t.classList.remove('active'));
-                contents.forEach(c => c.classList.remove('active'));
-
-                // Add active class to clicked tab and corresponding content
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
-    }
-    setupTabs();
-
-    // Menu dropdown functionality
-    const menuBtn = document.getElementById('menuBtn');
-    const menuDropdown = document.getElementById('menuDropdown');
-
-    if (menuBtn && menuDropdown) {
-        // Toggle menu on button click
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menuDropdown.classList.toggle('show');
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (menuDropdown.classList.contains('show') && 
-                !menuDropdown.contains(e.target) && 
-                !menuBtn.contains(e.target)) {
-                menuDropdown.classList.remove('show');
-            }
-        });
-
-        // Handle menu item clicks
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                menuDropdown.classList.remove('show');
-            });
-        });
-    }
-
-    // Slider functionality
-    const slider = document.querySelector('.deals-slider');
-    const prevBtn = document.querySelector('.prev');
-    const nextBtn = document.querySelector('.next');
+    // Organize all functionality within a single DOMContentLoaded event
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab functionality
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
     
-    if (slider && prevBtn && nextBtn) {
-        let currentSlide = 0;
-        const slideCount = document.querySelectorAll('.deal-slide').length;
-
-        prevBtn.addEventListener('click', () => {
-            currentSlide = Math.max(0, currentSlide - 1);
-            updateSlider();
-        });
-
-        nextBtn.addEventListener('click', () => {
-            currentSlide = Math.min(slideCount - 5, currentSlide + 1);
-            updateSlider();
-        });
-
-        function updateSlider() {
-            slider.style.transform = `translateX(-${currentSlide * 20}%)`;
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+    
+                    // Add active class to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
         }
-    }
-
-    // Like functionality with AJAX
-    const scoreElement = document.querySelector('.score');
-    const goodDealBtn = document.querySelector('.good-deal');
-    const thumbsUpBtn = document.querySelector('.vote-buttons .btn-vote:first-child');
+        setupTabs();
     
-    // Check if elements exist to prevent errors
-    if (scoreElement && goodDealBtn && thumbsUpBtn) {
-        // Get product ID and CSRF token
-        const productId = document.querySelector('.save-btn')?.getAttribute('data-product-id');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        // Menu dropdown functionality
+        const menuBtn = document.getElementById('menuBtn');
+        const menuDropdown = document.getElementById('menuDropdown');
+    
+        if (menuBtn && menuDropdown) {
+            // Toggle menu on button click
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuDropdown.classList.toggle('show');
+            });
+    
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (menuDropdown.classList.contains('show') && 
+                    !menuDropdown.contains(e.target) && 
+                    !menuBtn.contains(e.target)) {
+                    menuDropdown.classList.remove('show');
+                }
+            });
+    
+            // Handle menu item clicks
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    menuDropdown.classList.remove('show');
+                });
+            });
+        }
+    
+        // Slider functionality
+        const slider = document.querySelector('.deals-slider');
+        const prevBtn = document.querySelector('.prev');
+        const nextBtn = document.querySelector('.next');
         
-        if (productId && csrfToken) {
-            // Function to handle like via AJAX
-            function handleLike() {
+        if (slider && prevBtn && nextBtn) {
+            let currentSlide = 0;
+            const slideCount = document.querySelectorAll('.deal-slide').length;
+    
+            prevBtn.addEventListener('click', () => {
+                currentSlide = Math.max(0, currentSlide - 1);
+                updateSlider();
+            });
+    
+            nextBtn.addEventListener('click', () => {
+                currentSlide = Math.min(slideCount - 5, currentSlide + 1);
+                updateSlider();
+            });
+    
+            function updateSlider() {
+                slider.style.transform = `translateX(-${currentSlide * 20}%)`;
+            }
+        }
+    
+        // Like functionality with AJAX
+        const scoreElement = document.querySelector('.score');
+        const goodDealBtn = document.querySelector('.good-deal');
+        const thumbsUpBtn = document.querySelector('.vote-buttons .btn-vote:first-child');
+        
+        // Check if elements exist to prevent errors
+        if (scoreElement && goodDealBtn && thumbsUpBtn) {
+            // Get product ID and CSRF token
+            const productId = document.querySelector('.save-btn')?.getAttribute('data-product-id');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            if (productId && csrfToken) {
+                // Function to handle like via AJAX
+                function handleLike() {
+                    // Create form data with CSRF token
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                    
+                    // Send AJAX request
+                    fetch(`/like-product/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update UI based on response
+                        const isLiked = data.liked;
+                        
+                        // Update thumbs up button
+                        if (isLiked) {
+                            thumbsUpBtn.querySelector('i').classList.add('active');
+                            goodDealBtn.classList.add('voted');
+                            showNotification('You liked this deal!', 'success');
+                        } else {
+                            thumbsUpBtn.querySelector('i').classList.remove('active');
+                            goodDealBtn.classList.remove('voted');
+                            showNotification('Like removed', 'info');
+                        }
+                        
+                        // Update score
+                        scoreElement.textContent = data.likes_count > 0 ? `+${data.likes_count}` : data.likes_count;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Something went wrong. Please try again.', 'error');
+                    });
+                }
+                
+                // Add event listeners to both thumbs up and good deal buttons
+                thumbsUpBtn.addEventListener('click', handleLike);
+                goodDealBtn.addEventListener('click', handleLike);
+            }
+        }
+    
+        // Comment functionality
+        const commentForm = document.querySelector('.comment-form');
+        const commentInput = document.getElementById('comment-input');
+    
+        if (commentForm && commentInput) {
+            // Remove the existing click event handler by replacing the button
+            const postCommentBtn = document.getElementById('post-comment-btn');
+            if (postCommentBtn) {
+                const newButton = postCommentBtn.cloneNode(true);
+                postCommentBtn.parentNode.replaceChild(newButton, postCommentBtn);
+            }
+            
+            // Add form submission handler with validation
+            commentForm.addEventListener('submit', function(event) {
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) {
+                    event.preventDefault();
+                    alert('Please write a comment before posting.');
+                    return false;
+                }
+                // Let the form submit normally if there's text
+            });
+        }
+    
+        // Delete product functionality
+        window.confirmDelete = function(productId) {
+            if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
+                const form = document.getElementById('delete-form');
+                if (form) {
+                    form.action = form.action.replace('/0/', '/' + productId + '/');
+                    form.submit();
+                }
+            }
+        };
+    
+        // Save product functionality
+        const saveButtons = document.querySelectorAll('.save-btn');
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                if (!productId) return;
+    
                 // Create form data with CSRF token
                 const formData = new FormData();
-                formData.append('csrfmiddlewaretoken', csrfToken);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
                 
-                // Send AJAX request
-                fetch(`/like-product/${productId}/`, {
+                if (csrfToken) {
+                    formData.append('csrfmiddlewaretoken', csrfToken.value);
+                } else {
+                    console.error('CSRF token not found');
+                    showNotification('Error: CSRF token not found', 'error');
+                    return;
+                }
+                
+                // Send AJAX request to the correct URL
+                fetch(`/toggle-save-product/${productId}/`, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': csrfToken
+                        'X-CSRFToken': csrfToken.value
                     },
                     body: formData
                 })
@@ -449,177 +592,157 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
-                    // Update UI based on response
-                    const isLiked = data.liked;
+                    // Update icon based on response
+                    const icon = this.querySelector('i');
                     
-                    // Update thumbs up button
-                    if (isLiked) {
-                        thumbsUpBtn.querySelector('i').classList.add('active');
-                        goodDealBtn.classList.add('voted');
-                        showNotification('You liked this deal!', 'success');
+                    if (data.is_saved) {
+                        icon.className = 'fas fa-bookmark';
+                        this.setAttribute('title', 'Unsave this item');
+                        showNotification('Product saved successfully!', 'success');
                     } else {
-                        thumbsUpBtn.querySelector('i').classList.remove('active');
-                        goodDealBtn.classList.remove('voted');
-                        showNotification('Like removed', 'info');
+                        icon.className = 'far fa-bookmark';
+                        this.setAttribute('title', 'Save this item');
+                        showNotification('Product removed from saved items', 'info');
                     }
-                    
-                    // Update score
-                    scoreElement.textContent = data.likes_count > 0 ? `+${data.likes_count}` : data.likes_count;
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     showNotification('Something went wrong. Please try again.', 'error');
                 });
-            }
-            
-            // Add event listeners to both thumbs up and good deal buttons
-            thumbsUpBtn.addEventListener('click', handleLike);
-            goodDealBtn.addEventListener('click', handleLike);
-        }
-    }
-
-    // Comment functionality
-    const commentForm = document.querySelector('.comment-form');
-    const commentInput = document.getElementById('comment-input');
-
-    if (commentForm && commentInput) {
-        // Remove the existing click event handler by replacing the button
-        const postCommentBtn = document.getElementById('post-comment-btn');
-        if (postCommentBtn) {
-            const newButton = postCommentBtn.cloneNode(true);
-            postCommentBtn.parentNode.replaceChild(newButton, postCommentBtn);
-        }
-        
-        // Add form submission handler with validation
-        commentForm.addEventListener('submit', function(event) {
-            const commentText = commentInput.value.trim();
-            
-            if (!commentText) {
-                event.preventDefault();
-                alert('Please write a comment before posting.');
-                return false;
-            }
-            // Let the form submit normally if there's text
-        });
-    }
-
-    // Delete product functionality
-    window.confirmDelete = function(productId) {
-        if (confirm("Are you sure you want to delete this deal? This action cannot be undone.")) {
-            const form = document.getElementById('delete-form');
-            if (form) {
-                form.action = form.action.replace('/0/', '/' + productId + '/');
-                form.submit();
-            }
-        }
-    };
-
-    // Save product functionality
-    const saveButtons = document.querySelectorAll('.save-btn');
-    saveButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            if (!productId) return;
-
-            // Create form data with CSRF token
-            const formData = new FormData();
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            
-            if (csrfToken) {
-                formData.append('csrfmiddlewaretoken', csrfToken.value);
-            } else {
-                console.error('CSRF token not found');
-                showNotification('Error: CSRF token not found', 'error');
-                return;
-            }
-            
-            // Send AJAX request to the correct URL
-            fetch(`/toggle-save-product/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrfToken.value
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Update icon based on response
-                const icon = this.querySelector('i');
-                
-                if (data.is_saved) {
-                    icon.className = 'fas fa-bookmark';
-                    this.setAttribute('title', 'Unsave this item');
-                    showNotification('Product saved successfully!', 'success');
-                } else {
-                    icon.className = 'far fa-bookmark';
-                    this.setAttribute('title', 'Save this item');
-                    showNotification('Product removed from saved items', 'info');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Something went wrong. Please try again.', 'error');
             });
         });
-    });
-    
-    // Notification functionality
-    function showNotification(message, type) {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
         
-        // Add icon based on notification type
-        let icon = '';
-        if (type === 'success') {
-            icon = '<i class="fas fa-check-circle"></i>';
-        } else if (type === 'error') {
-            icon = '<i class="fas fa-exclamation-circle"></i>';
-        } else if (type === 'info') {
-            icon = '<i class="fas fa-info-circle"></i>';
+        // Report functionality
+        const reportButton = document.querySelector('.report-btn');
+        const reportModal = document.getElementById('reportModal');
+        const closeModal = document.getElementById('closeModal');
+        const reportForm = document.getElementById('reportForm');
+        
+        console.log('Report button:', reportButton);
+        console.log('Report modal:', reportModal);
+        
+        if (reportButton && reportModal && closeModal && reportForm) {
+            // Open modal when report button is clicked
+            reportButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Report button clicked');
+                reportModal.style.display = 'flex';
+            });
+            
+            // Close modal when X button is clicked
+            closeModal.addEventListener('click', function() {
+                reportModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside the modal box
+            reportModal.addEventListener('click', function(event) {
+                if (event.target === reportModal) {
+                    reportModal.style.display = 'none';
+                }
+            });
+            
+            // Handle form submission with AJAX
+            reportForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Get product ID
+                const productId = {{ product.id }};
+                
+                // Get form data
+                const formData = new FormData(reportForm);
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                
+                // Send AJAX request
+                fetch(`/product/${productId}/report/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Close the modal
+                    reportModal.style.display = 'none';
+                    
+                    // Reset the form
+                    reportForm.reset();
+                    
+                    // Show notification
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Something went wrong. Please try again.', 'error');
+                });
+            });
+        } else {
+            console.error('One or more report elements not found:');
+            console.error('- Report button:', reportButton);
+            console.error('- Report modal:', reportModal);
+            console.error('- Close button:', closeModal);
+            console.error('- Report form:', reportForm);
         }
         
-        // Set notification content
-        notification.innerHTML = `
-            ${icon}
-            <span>${message}</span>
-            <button class="notification-close"><i class="fas fa-times"></i></button>
-        `;
+        // Notification functionality
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            
+            // Add icon based on notification type
+            let icon = '';
+            if (type === 'success') {
+                icon = '<i class="fas fa-check-circle"></i>';
+            } else if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+            } else if (type === 'info') {
+                icon = '<i class="fas fa-info-circle"></i>';
+            }
+            
+            // Set notification content
+            notification.innerHTML = `
+                ${icon}
+                <span>${message}</span>
+                <button class="notification-close"><i class="fas fa-times"></i></button>
+            `;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Set auto remove timer
+            const removeTimeout = setTimeout(() => {
+                removeNotification(notification);
+            }, 3000);
+            
+            // Add close button functionality
+            const closeButton = notification.querySelector('.notification-close');
+            closeButton.addEventListener('click', () => {
+                clearTimeout(removeTimeout);
+                removeNotification(notification);
+            });
+        }
         
-        // Add to DOM
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        // Set auto remove timer
-        const removeTimeout = setTimeout(() => {
-            removeNotification(notification);
-        }, 3000);
-        
-        // Add close button functionality
-        const closeButton = notification.querySelector('.notification-close');
-        closeButton.addEventListener('click', () => {
-            clearTimeout(removeTimeout);
-            removeNotification(notification);
-        });
-    }
-    
-    // Function to remove notification
-    function removeNotification(notification) {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300); // Match this with CSS transition time
-    }
-});
-</script>
+        // Function to remove notification
+        function removeNotification(notification) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300); // Match this with CSS transition time
+        }
+    });
+    </script>
 {% endblock %}
