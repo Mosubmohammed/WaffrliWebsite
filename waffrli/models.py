@@ -77,6 +77,7 @@ class Product(models.Model):
     views = models.IntegerField(default=0)
     create_at = models.DateTimeField(default=timezone.now)
     expires_at = models.DateTimeField(null=True, blank=True)
+    is_archived = models.BooleanField(default=False)
     
     # New fields for location-based features
     store_type = models.CharField(max_length=10, choices=[

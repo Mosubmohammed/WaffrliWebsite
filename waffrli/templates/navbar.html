@@ -24,6 +24,11 @@
               <a href="{% url 'saved_items' %}"><i class="far fa-bookmark"></i> Saved Items</a>
               <a href="{% url 'inbox' %}"><i class="fa-solid fa-inbox"></i> Inbox</a>
               <a href="{% url 'logout' %}" style="color:red"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+              <a class="nav-link" href="{% url 'archived_deals' %}"><i class="fas fa-archive"></i> Archived Deals</a>
+                    
+
+                
+
             {% else %}
               <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
               <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>

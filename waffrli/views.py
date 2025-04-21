@@ -20,9 +20,11 @@ from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrap
 
 
 def home(request):
+
     Product.objects.filter(expires_at__lte=timezone.now()).delete()
-    products = Product.objects.all()
-    return render(request, 'home.html',{'products':products})
+    products = Product.objects.filter(is_archived=False).order_by('-create_at')
+    
+    return render(request, 'home.html', {'products': products})
 
 
 
@@ -780,14 +782,8 @@ def post_deal(request):
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
     
-    if request.method == "POST":
-        # Fetch image
-        pic = request.FILES.get('image')
-        if not pic:
-            messages.error(request, "Please upload an image.")
-            return redirect('post_deal')
-        
-        # Fetch form data
+    # Handle archiving a deal
+    if request.method == "POST" and request.POST.get('action') == 'archive':
         name = request.POST.get('deal-title')
         url = request.POST.get('deal-url')
         sale_price = request.POST.get('sale-price')
@@ -797,7 +793,104 @@ def post_deal(request):
         brand = request.POST.get('brand')
         category_id = request.POST.get('category')
         location = request.POST.get('location')
-        store_type = request.POST.get('store-type', 'online')  # Get store type (physical/online)
+        store_type = request.POST.get('store-type', 'online')
+
+        latitude = None
+        longitude = None
+        formatted_address = None
+        if store_type == 'physical':
+            latitude_str = request.POST.get('latitude')
+            longitude_str = request.POST.get('longitude')
+            formatted_address = request.POST.get('formatted_address')
+            
+            if latitude_str and longitude_str:
+                try:
+                    latitude = float(latitude_str)
+                    longitude = float(longitude_str)
+                except (ValueError, TypeError):
+                    pass  
+        
+        pic = request.FILES.get('image')
+        
+        expiration_date = timezone.now() + timezone.timedelta(days=10)
+        expiration_type = request.POST.get('expiration-type')
+        expiration_date_str = request.POST.get('expiration-date')
+        
+        if expiration_type == 'custom' and expiration_date_str:
+            try:
+                expiration_date = timezone.make_aware(datetime.strptime(expiration_date_str, '%Y-%m-%d'))
+            except ValueError:
+                pass 
+        
+        # Get category (use a default if not provided)
+        category = None
+        if category_id:
+            try:
+                category = Category.objects.get(id=int(category_id))
+            except (Category.DoesNotExist, ValueError):
+                # For archived deals, we could use a default category
+                category = Category.objects.first()  # Get the first category as default
+        else:
+            category = Category.objects.first()  # Default category
+        
+        # Convert price fields to Decimal safely
+        try:
+            sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
+            price_decimal = Decimal(price) if price else Decimal("0.00")
+        except (ValueError, InvalidOperation):
+            sale_price_decimal = Decimal("0.00")
+            price_decimal = Decimal("0.00")
+        
+        # Generate a unique URL for all archived deals, even if no URL is provided
+        timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+        if url:
+            # Check if URL exists and make it unique
+            if Product.objects.filter(Dealurl=url).exists():
+                url = f"{url}?archived={timestamp}" if "?" not in url else f"{url}&archived={timestamp}"
+        else:
+            # For empty URLs, create a placeholder unique URL
+            url = f"archived_deal_{timestamp}_{request.user.id}"
+        
+        # Create and save the archived product
+        deal = Product.objects.create(
+            user=request.user,
+            Dealurl=url,
+            Name=name or "",  # Provide a default name if empty
+            sale_price=sale_price_decimal,
+            Price=price_decimal,
+            Description=description or "",
+            store=store or "",
+            brand=brand or "",
+            image=pic,  # May be None for archived deals
+            category=category,
+            city=location or "",
+            expires_at=expiration_date,
+            store_type=store_type,
+            latitude=latitude,
+            longitude=longitude,
+            formatted_address=formatted_address,
+            is_archived=True,  # Mark as archived
+        )
+        
+        messages.success(request, "Deal archived successfully!")
+        return redirect('archived_deals')
+    
+    elif request.method == "POST":
+        pic = request.FILES.get('image')
+        if not pic:
+            messages.error(request, "Please upload an image.")
+            return redirect('post_deal')
+
+        name = request.POST.get('deal-title')
+        url = request.POST.get('deal-url')
+        sale_price = request.POST.get('sale-price')
+        price = request.POST.get('list-price')
+        description = request.POST.get('description')
+        store = request.POST.get('store')
+        brand = request.POST.get('brand')
+        category_id = request.POST.get('category')
+        location = request.POST.get('location')
+        store_type = request.POST.get('store-type', 'online') 
         
         # Get location data (only relevant for physical stores)
         latitude = None
@@ -830,15 +923,23 @@ def post_deal(request):
             messages.error(request, "Please fill in all required fields.")
             return redirect('post_deal')
         
-        # Fetch category
-        try:
-            category = Category.objects.get(id=int(category_id))
-        except (Category.DoesNotExist, ValueError):
-            messages.error(request, "Invalid category selected.")
-            return redirect('post_deal')
+        # Get category (use a default if not provided)
+        category = None
+        if category_id:
+            try:
+                category = Category.objects.get(id=int(category_id))
+            except (Category.DoesNotExist, ValueError):
+                messages.error(request, "Invalid category selection.")
+                return redirect('post_deal')
+        else:
+            category = Category.objects.first()  # Default category
         
-        # Check if URL already exists
-        if url and Product.objects.filter(Dealurl=url).exists():
+        # Generate a unique URL for empty URLs or check for existing ones
+        if not url:
+            # For empty URLs, create a placeholder unique URL
+            timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+            url = f"deal_{timestamp}_{request.user.id}"
+        elif Product.objects.filter(Dealurl=url).exists():
             messages.error(request, "A product with this URL already exists.")
             return redirect('post_deal')
         
@@ -887,10 +988,11 @@ def post_deal(request):
             category=category,
             city=location,
             expires_at=expiration_date,
-            store_type=store_type,  # Add store type (physical/online)
-            latitude=latitude,  # Add latitude (may be None for online stores)
-            longitude=longitude,  # Add longitude (may be None for online stores)
-            formatted_address=formatted_address,  # Add formatted address (may be None for online stores)
+            store_type=store_type, 
+            latitude=latitude,  
+            longitude=longitude, 
+            formatted_address=formatted_address,  
+            is_archived=False, 
         )
 
         # Check for wishlist matches and create notifications
@@ -1738,4 +1840,248 @@ def get_notification_count(request):
     return JsonResponse({'count': count})
 
 
+def archived_deals(request):
+    """View to display archived deals for the logged-in user"""
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to view archived deals.")
+        return redirect('login')
+    
+    # Get all archived deals for the current user
+    archived_deals = Product.objects.filter(
+        user=request.user,
+        is_archived=True
+    )
+    
+    return render(request, 'archived_deals.html', {'archived_deals': archived_deals})
+
+def continue_archived_deal(request, deal_id):
+    """View to continue editing an archived deal"""
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to edit deals.")
+        return redirect('login')
+    
+    try:
+        deal = Product.objects.get(id=deal_id, user=request.user, is_archived=True)
+    except Product.DoesNotExist:
+        messages.error(request, "Archived deal not found.")
+        return redirect('archived_deals')
+    
+    # Handle form submission (POST request)
+    if request.method == "POST":
+        # Check if this is an archive action or a publish action
+        action = request.POST.get('action', 'post')
+        
+        # Fetch form data
+        name = request.POST.get('deal-title')
+        url = request.POST.get('deal-url')
+        sale_price = request.POST.get('sale-price')
+        price = request.POST.get('list-price')
+        description = request.POST.get('description')
+        store = request.POST.get('store')
+        brand = request.POST.get('brand')
+        category_id = request.POST.get('category')
+        location = request.POST.get('location')
+        store_type = request.POST.get('store-type', 'online')
+        
+        # Get location data (only for physical stores)
+        latitude = None
+        longitude = None
+        formatted_address = None
+        if store_type == 'physical':
+            latitude_str = request.POST.get('latitude')
+            longitude_str = request.POST.get('longitude')
+            formatted_address = request.POST.get('formatted_address')
+            
+            if latitude_str and longitude_str:
+                try:
+                    latitude = float(latitude_str)
+                    longitude = float(longitude_str)
+                except (ValueError, TypeError):
+                    if action == 'post':
+                        messages.error(request, "Invalid location coordinates.")
+                        return redirect('continue_archived_deal', deal_id=deal.id)
+        
+        # Handle image - keep existing if no new one provided
+        pic = request.FILES.get('image')
+        if not pic:
+            pic = deal.image  # Keep existing image
+        
+        # Set expiration date
+        expiration_type = request.POST.get('expiration-type', 'default')
+        expiration_date_str = request.POST.get('expiration-date')
+        
+        if expiration_type == 'custom' and expiration_date_str:
+            try:
+                expiration_date = timezone.make_aware(datetime.strptime(expiration_date_str, '%Y-%m-%d'))
+                
+                # Validate expiration date only if publishing
+                if action == 'post':
+                    if expiration_date <= timezone.now():
+                        messages.error(request, "Expiration date must be in the future.")
+                        return redirect('continue_archived_deal', deal_id=deal.id)
+                        
+                    max_date = timezone.now() + timezone.timedelta(days=30)
+                    if expiration_date > max_date:
+                        messages.error(request, "Expiration date cannot be more than 30 days in the future.")
+                        return redirect('continue_archived_deal', deal_id=deal.id)
+            except ValueError:
+                if action == 'post':
+                    messages.error(request, "Invalid date format.")
+                    return redirect('continue_archived_deal', deal_id=deal.id)
+                expiration_date = timezone.now() + timezone.timedelta(days=10)  # Default for archived
+        else:
+            # Default: 10 days from now
+            expiration_date = timezone.now() + timezone.timedelta(days=10)
+        
+        # Validate required fields if publishing
+        if action == 'post':
+            if not name or not store or not category_id or not location:
+                messages.error(request, "Please fill in all required fields.")
+                return redirect('continue_archived_deal', deal_id=deal.id)
+            
+            # Convert price fields to Decimal safely
+            try:
+                sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
+                price_decimal = Decimal(price) if price else Decimal("0.00")
+            except (ValueError, InvalidOperation):
+                messages.error(request, "Invalid price format.")
+                return redirect('continue_archived_deal', deal_id=deal.id)
+        else:
+            # For archiving, use default values if fields are empty
+            try:
+                sale_price_decimal = Decimal(sale_price) if sale_price else Decimal("0.00")
+                price_decimal = Decimal(price) if price else Decimal("0.00")
+            except (ValueError, InvalidOperation):
+                sale_price_decimal = Decimal("0.00")
+                price_decimal = Decimal("0.00")
+        
+        # Get category
+        try:
+            category = Category.objects.get(id=int(category_id)) if category_id else deal.category
+        except (Category.DoesNotExist, ValueError):
+            if action == 'post':
+                messages.error(request, "Invalid category selected.")
+                return redirect('continue_archived_deal', deal_id=deal.id)
+            category = deal.category
+        
+        # Update the deal
+        deal.Dealurl = url or ""
+        deal.Name = name or "Draft Deal"
+        deal.sale_price = sale_price_decimal
+        deal.Price = price_decimal
+        deal.Description = description or ""
+        deal.store = store or ""
+        deal.brand = brand or ""
+        if pic:  # Only update image if a new one was provided
+            deal.image = pic
+        deal.category = category
+        deal.city = location or ""
+        deal.expires_at = expiration_date
+        deal.store_type = store_type
+        deal.latitude = latitude
+        deal.longitude = longitude
+        deal.formatted_address = formatted_address
+        
+        # If publishing, mark as not archived
+        if action == 'post':
+            deal.is_archived = False
+            deal.archived_at = None
+            
+            # Check for wishlist matches and create notifications when publishing
+            deal.save()
+            check_deal_against_wishlist(deal)
+            
+            messages.success(request, "Deal published successfully!")
+            return redirect('product', pk=deal.id)
+        else:
+            # Just update as archived
+            deal.is_archived = True
+            deal.archived_at = timezone.now()
+            deal.save()
+            
+            messages.success(request, "Deal updated and saved as draft.")
+            return redirect('archived_deals')
+    
+    # For GET requests - just display the form
+    categories = Category.objects.all()
+    return render(request, "post_deal.html", {
+        'categories': categories,
+        'deal': deal,
+        'edit_mode': True
+    })
+
+def delete_archived_deal(request, deal_id):
+    """View to delete an archived deal"""
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to delete deals.")
+        return redirect('login')
+    
+    if request.method == "POST":
+        try:
+            deal = Product.objects.get(id=deal_id, user=request.user, is_archived=True)
+            deal.delete()
+            messages.success(request, "Archived deal deleted successfully.")
+        except Product.DoesNotExist:
+            messages.error(request, "Archived deal not found.")
+    
+    return redirect('archived_deals')
+
+def publish_archived_deal(request, deal_id):
+    """View to publish an archived deal"""
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to publish deals.")
+        return redirect('login')
+        
+    if request.method == "POST":
+        try:
+            deal = Product.objects.get(id=deal_id, user=request.user, is_archived=True)
+            
+            # If city is missing but formatted_address exists, try to extract city
+            if not deal.city and deal.formatted_address:
+                # Try to extract city from formatted address
+                address_parts = deal.formatted_address.split(',')
+                if len(address_parts) >= 2:
+                    # Use the second part as a potential city
+                    deal.city = address_parts[1].strip()
+                else:
+                    # Fallback to the first address part if we can't extract a city
+                    deal.city = address_parts[0].strip()
+            
+            # If store type is online but no city, default to a common city
+            if not deal.city and deal.store_type == 'online':
+                deal.city = "Amman"  # Default city for online stores
+            
+            # Debug logging to check actual values
+            missing_fields = []
+            if not deal.Name:
+                missing_fields.append("name")
+            if not deal.store:
+                missing_fields.append("store")
+            if not deal.category_id:  # Check the foreign key ID instead of the object
+                missing_fields.append("category")
+            if not deal.city:
+                missing_fields.append("city")
+            if not deal.image:
+                missing_fields.append("image")
+                
+            # If there are missing fields, show specifically which ones
+            if missing_fields:
+                messages.error(request, f"This deal is missing required information: {', '.join(missing_fields)}. It cannot be published yet.")
+                return redirect('continue_archived_deal', deal_id=deal.id)
+            
+            # Change status to published
+            deal.is_archived = False
+            deal.archived_at = None
+            deal.save()
+            
+            # Check for wishlist matches and create notifications
+            check_deal_against_wishlist(deal)
+            
+            messages.success(request, "Deal published successfully!")
+            return redirect('product', pk=deal.id)
+            
+        except Product.DoesNotExist:
+            messages.error(request, "Archived deal not found.")
+    
+    return redirect('archived_deals')
 
