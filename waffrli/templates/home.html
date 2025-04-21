@@ -72,7 +72,11 @@
             </div>
     
             <div class="product-image">
-              <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+            {% else %}
+                <img src="{% static 'images/no-image.png' %}" alt="No image available">
+            {% endif %}
               <div class="quick-actions">
                 <div class="action-btn"><i class="fas fa-eye"></i></div>
                 <div class="action-btn"><i class="fa-regular fa-bookmark"></i></div>
@@ -145,7 +149,11 @@
     </div>
     
     <div class="product-image">
-      <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+      {% if product.image %}
+    <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+{% else %}
+    <img src="{% static 'images/no-image.png' %}" alt="No image available">
+{% endif %}
       <div class="quick-actions">
         <div class="action-btn"><i class="fas fa-heart"></i></div>
         <div class="action-btn"><i class="fas fa-eye"></i></div>
@@ -298,7 +306,13 @@
       {% for product in products %}
           <div class="mini-product">
             <div class="mini-product-image">
-              <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+              <div class="product-image">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+                {% else %}
+                    <img src="{% static 'images/placeholder.png' %}" alt="No image available">
+                {% endif %}
+            </div>
             </div>
             <div class="mini-product-info">
               <div class="discount-badge">{{ product.get_discount_percentage }}%</div>

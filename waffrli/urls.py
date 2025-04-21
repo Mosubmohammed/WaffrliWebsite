@@ -45,4 +45,8 @@ urlpatterns = [
     path('mark_all_read/',mark_all_read, name='mark_all_read'),
     path('delete_notification/<int:notification_id>/',delete_notification, name='delete_notification'),
     path('get_notification_count/',get_notification_count, name='get_notification_count'),
+    path('archived-deals/',archived_deals, name='archived_deals'),
+    path('archived-deals/<int:deal_id>/continue/',continue_archived_deal, name='continue_archived_deal'),
+    path('archived-deals/<int:deal_id>/delete/',delete_archived_deal, name='delete_archived_deal'),
+    path('archived-deals/<int:deal_id>/publish/',publish_archived_deal, name='publish_archived_deal'),
 ]

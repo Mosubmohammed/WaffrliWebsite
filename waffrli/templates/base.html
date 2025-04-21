@@ -15,6 +15,7 @@
 
     <link href="{% static 'css/style24.css' %}" rel="stylesheet" />
 
+   
 
     <script
       src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -23,8 +24,7 @@
     ></script>
   </head>
   <body>
-    <!-- Navigation-->
-    <!-- Navigation-->
+
     {% include 'navbar.html'%} {% if messages %} {% for messge in messages%}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
       {{messge}}
