@@ -13,10 +13,13 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-decoration: none;
 }
+
 
 body {
   background-color: #f5f5f5;
+  /* background-color: yellow; */
   color: var(--dark);
 }
 /* Top Bar */
@@ -376,12 +379,11 @@ header {
 }
 
 .nav-links {
-  display: flex
-  ;
-      gap: 20px;
-      padding: 0px 103px;
-      position: relative;
-      bottom: -15px;
+  display: flex;
+  gap: 20px;
+  padding: 0px 103px;
+  position: relative;
+  bottom: -15px;
 }
 
 .nav-links a {
@@ -580,7 +582,56 @@ h2 .fa-star {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
+/* Expired Deal Card Styles */
+.All-product-card.expired {
+  position: relative;
+  opacity: 0.8;
+}
 
+.expired-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12rem;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  height: 18rem;
+}
+
+.expired-tag {
+  background: #ff3b3b;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-weight: bold;
+  transform: rotate(-15deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 1.2em;
+  letter-spacing: 1px;
+}
+
+.All-product-card.expired .card-footer button {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.All-product-card.expired .add-to-cart.expired-btn {
+  background-color: #999;
+  color: white;
+  cursor: not-allowed;
+}
+
+.All-product-card.expired .product-image img {
+  filter: grayscale(50%);
+}
+
+.All-product-card.expired .quick-actions {
+  display: none;
+}
 /* Product Grid */
 .product-grid {
   display: grid;

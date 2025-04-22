@@ -39,8 +39,8 @@ class Customer(models.Model):
     email = models.EmailField(max_length=100)
     password = models.CharField(max_length=50)
     gender = models.CharField(max_length=1, choices=[
-        ('M', 'Male'), ('F', 'Female'), ('O', 'Other'), ('N', 'Prefer not to say')
-    ], default='N')
+        ('M', 'Male'), ('F', 'Female')
+    ])
     # New location fields
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -91,6 +91,11 @@ class Product(models.Model):
     def increment_views(self):
         self.views += 1
         self.save(update_fields=['views'])  # Optimized to update only the views field
+    
+    def is_expired(self):
+        if not self.expires_at:
+            return False
+        return timezone.now() >= self.expires_at
         
     def __str__(self) -> str:
         return self.Name

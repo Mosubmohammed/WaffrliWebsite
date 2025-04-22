@@ -158,59 +158,6 @@
                             </div>
                         </div>
                         
-                        <!-- Modal Overlay -->
-                        <div class="report-modal-overlay" id="reportModal">
-                            <div class="report-modal-box">
-                                <div class="report-modal-header">
-                                    <h2 class="report-modal-title">Report Post</h2>
-                                    <button class="report-close-button" id="closeModal">×</button>
-                                </div>
-                                <form id="reportForm">
-                                    <div class="report-form-group">
-                                        <label class="report-form-label">Choose your reason</label>
-                                        <div class="report-radio-option">
-                                            <input type="radio" id="reason-expired" name="reason" value="expired">
-                                            <label for="reason-expired">Expired</label>
-                                        </div>
-                                        <div class="report-radio-option">
-                                            <input type="radio" id="reason-spam" name="reason" value="spam">
-                                            <label for="reason-spam">Spam</label>
-                                        </div>
-                                        <div class="report-radio-option">
-                                            <input type="radio" id="reason-repost" name="reason" value="repost">
-                                            <label for="reason-repost">Repost</label>
-                                        </div>
-                                        <div class="report-radio-option">
-                                            <input type="radio" id="reason-troll" name="reason" value="troll">
-                                            <label for="reason-troll">Troll</label>
-                                        </div>
-                                        <div class="report-radio-option">
-                                            <input type="radio" id="reason-other" name="reason" value="other">
-                                            <label for="reason-other">Other</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="Section-action-buttons">
-                                    {% if user.is_authenticated and user != product.user %}
-                                    <form method="POST" action="{% url 'follow' product.user.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="Section-btn">
-                                            <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
-                                            {% if is_following %}Unfollow{% else %}Follow{% endif %}
-                                        </button>
-                                    </form>
-                                    <a href="{% url 'send_message' product.user.id %}" class="Section-btn">
-                                        <i class="fas fa-paper-plane"></i> Message
-                                    </a>
-
-                                    <button class="Section-btn report-btn">
-                                        <i class="fas fa-flag"></i> Report
-                                      </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
                        
                         <div class="stats-grid">
                             <div class="stat-card">

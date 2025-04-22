@@ -1,13 +1,11 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.html import strip_tags
-from .models import ReportedDeal, Notification
+from .models import ReportedDeal, Notification, Product
 
 @receiver(pre_save, sender=ReportedDeal)
 def create_report_status_notification(sender, instance, **kwargs):
-    """
-    Signal handler to create notifications when a ReportedDeal status changes
-    """
+
     # Check if this is a new report (no notification needed)
     if instance.pk is None:
         return
@@ -59,3 +57,69 @@ def create_report_status_notification(sender, instance, **kwargs):
         related_object_id=instance.pk,
         url=f'/product/{instance.product.id}/'  # Link to the product page
     )
+    
+    # If report is approved and the issue is resolved, notify the post owner as well
+    if instance.status == 'resolved' and original_report.status != 'resolved':
+        # Create notification for the post owner
+        owner = instance.product.user
+        if owner:
+            owner_title = f"Your Post Has Been Reviewed: {product_name}"
+            owner_message = f"Your post '{product_name}' was reported and has been reviewed by our team."
+            
+            if instance.admin_notes:
+                clean_notes = strip_tags(instance.admin_notes)
+                owner_message += f"\n\nAdmin comments: {clean_notes}"
+            
+            Notification.objects.create(
+                user=owner,
+                title=owner_title,
+                message=owner_message,
+                notification_type='alert',
+                related_object_type='reported_deal',
+                related_object_id=instance.pk,
+                url=f'/product/{instance.product.id}/'  # Link to the product page
+            )
+
+@receiver(pre_save, sender=Product)
+def notify_owner_when_deal_removed(sender, instance, **kwargs):
+    # Check if this is a new product (no notification needed)
+    if instance.pk is None:
+        return
+    
+    # Get the original/existing product before changes
+    try:
+        original_product = Product.objects.get(pk=instance.pk)
+    except Product.DoesNotExist:
+        return  # New product, no notification needed
+    
+    # Check if the product has been removed (is_archived changed from False to True)
+    if not original_product.is_archived and instance.is_archived:
+        # Product has been archived/removed
+        
+        # Get the owner user
+        owner = instance.user
+        if not owner:
+            return  # No owner to notify
+        
+        # Create notification for the owner
+        title = f"Your Deal Has Been Removed: {instance.Name}"
+        message = f"Your deal '{instance.Name}' has been removed by an administrator."
+        
+        # Add removal reason if there is an admin comment somewhere
+        # Assuming ReportedDeal might contain the reason in admin_notes
+        recent_reports = ReportedDeal.objects.filter(product=instance, status='approved').order_by('-updated_at')
+        
+        if recent_reports.exists() and recent_reports.first().admin_notes:
+            clean_reason = strip_tags(recent_reports.first().admin_notes)
+            message += f"\n\nReason: {clean_reason}"
+        
+        # Create the notification
+        Notification.objects.create(
+            user=owner,
+            title=title,
+            message=message,
+            notification_type='alert',
+            related_object_type='product',
+            related_object_id=instance.pk,
+            url='/my-deals/'  # Link to their deals page
+        )
