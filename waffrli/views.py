@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal, InvalidOperation
+from urllib import request
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
@@ -7,6 +8,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 import firebase_admin
+from waffrli.filters import ProductFilter
 from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
@@ -32,275 +34,281 @@ def home(request):
 
 
 
-
-def product_list_base(request, page_type=None, category=None):
-    if page_type == 'hot_deals' and not request.GET.getlist('store') and not request.GET.getlist('location') and not request.GET.getlist('brand'):
-        # Only apply hot deals filter if no other filters are active
-        products = Product.objects.filter(
-            sale_price__isnull=False,
-            Price__gt=0
-        ).exclude(
-            sale_price__gte=F('Price')
-        ).annotate(
-            discount_percentage=ExpressionWrapper(
-                ((F('Price') - F('sale_price')) * 100) / F('Price'),
-                output_field=FloatField()
-            )
-        ).filter(discount_percentage__gte=70)
-        
-        page_title = "Hot Deals"
-    elif page_type == 'hot_deals' and (request.GET.getlist('store') or request.GET.getlist('location') or request.GET.getlist('brand')):
-        # If other filters are active, just apply basic hot deals criteria without the 70% discount requirement
-        products = Product.objects.filter(
-            sale_price__isnull=False,
-            Price__gt=0
-        ).exclude(
-            sale_price__gte=F('Price')
-        ).annotate(
-            discount_percentage=ExpressionWrapper(
-                ((F('Price') - F('sale_price')) * 100) / F('Price'),
-                output_field=FloatField()
-            )
+def product_list(request, page_type=None, category=None):
+    # Build base queryset according to page type
+    products = get_base_queryset(request, page_type, category)
+    
+    # Apply filters
+    filter_set = ProductFilter(request.GET, queryset=products, request=request)
+    filtered_products = filter_set.qs
+    
+    # Handle distance-based sorting if user has location
+    user_location = get_user_location(request)
+    if request.GET.get('sort_by') == 'distance' and user_location['has_location']:
+        filtered_products = sort_by_distance(
+            filtered_products, 
+            user_location['lat'], 
+            user_location['lng']
         )
+    
+    # Handle AJAX/JSON requests
+    if is_ajax_request(request):
+        return JsonResponse({
+            'products': format_products_for_json(filtered_products, request, user_location)
+        })
+    
+    # Handle pagination
+    page_obj = paginate_products(request, filtered_products)
+    
+    # Calculate distances for products in current page if user has location
+    if user_location['has_location']:
+        add_distances_to_products(page_obj, user_location['lat'], user_location['lng'])
+    
+    # Get filter options (unique stores, cities, brands)
+    filter_options = get_filter_options(filtered_products)
+    
+    # Prepare context
+    context = {
+        'products': page_obj,
+        'page_obj': page_obj,
+        'stores': filter_options['stores'],
+        'locations': filter_options['cities'],
+        'jordan_cities': filter_options['jordan_cities'],
+        'brands': filter_options['brands'],
+        'store_types': [('online', 'Online Store'), ('physical', 'Physical Store')],
+        'selected_stores': request.GET.getlist('store'),
+        'selected_locations': request.GET.getlist('location'),
+        'selected_brands': request.GET.getlist('brand'),
+        'selected_store_type': request.GET.get('store_type', ''),
+        'min_price': request.GET.get('min_price'),
+        'max_price': request.GET.get('max_price'),
+        'rating': request.GET.get('rating'),
+        'page_title': get_page_title(request, page_type, category),
+        'page_type': page_type,
+        'category': category,
+        'sort_by': request.GET.get('sort_by', ''),
+        'user_has_location': user_location['has_location'],
+        'include_expired': request.GET.get('include_expired') == 'true',
+    }
+    
+    # Choose the appropriate template
+    template = get_template_for_page(page_type, category)
+    
+    return render(request, template, context)
+
+def get_base_queryset(request, page_type, category):
+    """Get the base queryset according to page type and category."""
+    if page_type == 'hot_deals' and not any([
+        request.GET.getlist('store'), 
+        request.GET.getlist('location'), 
+        request.GET.getlist('brand')
+    ]):
+        # Hot deals with no filters - apply 70% discount requirement
+        # We can use the model's is_hot_deal method to filter products with >=70% discount
+        hot_deals = Product.objects.filter(
+            sale_price__isnull=False,
+            Price__gt=0
+        ).exclude(
+            sale_price__gte=F('Price')
+        ).annotate(
+            discount_percentage=ExpressionWrapper(
+                ((F('Price') - F('sale_price')) * 100) / F('Price'),
+                output_field=FloatField()
+            )
+        ).filter(discount_percentage__gte=70).select_related('category', 'user', 'customer_pic_id')
         
-        page_title = "Hot Deals (Filtered)"
+        return hot_deals
+    
+    elif page_type == 'hot_deals':
+        # Hot deals with filters - basic criteria without 70% requirement
+        return Product.objects.filter(
+            sale_price__isnull=False,
+            Price__gt=0
+        ).exclude(
+            sale_price__gte=F('Price')
+        ).annotate(
+            discount_percentage=ExpressionWrapper(
+                ((F('Price') - F('sale_price')) * 100) / F('Price'),
+                output_field=FloatField()
+            )
+        ).select_related('category', 'user', 'customer_pic_id')
+    
     elif page_type == 'popular':
-        # Popular deals filter: based on likes and views
-        products = Product.objects.annotate(
+        # Popular deals based on likes and views
+        return Product.objects.annotate(
             like_count=Count('likes'),
             popularity_score=ExpressionWrapper(
-                (F('like_count') * 3) + F('views'),  # Likes weighted 3x more than views
+                (F('like_count') * 3) + F('views'),
                 output_field=FloatField()
             )
-        ).order_by('-popularity_score')
-        
-        page_title = "Popular Deals"
+        ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')
     
     elif category:
         # Category filter
         category_obj = get_object_or_404(Category, name__iexact=category.replace('-', ' ').strip())
-        products = Product.objects.filter(category=category_obj)
-        page_title = f"{category_obj.name} Deals"
+        return Product.objects.filter(category=category_obj).select_related('category', 'user', 'customer_pic_id')
     
     else:
         # All products
-        products = Product.objects.all()
-        page_title = "All Deals"
-    
-    # Use select_related to avoid N+1 queries
-    products = products.select_related('category', 'user', 'customer_pic_id')
-    
-    # Get filter parameters
-    # ---------------------
-    
-    # Store filter - Updated version for more robust matching
-    stores = request.GET.getlist('store')
-    if stores:
-        query = Q()
-        for store in stores:
-            clean_store = store.strip().lower()
-            query |= Q(store__iexact=clean_store)
-        products = products.filter(query)
-    
-    # Location/City filter - Get checkbox values directly
-    locations = request.GET.getlist('location')
-    if locations:
-        query = Q()
-        for location in locations:
-            query |= Q(city__iexact=location.strip())
-        products = products.filter(query)
-    
-    # Brand filter - Get checkbox values directly
-    brands = request.GET.getlist('brand')
-    if brands:
-        query = Q()
-        for brand in brands:
-            query |= Q(brand__iexact=brand.strip())
-        products = products.filter(query)
-    
-    # Price range filter - Modified to work better with store filters
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-    
-    if min_price:
-        try:
-            min_price_value = float(min_price)
-            # Always apply min_price filter
-            products = products.filter(sale_price__gte=min_price_value)
-        except (ValueError, TypeError):
-            # Handle invalid input silently
-            pass
-    
-    # Store the original store-filtered products before applying max_price
-    store_filtered_products = None
-    if stores and max_price:
-        store_filtered_products = products
-    
-    if max_price:
-        try:
-            max_price_value = float(max_price)
-            # Apply max_price filter
-            products = products.filter(sale_price__lte=max_price_value)
-        except (ValueError, TypeError):
-            # Handle invalid input silently
-            pass
-    
-    # Rating/Likes filter
-    rating = request.GET.get('rating')
-    if rating and rating != '0':
-        try:
-            rating_value = int(rating)
-            # Using annotation to get accurate likes count
-            products = products.annotate(like_count=Count('likes'))
-            products = products.filter(like_count__gte=rating_value)
-        except (ValueError, TypeError):
-            # Handle invalid input silently
-            pass
-    
-    # Check if user is logged in and has location data
-    user_has_location = False
-    user_lat = None
-    user_lng = None
+        return Product.objects.all().select_related('category', 'user', 'customer_pic_id')
+
+def get_user_location(request):
+    """Extract user location data if available."""
+    result = {'has_location': False, 'lat': None, 'lng': None}
     
     if request.user.is_authenticated:
         try:
             customer = request.user.customer
             if customer.latitude is not None and customer.longitude is not None:
-                user_has_location = True
-                user_lat = customer.latitude
-                user_lng = customer.longitude
+                result['has_location'] = True
+                result['lat'] = customer.latitude
+                result['lng'] = customer.longitude
         except (AttributeError, Customer.DoesNotExist):
-            # User doesn't have a customer profile or location data
             pass
     
-    # Handle distance-based sorting
-    sort_by = request.GET.get('sort_by', '')
+    return result
+
+def sort_by_distance(queryset, user_lat, user_lng):
+    """Sort products by distance to user."""
+    products_list = list(queryset)
     
-    # Get all the products with filters applied (for filter options)
-    # Use a copy to avoid modifying the original queryset
-    filtered_products = products
+    # Calculate distances
+    for product in products_list:
+        if product.latitude is not None and product.longitude is not None:
+            product.distance_to = product.distance_to(user_lat, user_lng)
+        else:
+            product.distance_to = float('inf')
     
-    # Apply distance-based sorting if requested
-    # Important: This happens AFTER all other filters are applied
-    if sort_by == 'distance' and user_has_location:
-        # Get products for distance calculation
-        products_list = list(products)
-        
-        # Calculate distances for all products
-        for product in products_list:
-            if product.latitude is not None and product.longitude is not None:
-                product.distance_to = product.distance_to(user_lat, user_lng)
-            else:
-                # For products without location data, set to a high value
-                # so they appear last when sorted
-                product.distance_to = float('inf')
-        
-        # Sort by distance
-        products_list.sort(key=lambda x: x.distance_to if isinstance(x.distance_to, (int, float)) else float('inf'))
-        
-        # Convert back to a Django queryset with preserved order
-        product_ids = [p.id for p in products_list]
-        
-        if product_ids:
-            # Use Case/When to preserve the sort order in the database query
-            preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
-            products = products.filter(id__in=product_ids).order_by(preserved_order)
+    # Sort by distance
+    products_list.sort(key=lambda x: x.distance_to if isinstance(x.distance_to, (int, float)) else float('inf'))
     
-    # Handle JSON response for AJAX requests
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET:
-        products_data = []
-        
-        for product in products:
-            # Get customer pic URL if available
-            customer_pic_url = None
-            if product.customer_pic_id and product.customer_pic_id.image:
-                customer_pic_url = product.customer_pic_id.image.url
-            
-            # Calculate discount percentage if not already done
-            discount_percentage = getattr(product, 'discount_percentage', None)
-            if discount_percentage is None:
-                discount_percentage = product.get_discount_percentage()
-            
-            # Check if the current user has liked this product
-            liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
-            
-            # Calculate distance if needed
-            distance = None
-            if user_has_location and product.latitude and product.longitude:
-                distance = product.distance_to(user_lat, user_lng)
-            
-            products_data.append({
-                'id': product.id,
-                'name': product.Name,
-                'price': str(product.Price),
-                'sale_price': str(product.sale_price) if product.sale_price else None,
-                'description': product.Description,
-                'store': product.store,
-                'store_type': product.store_type,
-                'city': product.city,
-                'brand': product.brand,
-                'category_name': product.category.name,
-                'image_url': product.image.url if product.image else None,
-                'username': product.user.username if product.user else "Unknown",
-                'create_at': product.create_at.strftime('%d-%m'),
-                'customer_pic_url': customer_pic_url,
-                'discount_percentage': round(discount_percentage, 2) if discount_percentage else 0,
-                'likes_count': product.number_of_likes(),
-                'liked_by_user': liked_by_user,
-                'distance': distance,  # Include distance in kilometers
-            })
-        
-        return JsonResponse({'products': products_data})
+    # Convert back to a Django queryset with preserved order
+    product_ids = [p.id for p in products_list]
     
-    # If we're filtering by store and have fewer than 2 products after price filtering,
-    # restore the original store-filtered products
-    if stores and store_filtered_products and products.count() < 2 and store_filtered_products.count() >= 2:
-        products = store_filtered_products
+    if product_ids:
+        preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
+        return queryset.filter(id__in=product_ids).order_by(preserved_order)
     
-    # FIXED pagination logic that properly handles when filters are applied
-    if stores or locations or brands or min_price or max_price or rating:
-        # Use a much larger per-page count when filters are applied
-        # This effectively disables pagination while keeping the same interface
-        paginator = Paginator(products, 1000)  # Set to a large number to show all results
+    return queryset
+
+def is_ajax_request(request):
+    """Determine if this is an AJAX/JSON request."""
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET
+
+def format_products_for_json(products, request, user_location):
+    """Format products for JSON response (without using serializers)."""
+    products_data = []
+    
+    for product in products:
+        # Get customer pic URL if available
+        customer_pic_url = None
+        if product.customer_pic_id and product.customer_pic_id.image:
+            customer_pic_url = product.customer_pic_id.image.url
         
+        # Use the model's get_discount_percentage method
+        discount_percentage = getattr(product, 'discount_percentage', None)
+        if discount_percentage is None:
+            discount_percentage = product.get_discount_percentage()
+        
+        # Check if liked by current user
+        liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
+        
+        # Calculate distance using the model's distance_to method
+        distance = None
+        if user_location['has_location'] and product.latitude and product.longitude:
+            distance = product.distance_to(user_location['lat'], user_location['lng'])
+        
+        # Use the model's get_savings_amount method for savings
+        savings = product.get_savings_amount()
+        
+        # Check if product is expired
+        is_expired = product.is_expired()
+        
+        products_data.append({
+            'id': product.id,
+            'name': product.Name,
+            'price': str(product.Price),
+            'sale_price': str(product.sale_price) if product.sale_price else None,
+            'description': product.Description,
+            'store': product.store,
+            'store_type': product.store_type,
+            'city': product.city,
+            'brand': product.brand,
+            'category_name': product.category.name,
+            'image_url': product.image.url if product.image else None,
+            'username': product.user.username if product.user else "Unknown",
+            'create_at': product.create_at.strftime('%d-%m'),
+            'customer_pic_url': customer_pic_url,
+            'discount_percentage': round(discount_percentage, 2) if discount_percentage else 0,
+            'savings_amount': savings,
+            'likes_count': product.number_of_likes(),
+            'liked_by_user': liked_by_user,
+            'distance': distance,
+            'is_expired': is_expired,
+            'is_archived': product.is_archived,
+            'is_hot_deal': product.is_hot_deal(),
+            'dealurl': product.Dealurl,
+        })
+    
+    return products_data
+# Updated pagination function to ensure ordering
+def paginate_products(request, products):
+    """Handle pagination logic with consistent ordering."""
+    # Ensure products have a consistent ordering if not already ordered
+    if not products.query.order_by:
+        products = products.order_by('-create_at')  # Default ordering from your model
+    
+    # Check if filters are applied
+    filters_applied = any([
+        request.GET.getlist('store'),
+        request.GET.getlist('location'),
+        request.GET.getlist('brand'),
+        request.GET.get('min_price'),
+        request.GET.get('max_price'),
+        request.GET.get('rating'),
+        request.GET.get('store_type'),
+        request.GET.get('include_expired'),
+    ])
+    
+    if filters_applied:
+        # Use larger per-page count for filtered results
+        paginator = Paginator(products, 1000)
         try:
-            page_obj = paginator.page(1)  # Always show first page for filtered results
+            return paginator.page(1)
         except EmptyPage:
-            page_obj = paginator.page(paginator.num_pages)
+            return paginator.page(paginator.num_pages)
     else:
         # Normal pagination for unfiltered results
-        paginator = Paginator(products, 20)  # Show 20 products per page
+        paginator = Paginator(products, 20)
         page_number = request.GET.get('page')
         
         try:
-            page_obj = paginator.page(page_number)
+            return paginator.page(page_number)
         except PageNotAnInteger:
-            # If page is not an integer, deliver first page
-            page_obj = paginator.page(1)
+            return paginator.page(1)
         except EmptyPage:
-            # If page is out of range, deliver last page
-            page_obj = paginator.page(paginator.num_pages)
-    
-    # Calculate distance for each product in the current page
-    if user_has_location:
-        for product in page_obj:
-            if product.latitude and product.longitude:
-                product.distance_to = product.distance_to(user_lat, user_lng)
-            else:
-                product.distance_to = None
-    
-    # Get distinct store, city, and brand values for filter dropdowns
-    # Use .order_by().distinct('field') to ensure uniqueness
+            return paginator.page(paginator.num_pages)
+
+def add_distances_to_products(products, user_lat, user_lng):
+    """Add distance attribute to each product in the collection."""
+    for product in products:
+        if product.latitude and product.longitude:
+            product.distance_to = product.distance_to(user_lat, user_lng)
+        else:
+            product.distance_to = None
+
+def get_filter_options(products):
+    """Get unique values for filter dropdowns."""
     # Get unique store names (case-insensitive)
-    store_values = filtered_products.values_list('store', flat=True)
+    store_values = products.values_list('store', flat=True)
     stores_list = sorted(set(store.strip().lower() for store in store_values if store), key=lambda x: x.lower())
     
     # Get unique city names (case-insensitive)
-    city_values = filtered_products.values_list('city', flat=True)
+    city_values = products.values_list('city', flat=True)
     cities_list = sorted(set(city.strip().lower() for city in city_values if city), key=lambda x: x.lower())
     
     # Get unique brand names (case-insensitive)
-    brand_values = filtered_products.values_list('brand', flat=True)
+    brand_values = products.values_list('brand', flat=True)
     brands_list = sorted(set(brand.strip().lower() for brand in brand_values if brand), key=lambda x: x.lower())
     
     # Define list of main Jordan cities
@@ -311,51 +319,47 @@ def product_list_base(request, page_type=None, category=None):
         'Zarqa Camp', 'Suwaylih', 'Um al-Jimal', 'Petra', 'Azraq'
     ]
     
-    # If we have cities in the database that aren't in our predefined list, add them
+    # Add any cities from database not in predefined list
     for city in cities_list:
         if city and city.capitalize() not in jordan_cities:
             jordan_cities.append(city.capitalize())
     
-    # Sort the cities alphabetically for better UI
+    # Sort the cities alphabetically
     jordan_cities.sort()
     
-    context = {
-        'products': page_obj,
-        'page_obj': page_obj,
+    return {
         'stores': stores_list,
-        'locations': cities_list,  # Keep for backward compatibility
-        'jordan_cities': jordan_cities,  # Add the list of Jordan cities
+        'cities': cities_list,
         'brands': brands_list,
-        'selected_stores': stores,
-        'selected_locations': locations,
-        'selected_brands': brands,
-        'min_price': min_price,
-        'max_price': max_price,
-        'rating': rating,
-        'page_title': page_title,
-        'page_type': page_type,
-        'category': category,
-        'sort_by': sort_by,
-        'user_has_location': user_has_location,
+        'jordan_cities': jordan_cities
     }
-    
-    # Choose the appropriate template
+
+def get_page_title(request, page_type, category):
+    """Get the appropriate page title."""
     if page_type == 'hot_deals':
-        template = 'hot_deals.html'
+        if any([request.GET.getlist('store'), request.GET.getlist('location'), request.GET.getlist('brand')]):
+            return "Hot Deals (Filtered)"
+        return "Hot Deals"
     elif page_type == 'popular':
-        template = 'popular_deals.html'
+        return "Popular Deals"
     elif category:
-        template = 'category.html'
+        category_obj = get_object_or_404(Category, name__iexact=category.replace('-', ' ').strip())
+        return f"{category_obj.name} Deals"
     else:
-        template = 'products.html'
-    
-    return render(request, template, context)
+        return "All Deals"
+
+def get_template_for_page(page_type, category):
+    """Get the appropriate template for the page."""
+    if page_type == 'hot_deals':
+        return 'hot_deals.html'
+    elif page_type == 'popular':
+        return 'popular_deals.html'
+    elif category:
+        return 'category.html'
+    else:
+        return 'products.html'
 
 
-
-def filter_products(request, category):
-    category_slug = category.replace('-', ' ').strip()
-    return product_list_base(request, category=category_slug)
 
     
     
@@ -1610,15 +1614,15 @@ def close_account(request):
     
 
 
-def hot_deals(request):
-    return product_list_base(request, page_type='hot_deals')
+# def hot_deals(request):
+#     return product_list_base(request, page_type='hot_deals')
 
-def filter_hot_deals(request):
-    return product_list_base(request, page_type='hot_deals')
+# def filter_hot_deals(request):
+#     return product_list_base(request, page_type='hot_deals')
 
 
-def popular_deals(request):
-    return product_list_base(request, page_type='popular')
+# def popular_deals(request):
+#     return product_list_base(request, page_type='popular')
 
 
 @login_required

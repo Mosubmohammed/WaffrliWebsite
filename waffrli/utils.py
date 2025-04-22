@@ -85,3 +85,19 @@ def check_deal_against_wishlist(deal):
 
     return match_count
 
+# utils.py
+def get_discount_percentage(price, sale_price):
+    """Calculate discount percentage between original price and sale price."""
+    if not sale_price or not price or price <= 0:
+        return 0
+        
+    discount = ((price - sale_price) * 100) / price
+    return round(discount, 2)
+
+def get_unique_values(queryset, field_name):
+    """Get unique values for a field in the queryset."""
+    values = queryset.values_list(field_name, flat=True)
+    # Filter out None/empty values, strip whitespace, convert to lowercase, and sort
+    return sorted(set(value.strip().lower() for value in values if value), 
+                  key=lambda x: x.lower())
+
