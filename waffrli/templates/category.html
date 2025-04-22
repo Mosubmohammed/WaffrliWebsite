@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/Sub-categoriess.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Sub-categoriesss.css' %}" rel="stylesheet" />
 
 <div class="page-wrapper">
     <div class="hero">
@@ -12,15 +12,15 @@
             <div class="trust-badges animate-fade-in-delay-2">
                 <div class="badge">
                     <i class="icon">🛡️</i>
-                    <span>Authentic Products</span>
+                    <span style="background-color:transparent">Authentic Products</span>
                 </div>
                 <div class="badge">
                     <i class="icon">🇯🇴</i>
-                    <span>100% Jordanian Stores</span>
+                    <span style="background-color:transparent">100% Jordanian Stores</span>
                 </div>
                 <div class="badge">
                     <i class="icon">🏷️</i>
-                    <span>Best Prices</span>
+                    <span style="background-color:transparent">Best Prices</span>
                 </div>
             </div>
         </div>
@@ -60,16 +60,16 @@
     </div>
 
     <!-- Featured Deal -->
-    <div class="featured-deal">
-        <div class="featured-content">
-            <div class="featured-text">
+    <div class="Sub-featured-deal">
+        <div class="Sub-featured-content">
+            <div class="Sub-featured-text">
                 <h3>Deal of the Day! 🔥</h3>
                 <p>Premium Products - 50% OFF</p>
                 <button class="shop-now-btn">Shop Now</button>
             </div>
             <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80" 
-                 alt="Featured Deal" 
-                 class="featured-image">
+                 alt="Sub-Featured Deal" 
+                 class="Sub-featured-image">
         </div>
     </div>
 </div>
@@ -88,12 +88,12 @@
                 <label class="checkbox-label">
                     <input type="checkbox" name="store_type" value="online" 
                     {% if request.GET.store_type == 'online' %}checked{% endif %}
-                    <span>Online Stores</span>
+                    <span style="color: black;">Online Stores</span>
                 </label>
                 <label class="checkbox-label">
                     <input type="checkbox" name="store_type" value="physical" 
                     {% if request.GET.store_type == 'physical' %}checked{% endif %}
-                    <span>Physical Stores</span>
+                    <span style="color: black;">Physical Stores</span>
                 </label>
             </div>
         </div>
@@ -105,7 +105,7 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="store" value="{{ store }}" 
                       {% if store in selected_stores %}checked{% endif %}> 
-                <span>{{ store }}</span>
+                <span style="color: black;" >{{ store }}</span>
             </label>
             {% endfor %}
         </div>
@@ -144,7 +144,7 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="location" value="{{ location }}" 
                       {% if location in selected_locations %}checked{% endif %}> 
-                <span>{{ location }}</span>
+                <span style="color: black;">{{ location }}</span>
             </label>
             {% endfor %}
         </div>
@@ -156,7 +156,7 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="brand" value="{{ brand }}" 
                       {% if brand in selected_brands %}checked{% endif %}>
-                <span>{{ brand }}</span>
+                <span style="color: black;">{{ brand }}</span>
             </label>
             {% endfor %}
         </div>
@@ -169,8 +169,8 @@
                 <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
                 <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
                 <div class="price-values">
-                    <span>$0</span>
-                    <span id="currentPrice">${{ max_price|default:'100' }}</span>
+                    <span style="color: black;">$0</span>
+                    <span style="color: black;" id="currentPrice">${{ max_price|default:'100' }}</span>
                 </div>
             </div>
         </div>
@@ -182,11 +182,11 @@
             <div class="sort-options">
                 <label class="radio-label">
                     <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
-                    <span>Default</span>
+                    <span style="color: black;">Default</span>
                 </label>
                 <label class="radio-label">
                     <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
-                    <span>Distance (Nearest First)</span>
+                    <span style="color: black;">Distance (Nearest First)</span>
                 </label>
             </div>
         </div>
@@ -205,13 +205,15 @@
         {% for product in products %}
         <div class="Subproduct-card">
             <div class="product-image">
-                <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}/static/images/default.jpg{% endif %}" alt="{{ product.Name }}" loading="lazy" />
+
                 <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
             </div>
             <div class="product-details">
                 <h3>{{ product.Name }}</h3>
                 <div class="price-rating">
                     <span class="price">${{ product.sale_price }}</span>
+                    <span style="text-decoration: line-through; color: black; margin-left: -55px;" class="original-price">${{ product.Price }}</span>
                     <div class="rating">
                         {% if product.number_of_likes > 4 %}★★★★★
                         {% elif product.number_of_likes > 3 %}★★★★☆
@@ -223,9 +225,10 @@
                 </div>
                 <div class="store">{{ product.store }}</div>
                 {% if product.store_type %}
+                <!-- 
                 <div class="store-type-badge {{ product.store_type }}">
                     {{ product.store_type|title }}
-                </div>
+                </div>-->
                 {% endif %}
                 
                 {% if product.city %}
@@ -236,7 +239,7 @@
                     <div class="distance-info">
                         <i class="fas fa-route"></i>
                         <span>{{ product.distance_to|floatformat:1 }} km away</span>
-                    </div>
+                    </div> 
                     {% endif %}
                 </div>
                 {% endif %}
@@ -251,10 +254,10 @@
                 {% if user.is_authenticated %}
                 <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
                     {% csrf_token %}
-                    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                        <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                    <!--    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                     <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
                         <span class="like-count">{{ product.likes.count }}</span>
-                    </button>
+                    </button> -->
                 </form>
                 {% endif %}
             </div>

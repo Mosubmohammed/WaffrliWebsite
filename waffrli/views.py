@@ -763,7 +763,6 @@ def password_reset_callback(request):
     messages.success(request, "Your password has been reset successfully. You can now log in with your new password.")
     return redirect('login')
 
-
 def search(request):
     if request.method == "POST":
         searched = request.POST['searched']
@@ -773,14 +772,21 @@ def search(request):
             Q(category__name__icontains=searched)
         )
 
+        result_count = results.count()  # Count the number of results
+
         if not results:
             messages.error(request, "No matching products found.")
             return render(request, "home.html")
 
-        return render(request, "search.html", {'searched': results})
+        return render(request, "search.html", {
+            'searched': results,
+            'search_term': searched,  # Pass the search term
+            'result_count': result_count  # Pass the result count
+        })
 
     return render(request, "home.html")
 
+    
 def post_deal(request):
     """View to handle posting new deals and archiving deals"""
     if not request.user.is_authenticated:

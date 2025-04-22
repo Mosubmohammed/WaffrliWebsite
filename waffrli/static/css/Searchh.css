@@ -1,0 +1,255 @@
+
+
+/* Main search container */
+.search-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Search results info styling */
+.search-results-info {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #333;
+  font-weight: 500;
+}
+
+.search-results-count {
+  font-weight: 700;
+  color: #000;
+}
+
+#searchTerm {
+  font-style: italic;
+  color: #bd4535;
+}
+
+/* Product grid layout */
+.search-products-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-top: 25px;
+}
+
+/* Product card styling */
+.search-product-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 440px;
+}
+
+.search-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Card header with user info */
+.card-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-header img {
+  border: 1px solid #e0e0e0;
+  object-fit: cover;
+}
+
+.card-header small {
+  margin-left: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+/* Product image container */
+.search-product-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.search-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.search-product-card:hover .search-product-image img {
+  transform: scale(1.05);
+}
+
+/* Sale tag styling */
+.sale-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #fc1111;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+/* Product info section */
+.search-product-info {
+  padding: 15px;
+  flex-grow: 1;
+}
+
+.search-product-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  height: 42px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  height: 40px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Price styling */
+.price-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.current-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #bd4535;
+  margin-right: 10px;
+}
+
+.original-price {
+  font-size: 14px;
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Rating stars */
+.rating {
+  color: #ffb100;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* Store info */
+.store-info {
+  padding: 0 15px 10px;
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Card footer with buttons */
+.card-footer {
+  display: flex;
+  padding: 12px 15px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  align-items: center;
+}
+
+/* Like and comment buttons */
+.like-btn, .comment-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  color: #666;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.like-btn:hover, .comment-btn:hover {
+  color: #bd4535;
+}
+
+.like-btn i, .comment-btn i {
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.like-btn i.fas {
+  color: #bd4535;
+}
+
+.like-count {
+  font-size: 14px;
+}
+
+/* Show deal button */
+.add-to-cart {
+  margin-left: auto;
+  background: #000000e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.add-to-cart:hover {
+  background: #bd4535;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 1200px) {
+  .search-products-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .search-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .search-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .search-products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .search-main {
+    padding: 0 10px;
+  }
+}
