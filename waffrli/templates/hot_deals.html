@@ -77,185 +77,235 @@
 <!-- Main Content -->
 <div class="main-content">
     <!-- Filters -->
-    <aside class="filters">
-        <h2>Filters</h2>
-        <form method="GET" action="{{ request.path }}">
-            <!-- Stores -->
-            <div class="filter-section">
-                <h3>Stores</h3>
-                {% for store in stores %}
+<!-- Filter Section for all templates -->
+<aside class="filters">
+    <h2>Filters</h2>
+    <form method="GET" action="{{ request.path }}">
+        <!-- Store Type -->
+        <div class="filter-section">
+            <h3>Store Type</h3>
+            <div class="store-type-filters">
                 <label class="checkbox-label">
-                    <input type="checkbox" name="store" value="{{ store }}" 
-                          {% if store in selected_stores %}checked{% endif %}> 
-                    <span style="color: black;">{{ store }}</span>
+                    <input type="radio" name="store_type" value="online" 
+                    {% if selected_store_type == 'online' %}checked{% endif %}>
+                    <span style="color: black;">Online Stores</span>
                 </label>
-                {% endfor %}
-            </div>
-
-            <!-- Rating -->
-            <div class="filter-section">
-                <h3>Rating</h3>
-                <div class="rating-filters">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
-                        <span class="stars">★★★★★</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
-                        <span class="stars">★★★★☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
-                        <span class="stars">★★★☆☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
-                        <span class="stars">★★☆☆☆</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
-                        <span class="stars">★☆☆☆☆</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Jordan Cities Section -->
-            <div class="filter-section jordan-cities-section">
-                <h3>Jordan Cities <span class="clear-city-filters">Clear</span></h3>
-                <div class="cities-filter">
-                    {% for city in jordan_cities %}
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="location" value="{{ city }}" 
-                              {% if city in selected_locations %}checked{% endif %}> 
-                        <span style="color: black;">{{ city }}</span>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Brands -->
-            <div class="filter-section">
-                <h3>Brands</h3>
-                {% for brand in brands %}
                 <label class="checkbox-label">
-                    <input type="checkbox" name="brand" value="{{ brand }}" 
-                          {% if brand in selected_brands %}checked{% endif %}>
-                    <span style="color: black;">{{ brand }}</span>
+                    <input type="radio" name="store_type" value="physical" 
+                    {% if selected_store_type == 'physical' %}checked{% endif %}>
+                    <span style="color: black;">Physical Stores</span>
                 </label>
-                {% endfor %}
+                <label class="checkbox-label">
+                    <input type="radio" name="store_type" value="" 
+                    {% if not selected_store_type %}checked{% endif %}>
+                    <span style="color: black;">All Store Types</span>
+                </label>
             </div>
+        </div>
 
-            <!-- Price Range -->
-            <div class="filter-section">
-                <h3>Price Range</h3>
-                <div class="price-slider">
-                    <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
-                    <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
-                    <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
-                    <div class="price-values">
-                        <span style="color: black;">$0</span>
-                        <span  style="color: black;" id="currentPrice">${{ max_price|default:'100' }}</span>
-                    </div>
+        <!-- Stores -->
+        <div class="filter-section">
+            <h3>Stores</h3>
+            {% for store in stores %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="store" value="{{ store }}" 
+                      {% if store in selected_stores %}checked{% endif %}> 
+                <span style="color: black;">{{ store }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-section">
+            <h3>Rating</h3>
+            <div class="rating-filters">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="5" {% if rating == '5' %}checked{% endif %}>
+                    <span class="stars">★★★★★</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="4" {% if rating == '4' %}checked{% endif %}>
+                    <span class="stars">★★★★☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="3" {% if rating == '3' %}checked{% endif %}>
+                    <span class="stars">★★★☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="2" {% if rating == '2' %}checked{% endif %}>
+                    <span class="stars">★★☆☆☆</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rating" value="1" {% if rating == '1' %}checked{% endif %}>
+                    <span class="stars">★☆☆☆☆</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="filter-section">
+            <h3>Location <span class="clear-city-filters">Clear</span></h3>
+            {% for location in locations %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="location" value="{{ location }}" 
+                      {% if location in selected_locations %}checked{% endif %}> 
+                <span style="color: black;">{{ location }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Brands -->
+        <div class="filter-section">
+            <h3>Brands</h3>
+            {% for brand in brands %}
+            <label class="checkbox-label">
+                <input type="checkbox" name="brand" value="{{ brand }}" 
+                      {% if brand in selected_brands %}checked{% endif %}>
+                <span style="color: black;">{{ brand }}</span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-section">
+            <h3>Price Range</h3>
+            <div class="price-slider">
+                <input type="range" id="priceRange" min="0" max="200" value="{{ max_price|default:'100' }}">
+                <input type="hidden" id="minPrice" name="min_price" value="{{ min_price|default:'0' }}">
+                <input type="hidden" id="maxPrice" name="max_price" value="{{ max_price|default:'100' }}">
+                <div class="price-values">
+                    <span style="color: black;">$0</span>
+                    <span style="color: black;" id="currentPrice">${{ max_price|default:'100' }}</span>
                 </div>
             </div>
-            
-            <!-- Sort By Distance Option -->
-            <div class="filter-section">
-                <h3>Sort By</h3>
-                <div class="sort-options">
-                    <label class="radio-label">
-                        <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
-                        <span style="color: black;">Default</span>
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
-                        <span style="color: black;">Distance (Nearest First)</span>
-                    </label>
-                </div>
+        </div>
+        
+        <!-- Product Status Options -->
+        <div class="filter-section">
+            <h3>Product Status</h3>
+            <div class="status-filters">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="include_expired" value="true" 
+                    {% if include_expired %}checked{% endif %}>
+                    <span style="color: black;">Include Expired</span>
+                </label>
+
             </div>
-            
-            <!-- Filter Buttons -->
-            <div class="filter-buttons">
-                <button type="submit" id="applyFilter" class="filter-btn apply">Apply Filters</button>
-                <a href="{{ request.path }}" id="resetFilter" class="filter-btn reset">Reset Filters</a>
+        </div>
+        
+        <!-- Sort By -->
+        {% if user_has_location %}
+        <div class="filter-section">
+            <h3>Sort By</h3>
+            <div class="sort-options">
+                <label class="radio-label">
+                    <input type="radio" name="sort_by" value="" {% if not sort_by %}checked{% endif %}>
+                    <span style="color: black;">Default</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="sort_by" value="distance" {% if sort_by == 'distance' %}checked{% endif %}>
+                    <span style="color: black;">Distance (Nearest First)</span>
+                </label>
             </div>
-        </form>
-    </aside>
+        </div>
+        {% endif %}
+        
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button type="submit" id="applyFilter" class="filter-btn apply">Apply Filters</button>
+            <a href="{{ request.path }}" id="resetFilter" class="filter-btn reset">Reset Filters</a>
+        </div>
+    </form>
+</aside>
 
     <!-- Products Grid -->
     <main class="Subproducts-grid">
         {% if products %}
             {% for product in products %}
-            <div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
-                <div class="product-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
-                    {% else %}
-                        <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}" loading="lazy" />
-                    {% endif %}
-                    <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
-                    {% if user_has_location and product.distance_to <= 5 %}
-                    <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
-                    {% endif %}
-                </div>
-                <div class="product-details">
-                    <h3 class="product-title">{{ product.Name }}</h3>
-                    <div class="price-rating">
-                        <span class="current-price">${{ product.sale_price }}</span>
-                        <span class="original-price">${{ product.Price }}</span>
-                    </div>
-               
-                    <div class="store-info">
-                        <div class="store">{{ product.store }}</div>
-                            <!-- 
-                        {% if product.store_type %}
-                        <div class="store-type-badge {{ product.store_type }}">
-                            {{ product.store_type|title }}
-                        </div>
-                        {% endif %}    
-                          -->
-                    </div>
-                
-                    <div class="brand">{{ product.brand }}</div>
-                 
-                    <div class="location">
-                        <i class="fas fa-map-marker-alt"></i> {{ product.city }}
-                       
-                        <!-- Distance Information -->
-                        {% if user_has_location and product.latitude and product.longitude %}
-                        <div class="distance-info">
-                            <i class="fas fa-route"></i>
-                            <span style="color: black;" >{{ product.distance_to|floatformat:1 }} km away</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if product.id %}
-                    <a href="{% url 'product' product.id %}">            
-                        <button class="view-deal-btn">
-                            <span class="bag-icon">🛍️</span>
-                            View Deal
-                        </button>
-                    </a>
-                    
-                    {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                        {% csrf_token %}
-                       <!-- <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                            <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                            <span class="like-count">{{ product.likes.count }}</span>
-                        </button>
-                        -->
-                    </form>
-                    {% endif %}
-                    {% else %}
-                    <button class="view-deal-btn disabled">
-                        <span class="bag-icon">🛍️</span>
-                        Product Unavailable
-                    </button>
-                    {% endif %}
-                </div>
+<!-- Updated Product Card Template -->
+<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+    <div class="product-image">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+        {% else %}
+            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}" loading="lazy" />
+        {% endif %}
+        
+        <!-- Discount badge -->
+        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+        
+        <!-- Nearby badge -->
+        {% if user_has_location and product.distance_to <= 5 %}
+            <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
+        {% endif %}
+        
+        {% comment %} <!-- Hot deal badge -->
+        {% if product.is_hot_deal %}
+            <div class="hot-deal-badge"><i class="fas fa-fire"></i> Hot Deal</div>
+        {% endif %} {% endcomment %}
+        
+        <!-- Status badges -->
+        {% if product.is_expired %}
+            <div class="expired-badge">Expired</div>
+        {% endif %}
+        
+
+    </div>
+    
+    <div class="product-details">
+        <h3 class="product-title">{{ product.Name }}</h3>
+        
+        <div class="price-rating">
+            <span class="current-price">${{ product.sale_price }}</span>
+            <span class="original-price">${{ product.Price }}</span>
+        </div>
+        
+        <div class="store-info">
+            <div class="store">{{ product.store }}</div>
+            <div class="store-type-badge {{ product.store_type }}">
+                {{ product.store_type|title }}
             </div>
+        </div>
+        
+        <div class="brand">{{ product.brand }}</div>
+        
+        <div class="location">
+            <i class="fas fa-map-marker-alt"></i> {{ product.city }}
+            
+            <!-- Distance Information -->
+            {% if user_has_location and product.latitude and product.longitude %}
+                <div class="distance-info">
+                    <i class="fas fa-route"></i>
+                    <span style="color: black;">{{ product.distance_to|floatformat:1 }} km away</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if product.id %}
+            <a href="{% url 'product' product.id %}">            
+                <button class="view-deal-btn">
+                    <span class="bag-icon">🛍️</span>
+                    View Deal
+                </button>
+            </a>
+            
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+                    {% csrf_token %}
+                    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                        <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                        <span class="like-count">{{ product.likes.count }}</span>
+                    </button>
+                </form>
+            {% endif %}
+        {% else %}
+            <button class="view-deal-btn disabled">
+                <span class="bag-icon">🛍️</span>
+                Product Unavailable
+            </button>
+        {% endif %}
+    </div>
+</div>
             {% endfor %}
             
             <!-- Pagination -->
@@ -325,212 +375,141 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Price range slider functionality
-        const priceRange = document.getElementById('priceRange');
-        const minPriceInput = document.getElementById('minPrice');
-        const maxPriceInput = document.getElementById('maxPrice');
-        const currentPriceDisplay = document.getElementById('currentPrice');
+// Updated JavaScript for the filter functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Price range slider functionality
+    const priceRange = document.getElementById('priceRange');
+    const minPriceInput = document.getElementById('minPrice');
+    const maxPriceInput = document.getElementById('maxPrice');
+    const currentPriceDisplay = document.getElementById('currentPrice');
     
-        if (priceRange && minPriceInput && maxPriceInput && currentPriceDisplay) {
-            priceRange.addEventListener("input", function () {
-                maxPriceInput.value = this.value;
-                currentPriceDisplay.textContent = `$${this.value}`;
-            });
+    if (priceRange && minPriceInput && maxPriceInput && currentPriceDisplay) {
+        priceRange.addEventListener("input", function () {
+            maxPriceInput.value = this.value;
+            currentPriceDisplay.textContent = `$${this.value}`;
             
-            // Initialize current price display
-            currentPriceDisplay.textContent = `$${priceRange.value}`;
-        }
+            // Add smooth animation to the price display
+            currentPriceDisplay.style.animation = 'fadeIn 0.2s ease-out';
+            setTimeout(() => {
+                currentPriceDisplay.style.animation = '';
+            }, 200);
+        });
     
-        // Handle sort option changes
-        const sortRadios = document.querySelectorAll('input[name="sort_by"]');
-        
-        // Add change event listener to each radio button
-        sortRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                // Submit the form when a sort option is selected
-                this.closest('form').submit();
-            });
+        minPriceInput.addEventListener("input", function () {
+            if (parseInt(minPriceInput.value) >= parseInt(maxPriceInput.value)) {
+                minPriceInput.value = maxPriceInput.value - 1;
+            }
+        });
+    
+        maxPriceInput.addEventListener("input", function () {
+            if (parseInt(maxPriceInput.value) <= parseInt(minPriceInput.value)) {
+                maxPriceInput.value = parseInt(minPriceInput.value) + 1;
+            }
+            priceRange.value = maxPriceInput.value;
+            currentPriceDisplay.textContent = `$${maxPriceInput.value}`;
         });
         
-        // Handle city filter behavior
-        const cityCheckboxes = document.querySelectorAll('.cities-filter input[name="location"]');
-        const distanceRadio = document.querySelector('input[name="sort_by"][value="distance"]');
-        const clearCityFiltersBtn = document.querySelector('.clear-city-filters');
-        
-        // Function to check if any cities are selected
-        function anyCitySelected() {
-            return Array.from(cityCheckboxes).some(checkbox => checkbox.checked);
-        }
-        
-        // Function to update clear button visibility
+        // Initialize current price display
+        currentPriceDisplay.textContent = `$${maxPriceInput.value}`;
+    }
+    
+    // Store type radio buttons
+    const storeTypeRadios = document.querySelectorAll('input[name="store_type"]');
+    storeTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // If you want to submit the form immediately on store type change
+            // Uncomment the next line
+            // this.closest('form').submit();
+        });
+    });
+    
+    // Handle sort option changes
+    const sortRadios = document.querySelectorAll('input[name="sort_by"]');
+    sortRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Submit the form when a sort option is selected
+            this.closest('form').submit();
+        });
+    });
+    
+    // Handle product status filters
+    const statusCheckboxes = document.querySelectorAll('input[name="include_expired"]');
+    statusCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Optional: Submit form on status change
+            // this.closest('form').submit();
+        });
+    });
+    
+    // Clear city filters functionality
+    const clearCityFiltersBtn = document.querySelector('.clear-city-filters');
+    const cityCheckboxes = document.querySelectorAll('input[name="location"]');
+    
+    if (clearCityFiltersBtn) {
+        // Show/hide clear button based on city selection
         function updateClearButtonVisibility() {
-            if (clearCityFiltersBtn) {
-                clearCityFiltersBtn.style.display = anyCitySelected() ? 'block' : 'none';
-            }
+            const anySelected = Array.from(cityCheckboxes).some(cb => cb.checked);
+            clearCityFiltersBtn.style.display = anySelected ? 'inline-block' : 'none';
         }
         
-        // Initial check for clear button visibility
+        // Initialize visibility
         updateClearButtonVisibility();
         
-        // Add event listeners to city checkboxes
-        cityCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // When any city is checked, automatically select distance sorting
-                if (this.checked && distanceRadio) {
-                    distanceRadio.checked = true;
-                }
-                
-                // Update clear button visibility
-                updateClearButtonVisibility();
-                
-                // Highlight the city name in the product cards
-                const cityName = this.value.trim();
-                const cityElements = document.querySelectorAll('.location');
-                
-                cityElements.forEach(element => {
-                    const textContent = element.textContent.trim();
-                    if (this.checked && textContent.includes(cityName)) {
-                        // Add highlight to the parent card
-                        const parentCard = element.closest('.product-card');
-                        if (parentCard) {
-                            parentCard.classList.add('product-highlight-animation');
-                            setTimeout(() => {
-                                parentCard.classList.remove('product-highlight-animation');
-                            }, 1000);
-                        }
-                    }
-                });
+        // Add click handler
+        clearCityFiltersBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Uncheck all city checkboxes
+            cityCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
             });
+            
+            // Update visibility
+            updateClearButtonVisibility();
         });
         
-        // Clear city filters button
-        if (clearCityFiltersBtn) {
-            clearCityFiltersBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Uncheck all city checkboxes
-                cityCheckboxes.forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                
-                // Update visibility
-                updateClearButtonVisibility();
-            });
-        }
+        // Update visibility when city checkboxes change
+        cityCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateClearButtonVisibility);
+        });
+    }
+    
+    // Function to enhance distance info animations
+    function enhanceDistanceInfo() {
+        const distanceInfoElements = document.querySelectorAll('.distance-info');
         
-        // Function to enhance distance info display
-        function enhanceDistanceDisplay() {
-            const distanceInfoElements = document.querySelectorAll('.distance-info');
+        distanceInfoElements.forEach(element => {
+            // Add subtle animation to highlight distance when a user hovers over a product
+            const parentCard = element.closest('.product-card');
             
-            distanceInfoElements.forEach(element => {
-                // Get the distance value
-                const distanceText = element.querySelector('span').textContent;
-                const distanceValue = parseFloat(distanceText.split(' ')[0]);
+            if (parentCard) {
+                parentCard.addEventListener('mouseenter', () => {
+                    element.style.transform = 'scale(1.05)';
+                    element.style.fontWeight = '500';
+                });
                 
-                // Add color coding based on distance
-                if (distanceValue <= 2) {
-                    element.style.backgroundColor = '#e8f5e9';  // Light green
-                    element.style.color = '#2e7d32';  // Dark green
-                } else if (distanceValue <= 5) {
-                    element.style.backgroundColor = '#fffde7';  // Light yellow
-                    element.style.color = '#f57f17';  // Dark yellow/orange
-                } else if (distanceValue <= 10) {
-                    element.style.backgroundColor = '#fff8e1';  // Light amber
-                    element.style.color = '#ff8f00';  // Dark amber
-                }
-                
-                // Add animation on hover
-                const parentCard = element.closest('.product-card');
-                if (parentCard) {
-                    parentCard.addEventListener('mouseenter', () => {
-                        element.style.transform = 'scale(1.05)';
-                        element.style.fontWeight = '500';
-                    });
-                    
-                    parentCard.addEventListener('mouseleave', () => {
-                        element.style.transform = 'scale(1)';
-                        element.style.fontWeight = 'normal';
-                    });
-                }
-            });
-        }
-        
-        // Call function to enhance distance display
-        enhanceDistanceDisplay();
-        
-        // Highlight nearest deals if sorted by distance
-// Highlight nearest deals if sorted by distance
-        function highlightNearestProducts() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('sort_by') === 'distance' || anyCitySelected()) {
-                const cards = Array.from(document.querySelectorAll('.product-card'));
-                
-                // Mark the closest 3 products
-                cards.slice(0, 3).forEach((card, index) => {
-                    card.classList.add('nearest-highlight');
-                    
-                    // Add special badge to first product if not already present
-                    if (index === 0 && !card.querySelector('.nearby-badge')) {
-                        const badge = document.createElement('div');
-                        badge.className = 'nearby-badge';
-                        badge.innerHTML = '<i class="fas fa-map-marker-alt"></i> Nearest to you';
-                        card.querySelector('.product-image').appendChild(badge);
-                    }
+                parentCard.addEventListener('mouseleave', () => {
+                    element.style.transform = 'scale(1)';
+                    element.style.fontWeight = 'normal';
                 });
             }
-        }
-        
-        // Call function to highlight nearest products
-        highlightNearestProducts();
+        });
+    }
     
-        // Featured deals slider functionality
-        const container = document.querySelector('.featured-deals-container');
-        const slides = document.querySelectorAll('.featured-deal');
-        const prevBtn = document.querySelector('.prev-btn');
-        const nextBtn = document.querySelector('.next-btn');
-        let currentIndex = 0;
+    // Call the enhancement function
+    enhanceDistanceInfo();
     
-        if (container && slides.length > 0 && prevBtn && nextBtn) {
-            function updateSlider() {
-                container.style.transform = `translateX(-${currentIndex * 100}%)`;
-            }
-    
-            prevBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-                updateSlider();
-            });
-    
-            nextBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex + 1) % slides.length;
-                updateSlider();
-            });
-    
-            // Auto-slide every 5 seconds
-            setInterval(() => {
-                currentIndex = (currentIndex + 1) % slides.length;
-                updateSlider();
-            }, 5000);
-        }
-    });
-    // Add this at the end of your DOMContentLoaded function
-console.log("Total product cards in DOM:", document.querySelectorAll('.product-card').length);
-console.log("Visible product cards:", [...document.querySelectorAll('.product-card')].filter(card => 
-    window.getComputedStyle(card).display !== 'none'
-).length);
-
-// Look for products with the same store
-const storeProducts = {};
-document.querySelectorAll('.product-card').forEach(card => {
-    const storeElement = card.querySelector('.store');
-    if (storeElement) {
-        const storeName = storeElement.textContent.trim();
-        if (!storeProducts[storeName]) storeProducts[storeName] = [];
-        storeProducts[storeName].push(card);
+    // Submit button enhancements
+    const applyFilterBtn = document.getElementById('applyFilter');
+    if (applyFilterBtn) {
+        applyFilterBtn.addEventListener('click', () => {
+            // Add loading animation or other visual feedback
+            applyFilterBtn.classList.add('loading');
+            setTimeout(() => {
+                applyFilterBtn.classList.remove('loading');
+            }, 2000); // Remove after form submission or timeout
+        });
     }
 });
-console.log("Products by store:", Object.entries(storeProducts).map(([store, cards]) => 
-    `${store}: ${cards.length} products`
-).join(', '));
 </script>
 {% endblock %}
