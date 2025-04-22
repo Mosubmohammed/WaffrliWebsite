@@ -118,6 +118,32 @@
                 </div>
             </div>
 
+            <!-- Add this expiration date section after the category selection -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="expiration-type" class="required-field">Deal Expires After</label>
+                    <div class="expiration-options">
+                        <div>
+                            <input type="radio" id="default-expiration" name="expiration-type" value="default" 
+                                {% if not edit_mode or not deal.custom_expiration %}checked{% endif %}>
+                            <label for="default-expiration">Default (10 days)</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="custom-expiration" name="expiration-type" value="custom"
+                                {% if edit_mode and deal.custom_expiration %}checked{% endif %}>
+                            <label for="custom-expiration">Custom date</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="custom-date-container" 
+                    {% if not edit_mode or not deal.custom_expiration %}style="display: none;"{% endif %}>
+                    <label for="expiration-date">Expiration Date</label>
+                    <input type="date" id="expiration-date" name="expiration-date" 
+                        value="{% if edit_mode and deal.custom_expiration %}{{ deal.expires_at|date:'Y-m-d' }}{% endif %}">
+                    <div class="error-message" id="date-error">Please select a valid future date.</div>
+                </div>
+            </div>
+
             <!-- Store Type - preselect based on existing data -->
             <div class="form-group">
                 <label for="store-type">Store Type</label>
@@ -175,6 +201,7 @@
                     </div>
                 </div>
             </div>
+            
 
             <div class="form-actions">
                 <button type="button" id="archive-btn">
@@ -224,6 +251,16 @@
             form.appendChild(cityField);
         }
         
+        // Add hidden location field if it doesn't exist (this is what the server expects)
+        let locationField = document.getElementById('location-field');
+        if (!locationField) {
+            locationField = document.createElement('input');
+            locationField.type = 'hidden';
+            locationField.id = 'location-field';
+            locationField.name = 'location'; // Match the name the Django view expects
+            form.appendChild(locationField);
+        }
+        
         // Store type elements
         const onlineStore = document.getElementById('online-store');
         const physicalStore = document.getElementById('physical-store');
@@ -260,11 +297,34 @@
             });
         }
         
+        // Function to extract city and update both city and location fields
+        const updateCityAndLocationFields = (address) => {
+            if (!address) return false;
+            
+            const addressParts = address.split(',');
+            let cityValue = "Amman"; // Default
+            
+            if (addressParts.length >= 2) {
+                // Typically city is the second part in most address formats
+                cityValue = addressParts[1].trim();
+            } else if (addressParts.length === 1) {
+                // Fallback to the first part if we can't extract a city part
+                cityValue = addressParts[0].trim();
+            }
+            
+            // Update both fields with the same value
+            cityField.value = cityValue;
+            locationField.value = cityValue;
+            
+            return true;
+        };
+        
         // Enhanced function to update city field based on store type
         const updateCityField = () => {
             if (onlineStore && onlineStore.checked && locationSelect) {
-                // For online stores, copy the selected city value
+                // For online stores, copy the selected city value to both fields
                 cityField.value = locationSelect.value;
+                locationField.value = locationSelect.value;
                 return true;
             } else if (physicalStore && physicalStore.checked) {
                 // For physical stores, validate and extract city from formatted address
@@ -278,22 +338,7 @@
                 }
                 
                 if (formattedAddress.value) {
-                    // Try to extract city from the formatted address
-                    const addressParts = formattedAddress.value.split(',');
-                    if (addressParts.length >= 2) {
-                        // Typically city is the second part in most address formats
-                        cityField.value = addressParts[1].trim();
-                    } else {
-                        // Fallback to the first part if we can't extract a city part
-                        cityField.value = addressParts[0].trim();
-                    }
-                    
-                    // If we still don't have a city, use Amman as default
-                    if (!cityField.value) {
-                        cityField.value = "Amman"; // Default fallback
-                    }
-                    
-                    return true;
+                    return updateCityAndLocationFields(formattedAddress.value);
                 }
             }
             
@@ -311,9 +356,10 @@
                     document.getElementById('longitude').value = '';
                     document.getElementById('formatted_address').value = '';
                     
-                    // Update city from location dropdown when type changes
+                    // Update both city and location fields from dropdown when type changes
                     if (locationSelect.value) {
                         cityField.value = locationSelect.value;
+                        locationField.value = locationSelect.value;
                     }
                 }
                 updateProgressBar();
@@ -330,18 +376,20 @@
                         loadGoogleMapsScript();
                     }
                     
-                    // Clear city field - will be updated when map location is selected
+                    // Clear both fields - will be updated when map location is selected
                     cityField.value = '';
+                    locationField.value = '';
                 }
                 updateProgressBar();
             });
         }
     
-        // Listen for location dropdown changes
+        // Listen for location dropdown changes - update both fields
         if (locationSelect) {
             locationSelect.addEventListener('change', function() {
                 if (onlineStore && onlineStore.checked) {
                     cityField.value = this.value;
+                    locationField.value = this.value;
                 }
             });
         }
@@ -461,7 +509,7 @@
                     // Set the action value to 'archive'
                     actionInput.value = 'archive';
                     
-                    // Try to update city field - but don't prevent submission if it fails
+                    // Try to update city and location fields - but don't prevent submission if it fails
                     updateCityField();
                     
                     // Remove required attribute from fields to allow incomplete submissions
@@ -475,60 +523,58 @@
                 }
             });
         }
-        
-        // Post button handler
-// Update the postButton click handler with a direct fix
-if (postButton) {
-    postButton.addEventListener('click', (e) => {
-        // Prevent default form submission
-        e.preventDefault();
-        
-        // FIRST: Set action to post
-        actionInput.value = 'post';
-        
-        // SECOND: For physical stores, force values if they exist in the map
-        if (physicalStore && physicalStore.checked) {
-            // Get map values
-            const formattedAddress = document.getElementById('formatted_address');
-            const latitude = document.getElementById('latitude');
-            const longitude = document.getElementById('longitude');
-            
-            // If map has been used, use its values
-            if (formattedAddress.value && latitude.value && longitude.value) {
-                // Set a default city if missing
-                if (!document.getElementById('city-field').value) {
-                    // Try to extract from address or use default
+    
+        // Post button handler with improved fixes
+        if (postButton) {
+            postButton.addEventListener('click', (e) => {
+                // Prevent default form submission
+                e.preventDefault();
+                
+                // Set action to post
+                actionInput.value = 'post';
+                
+                // Handle different store types
+                if (physicalStore && physicalStore.checked) {
+                    // Get map values
+                    const formattedAddress = document.getElementById('formatted_address');
+                    const latitude = document.getElementById('latitude');
+                    const longitude = document.getElementById('longitude');
+                    
+                    // If map has been used, check that we have all required values
+                    if (!formattedAddress.value || !latitude.value || !longitude.value) {
+                        // Show error if map location is missing
+                        showNotification('Please select a location on the map for the physical store.', 'error');
+                        return;
+                    }
+                    
+                    // For physical stores, update both city and location fields from formatted address
                     const addressParts = formattedAddress.value.split(',');
                     if (addressParts.length >= 2) {
-                        document.getElementById('city-field').value = addressParts[1].trim();
+                        cityField.value = addressParts[1].trim();
+                        locationField.value = addressParts[1].trim(); // Set location field to same value as city
                     } else {
-                        // Use Amman as default city
-                        document.getElementById('city-field').value = "Amman";
+                        // Use Amman as default city for both fields
+                        cityField.value = "Amman";
+                        locationField.value = "Amman";
+                    }
+                    
+                } else if (onlineStore && onlineStore.checked) {
+                    // For online stores, make sure city is selected from dropdown
+                    if (locationSelect && locationSelect.value) {
+                        // Set both fields to the selected city value
+                        cityField.value = locationSelect.value;
+                        locationField.value = locationSelect.value;
+                        
+                    } else {
+                        showNotification('Please select a location for the online store.', 'error');
+                        return;
                     }
                 }
                 
-                // Submit the form if we have the necessary map data
-                console.log("Physical store form submitted with city: " + document.getElementById('city-field').value);
+                // Submit the form now that we have ensured both fields are populated
                 form.submit();
-                return;
-            } else {
-                // Show error if map location is missing
-                showNotification('Please select a location on the map for the physical store.', 'error');
-                return;
-            }
+            });
         }
-        
-        // For online stores, make sure city is selected
-        if (onlineStore && onlineStore.checked) {
-            if (locationSelect && locationSelect.value) {
-                document.getElementById('city-field').value = locationSelect.value;
-            }
-        }
-        
-        // Submit the form
-        form.submit();
-    });
-}
         
         // Form submission handler
         if (form) {
@@ -552,8 +598,8 @@ if (postButton) {
                         }
                     });
                     
-                    // Make sure city field has a value
-                    if (!cityField.value) {
+                    // Make sure city and location fields have values
+                    if (!cityField.value || !locationField.value) {
                         allValid = false;
                         showNotification('Please provide a city location.', 'error');
                     }
@@ -593,9 +639,10 @@ if (postButton) {
             loadGoogleMapsScript();
         }
         
-        // Initialize city field if needed
+        // Initialize both city and location fields if needed
         if (onlineStore && onlineStore.checked && locationSelect && locationSelect.value) {
             cityField.value = locationSelect.value;
+            locationField.value = locationSelect.value;
         }
     });
     
@@ -717,10 +764,7 @@ if (postButton) {
         autocomplete.addListener("place_changed", () => {
             const place = autocomplete.getPlace();
     
-            if (!place.geometry) {
-                console.error("No geometry found for this place");
-                return;
-            }
+
     
             // Check if location is in Jordan
             if (!isLocationInJordan(place.address_components)) {
@@ -729,6 +773,7 @@ if (postButton) {
                 document.getElementById("address").value = "";
                 document.getElementById("formatted_address").value = "";
                 document.getElementById("city-field").value = "";
+                document.getElementById("location-field").value = ""; // Clear location field too
                 return;
             }
     
@@ -752,11 +797,13 @@ if (postButton) {
             const city = extractCityFromAddressComponents(place.address_components);
             if (city) {
                 document.getElementById("city-field").value = city;
+                document.getElementById("location-field").value = city; // Update location field too
             } else {
                 // Fallback: use locality part of the formatted address
                 const addressParts = place.formatted_address.split(',');
                 if (addressParts.length >= 2) {
                     document.getElementById("city-field").value = addressParts[1].trim();
+                    document.getElementById("location-field").value = addressParts[1].trim(); // Update location field too
                 }
             }
         });
@@ -779,21 +826,24 @@ if (postButton) {
                         document.getElementById("address").value = "";
                         document.getElementById("formatted_address").value = "";
                         document.getElementById("city-field").value = "";
+                        document.getElementById("location-field").value = ""; // Clear location field too
                         return;
                     }
     
                     const address = results[0].formatted_address;
                     document.getElementById("formatted_address").value = address;
     
-                    // Extract city and update city field
+                    // Extract city and update both city and location fields
                     const city = extractCityFromAddressComponents(results[0].address_components);
                     if (city) {
                         document.getElementById("city-field").value = city;
+                        document.getElementById("location-field").value = city; // Update location field too
                     } else {
                         // Fallback: use locality part of the formatted address
                         const addressParts = address.split(',');
                         if (addressParts.length >= 2) {
                             document.getElementById("city-field").value = addressParts[1].trim();
+                            document.getElementById("location-field").value = addressParts[1].trim(); // Update location field too
                         }
                     }
     
