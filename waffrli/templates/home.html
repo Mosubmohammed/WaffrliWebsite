@@ -366,227 +366,172 @@
       <div class="separator-line"></div>
       <div class="separator-text">
         <div class="category-links">
-          <a href="#electronics">Electronics</a>
+          <a href="#">phones</a>
           <span class="separator">•</span>
-          <a href="#fashion">Fashion</a>
+          <a href="#">Computers</a>
           <span class="separator">•</span>
-          <a href="#home">Home & Living</a>
-          <span class="separator">•</span>
-          <a href="#beauty">Beauty</a>
-          <span class="separator">•</span>
-          <a href="#sports">Sports</a>
+          <a href="#">Bags & Luggage</a>
         </div>
       </div>
       <div class="separator-line"></div>
     </div>
-    <div class="container">
-      <div class="Categoy-selling-section">
-        <div class="Categoy-selling-row">
-          <!-- First Column -->
-          <div class="Categoy-selling-column">
-            <div class="column-header">
-              <h3>Electronics</h3>
-              <div class="nav-controls">
-                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
-              </div>
-            </div>
-
-            <!-- Product 1 -->
-            <div class="mini-product-item">
-              <div class="category-label">phones</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product04.png" alt="Smartphone">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="mini-product-item">
-              <div class="category-label">labtop</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product01.png" alt="Laptop">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$980.00</span>
-                    <span class="old-price">$990.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="mini-product-item">
-              <div class="category-label">headphones</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product06.png" alt="Accessory">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="mini-product-item">
-              <div class="category-label">headphones</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product06.png" alt="Accessory">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+<!-- Category Products Section -->
+<div class="container">
+  <div class="Categoy-selling-section">
+    <div class="Categoy-selling-row">
+      <!-- First Column - Phones -->
+      <div class="Categoy-selling-column">
+        <div class="column-header">
+          <h3>Phones</h3>
+          <div class="nav-controls">
+            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
           </div>
+        </div>
 
-
-          <!-- Second Column -->
-          <div class="category-selling-column">
-            <div class="column-header">
-              <h3>Fashion</h3>
-              <div class="nav-controls">
-                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
-              </div>
+        {% for product in phone_products %}
+        <div class="mini-product-item">
+          <div class="category-label">phones</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+              {% else %}
+                <img src="{% static 'img/product04.png' %}" alt="Smartphone">
+              {% endif %}
             </div>
-
-            <!-- Product 1 -->
-            <div class="mini-product-item">
-              <div class="category-label">Clothing</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product08.png" alt="Tablet">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="mini-product-item">
-              <div class="category-label">Shoes</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product02.png" alt="Headphones">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="mini-product-item">
-              <div class="category-label">Bags</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product04.png" alt="Laptop">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$580.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Third Column -->
-          <div class="category-selling-column">
-            <div class="column-header">
-              <h3>Home & Living</h3>
-              <div class="nav-controls">
-                <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-                <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
-              </div>
-            </div>
-
-            <!-- Product 1 -->
-            <div class="mini-product-item">
-              <div class="category-label">Furniture</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product04.png" alt="Laptop">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$80.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="mini-product-item">
-              <div class="category-label">Kitchen & Dining</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product04.png" alt="Headphones">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$90.00</span>
-                    <span class="old-price">$990.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="mini-product-item">
-              <div class="category-label">Home Decor</div>
-              <div class="mini-product-content">
-                <div class="mini-product-image">
-                  <img src="img/product04.png" alt="Laptop">
-                </div>
-                <div class="mini-product-details">
-                  <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
-                  <div class="mini-product-price">
-                    <span class="current-price">$50.00</span>
-                    <span class="old-price">$590.00</span>
-                  </div>
-                </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">{{ product.Name }}</div>
+              <div class="mini-product-price">
+                <span class="current-price">${{ product.sale_price }}</span>
+                <span class="old-price">${{ product.Price }}</span>
               </div>
             </div>
           </div>
         </div>
+        {% empty %}
+        <!-- Default item if no products found -->
+        <div class="mini-product-item">
+          <div class="category-label">phones</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              <img src="{% static 'img/product04.png' %}" alt="Smartphone">
+            </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+              <div class="mini-product-price">
+                <span class="current-price">$580.00</span>
+                <span class="old-price">$590.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Second Column - Computers -->
+      <div class="category-selling-column">
+        <div class="column-header">
+          <h3>Computers</h3>
+          <div class="nav-controls">
+            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+
+        {% for product in computer_products %}
+        <div class="mini-product-item">
+          <div class="category-label">computers</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+              {% else %}
+                <img src="{% static 'img/product08.png' %}" alt="Computer">
+              {% endif %}
+            </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">{{ product.Name }}</div>
+              <div class="mini-product-price">
+                <span class="current-price">${{ product.sale_price }}</span>
+                <span class="old-price">${{ product.Price }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <!-- Default item if no products found -->
+        <div class="mini-product-item">
+          <div class="category-label">computers</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              <img src="{% static 'img/product08.png' %}" alt="Computer">
+            </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+              <div class="mini-product-price">
+                <span class="current-price">$980.00</span>
+                <span class="old-price">$990.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Third Column - Bags and Luggage -->
+      <div class="category-selling-column">
+        <div class="column-header">
+          <h3>Bags & Luggage</h3>
+          <div class="nav-controls">
+            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+
+        {% for product in bag_products %}
+        <div class="mini-product-item">
+          <div class="category-label">bags</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+              {% else %}
+                <img src="{% static 'img/product04.png' %}" alt="Bags">
+              {% endif %}
+            </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">{{ product.Name }}</div>
+              <div class="mini-product-price">
+                <span class="current-price">${{ product.sale_price }}</span>
+                <span class="old-price">${{ product.Price }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <!-- Default item if no products found -->
+        <div class="mini-product-item">
+          <div class="category-label">bags</div>
+          <div class="mini-product-content">
+            <div class="mini-product-image">
+              <img src="{% static 'img/product04.png' %}" alt="Bags">
+            </div>
+            <div class="mini-product-details">
+              <div class="mini-product-name">PRODUCT NAME GOES HERE</div>
+              <div class="mini-product-price">
+                <span class="current-price">$80.00</span>
+                <span class="old-price">$90.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
+  </div>
+</div>
+<!-- End Category Products Section -->
 </main>
 
 <!-- Red Line -->

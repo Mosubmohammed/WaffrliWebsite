@@ -440,6 +440,51 @@
 {% endif %}
 
 <script>
+    // Daily Deals Countdown Timer
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the countdown elements
+    const hoursElement = document.getElementById('hours');
+    const minutesElement = document.getElementById('minutes');
+    const secondsElement = document.getElementById('seconds');
+    
+    // Function to update the countdown
+    function updateCountdown() {
+        // Calculate time until midnight (when deals reset)
+        const now = new Date();
+        const midnight = new Date();
+        midnight.setHours(24, 0, 0, 0); // Set to midnight tonight
+        
+        // Calculate remaining time in milliseconds
+        let timeRemaining = midnight - now;
+        
+        // Convert to hours, minutes, seconds
+        const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+        timeRemaining %= (1000 * 60 * 60);
+        
+        const minutes = Math.floor(timeRemaining / (1000 * 60));
+        timeRemaining %= (1000 * 60);
+        
+        const seconds = Math.floor(timeRemaining / 1000);
+        
+        // Update the display with leading zeros if needed
+        hoursElement.textContent = hours.toString().padStart(2, '0');
+        minutesElement.textContent = minutes.toString().padStart(2, '0');
+        secondsElement.textContent = seconds.toString().padStart(2, '0');
+        
+        // If countdown reaches zero (midnight), reload the page to get new daily deals
+        if (hours === 0 && minutes === 0 && seconds === 0) {
+            setTimeout(function() {
+                window.location.reload();
+            }, 1000);
+        }
+    }
+    
+    // Update immediately once
+    updateCountdown();
+    
+    // Then update every second
+    setInterval(updateCountdown, 1000);
+});
  // Updated JavaScript for the filter functionality
 document.addEventListener('DOMContentLoaded', () => {
     // Price range slider functionality

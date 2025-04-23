@@ -190,14 +190,22 @@ class Message(models.Model):
     recipient = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)
     content = models.TextField()
-    date_sent = models.DateTimeField(auto_now_add=True)
+    date_sent = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
     is_reply = models.BooleanField(default=False)
-    parent_message = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies')
+    parent_message = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.SET_NULL)
+    # New field to flag messages for admin attention
+    for_admin = models.BooleanField(default=False)
+    # Admin who handled the message (if applicable)
+    handled_by = models.ForeignKey(User, null=True, blank=True, related_name='handled_messages', on_delete=models.SET_NULL)
 
-    
     def __str__(self):
-        return f"{self.subject} - From: {self.sender} To: {self.recipient}"
+        return f"{self.subject} - From: {self.sender.username} To: {self.recipient.username}"
+
+    class Meta:
+        ordering = ['-date_sent']
+        
+        
     
 class WishlistItem(models.Model):
 
