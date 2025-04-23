@@ -9,76 +9,84 @@
     <div class="content-wrapper">
         <!-- Main Content -->
         <div class="main-content">
+
             <div class="deal-card">
-                <div class="deal-image">
+                <div class="deal-image-container">
                     {% if product.image %}
-                    <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="Product Image" />
+                    <img src="{{ product.image.url }}" class="deal-image" alt="Product Image" />
                     {% else %}
-                    <img src="{% static 'images/placeholder.jpg' %}" class="img-fluid rounded-start"
-                        alt="Product Image" />
+                    <img src="{% static 'images/placeholder.jpg' %}" class="deal-image" alt="Product Image" />
                     {% endif %}
+
                     <span class="tag-popular">Popular</span>
-                    <a href="{% url 'user_profile' product.user.username %}">
-                        <span class="deal-score">Posted by: <strong>@{{ product.user.username }}</strong></span>
-                    </a>
                 </div>
 
                 <div class="deal-content">
                     <div class="deal-header">
-                        <h1>{{ product.Name }}</h1>
-                        
-
-                        <div class="store-info">
-                            <div class="store">{{ product.store }} /</div>
-                            <div class="brand">{{ product.brand }}</div>
-                        </div>
-                    
-                       
-                        <div class="location">
-                            <i class="fas fa-map-marker-alt"></i> {{ product.city }}
-                        </div>
-
-
-
-
+                        <h1 class="deal-title">{{ product.Name }}</h1>
                         {% if user == product.user %}
                         <button class="menu-btn" id="menuBtn">
-                            <i class="fas fa-ellipsis-v"></i>
+                            <span class="dots"></span>
                         </button>
-                        <div class="menu-dropdown" id="menuDropdown">
-                            <button class="menu-item">
-                                <a href="{% url 'edit_deal' product.id %}">
+                        <div class="menu-dropdown hidden" id="menuDropdown">
+                            <button class="menu-item"> <a href="{% url 'edit_deal' product.id %}">
                                     <i class="fas fa-edit"></i> Edit</a>
                             </button>
                             <button class="menu-item"><i class="fas fa-archive"></i> Archive</button>
                             <button class="menu-item" onclick="confirmDelete('{{ product.id }}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <i class="fas fa-trash"></i> Delete</button>
                         </div>
                         {% endif %}
                     </div>
 
+
+
+                    <div class="deal-posted-by">
+                        <a href="{% url 'user_profile' product.user.username %}">
+                            <span class="deal-posted-by">Posted by: <strong>@{{ product.user.username }}</strong></span>
+                        </a>
+
+                    </div>
+
+                    <div class="deal-meta">
+                        <div class="brand-category">
+                            <span style="color: black;" class="brand">{{ product.brand }}</span>
+                            <span style="color: rgb(214, 16, 16);" class="separator">•</span>
+                            <span style="color: black;" class="category">{{ product.category }}</span>
+                        </div>
+                        <div class="location">
+                            <span class="location-icon">📍</span>
+                            <span style="color: black;">{{ product.city }}</span>
+                        </div>
+                    </div>
+
+                    <div class="deal-description">{{ product.Description|truncatewords:20 }}</div>
+
+
                     <div class="price-info">
-                        <span class="current-price">JD{{ product.sale_price }}</span>
-                        <span class="original-price">JD{{ product.Price }}</span>
+                        <div class="price-container">
+                            <span class="current-price">{{ product.sale_price }} JD</span>
+                            <span class="original-price">{{ product.Price }} JD</span>
+                        </div>
                         <span class="discount">{{ product.discount_percentage }}% OFF</span>
                     </div>
 
                     <div class="deal-actions">
-                        <a class="get-deal-btn"
-                            href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
-                            target="_blank" rel="noopener noreferrer">
-                            <i class="fas fa-external-link-alt"></i> Get Deal at {{product.store}}
-                        </a>
-                       
-                        <button style="color: red; font-weight: 400;" class="save-btn" data-product-id="{{ product.id }}"
-                            title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
-                            <i
-                                class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %} far fa-bookmark{% endif %}"></i>
-                        </button>
-                       
-                    </div>
-                    <div class="deal-actions">
+                        <div class="action-buttons">
+                            <a class="get-deal-btn"
+                                href="{% if product.Dealurl|slice:':4' != 'http' %}https://{{ product.Dealurl }}{% else %}{{ product.Dealurl }}{% endif %}"
+                                target="_blank" rel="noopener noreferrer">
+                                <i class="fas fa-external-link-alt"></i> Get Deal at {{product.store}}
+                            </a>
+
+                            <button style="color: red; font-weight: 400;" class="save-btn"
+                                data-product-id="{{ product.id }}"
+                                title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
+                                <i
+                                    class="{% if product in user.customer.saved_products.all %}fas fa-bookmark{% else %} far fa-bookmark{% endif %}"></i>
+                            </button>
+                        </div>
+
                         <div class="vote-actions">
                             <button class="like-btn" data-product-id="{{ product.id }}">
                                 <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
@@ -88,14 +96,21 @@
                     </div>
 
                     <div class="deal-stats">
-                        <span class="comments">
-                            <a href="#comment-section"><i class="far fa-comment"></i> {{ comments|length }} Comments</a>
-                        </span>
-                        <span><i class="far fa-eye"></i> {{ product.views }} Views</span>
+                        <div class="stat-item">
+                            <span>💬</span>
+                            <span class="comments">
+                                <a href="#comment-section">{{ comments|length }} Comments</a>
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span>👁️</span>
+                            <span> {{ product.views }} Views</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
+          
             <!--under section-->
             <div class="profile-card">
                 <!-- Navigation Tabs -->
@@ -116,8 +131,7 @@
                             <p class="deal-intro">{{ product.Description|truncatewords:20 }}</p>
 
                             <div class="price-highlight">
-                                <p><strong>Amazing Value:</strong> ${{ product.get_savings_amount }} ({{
-                                    product.discount_percentage }}% off) from the regular price!</p>
+                                <p><strong>Amazing Value:</strong> ${{ product.get_savings_amount }} ({{ product.discount_percentage }}% off) from the regular price!</p>
                             </div>
                         </div>
                     </div>
@@ -186,8 +200,8 @@
 
 
                     </div>
-                    
-                   
+
+
 
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -240,7 +254,8 @@
                                     <span class="price">${{ related_product.sale_price }}</span>
                                     <span class="original">${{ related_product.Price }}</span>
                                     {% if related_product.discount_percentage > 0 %}
-                                    <span class="Deal-discount-badge">{{ related_product.discount_percentage }}% OFF</span>
+                                    <span class="Deal-discount-badge">{{ related_product.discount_percentage }}%
+                                        OFF</span>
                                     {% endif %}
                                 </div>
                             </a>
@@ -282,14 +297,7 @@
                                 <h3>{{ comment.customer.user.username }}</h3>
                                 <div class="comment-meta">
                                     <span class="time">{{ comment.timestamp|timesince }} ago</span>
-                                    <div class="comment-actions">
-                                        <button class="btn-vote">
-                                            <i class="fas fa-thumbs-up"></i>
-                                        </button>
-                                        <button class="btn-vote">
-                                            <i class="fas fa-thumbs-down"></i>
-                                        </button>
-                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -304,7 +312,8 @@
                     <!-- Comment form -->
                     <div class="comment-form">
                         {% if user.is_authenticated %}
-                        <form method="POST" action="{% url 'product' product.id %}" class="comment-form" id="comment-form">
+                        <form method="POST" action="{% url 'product' product.id %}" class="comment-form"
+                            id="comment-form">
                             {% csrf_token %}
                             {% if user.customer.image %}
                             <img src="{{ user.customer.image.url }}" alt="Current User Avatar" class="Section-avatar">
@@ -339,7 +348,7 @@
                 <a href="https://smartbuy-me.com/?srsltid=AfmBOoqHbGg-VtlF4ftqnps7Yccv8l6bkxu-Fi35wgiycujPP5R60Rkj"
                     target="_blank">
                     <img src="{% static 'img/Smart Buy (1).jpg' %}" alt="Ad 1" class="ad-image">
-                   
+
                 </a>
             </div>
             <div class="ad-space">
@@ -418,40 +427,40 @@
     const reportForm = document.getElementById('reportForm');
 
     // Open modal when report button is clicked
-    reportButton.addEventListener('click', function() {
+    reportButton.addEventListener('click', function () {
         reportModal.style.display = 'flex';
     });
 
     // Close modal when X button is clicked
-    closeModal.addEventListener('click', function() {
+    closeModal.addEventListener('click', function () {
         reportModal.style.display = 'none';
     });
 
     // Close modal when clicking outside the modal box
-    reportModal.addEventListener('click', function(event) {
+    reportModal.addEventListener('click', function (event) {
         if (event.target === reportModal) {
             reportModal.style.display = 'none';
         }
     });
 
     // Handle form submission
-    reportForm.addEventListener('submit', function(event) {
+    reportForm.addEventListener('submit', function (event) {
         event.preventDefault();
-        
+
         // Get form data
         const formData = new FormData(reportForm);
         const reason = formData.get('reason');
         const message = formData.get('message');
-        
+
         // Here you would typically send this data to your server
         console.log('Report submitted:', { reason, message });
-        
+
         // Close the modal
         reportModal.style.display = 'none';
-        
+
         // Reset the form
         reportForm.reset();
-        
+
         // Show success message (optional)
         alert('Thank you for your report!');
     });
@@ -479,31 +488,31 @@
         setupTabs();
     });
 
-// Menu dropdown functionality
-const menuBtn = document.getElementById('menuBtn');
-const menuDropdown = document.getElementById('menuDropdown');
+    // Menu dropdown functionality
+    const menuBtn = document.getElementById('menuBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
 
-// Toggle menu on button click
-menuBtn.addEventListener('click', (e) => {
-e.stopPropagation();
-menuDropdown.classList.toggle('show');
-});
+    // Toggle menu on button click
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('show');
+    });
 
-// Close menu when clicking outside
-document.addEventListener('click', (e) => {
-if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-menuDropdown.classList.remove('show');
-}
-});
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            menuDropdown.classList.remove('show');
+        }
+    });
 
-// Handle menu item clicks
-document.querySelectorAll('.menu-item').forEach(item => {
-item.addEventListener('click', () => {
-menuDropdown.classList.remove('show');
-// Add your menu item click handlers here
-console.log('Clicked:', item.textContent.trim());
-});
-});
+    // Handle menu item clicks
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            menuDropdown.classList.remove('show');
+            // Add your menu item click handlers here
+            console.log('Clicked:', item.textContent.trim());
+        });
+    });
     // Slider functionality
     const slider = document.querySelector('.deals-slider');
     const prevBtn = document.querySelector('.prev');
