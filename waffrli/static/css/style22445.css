@@ -534,6 +534,13 @@ h2 .fa-star {
   gap: 10px;
 }
 
+.slider-controls {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+
 .prev-grid-btn,
 .next-grid-btn {
   background: #ff3333;
