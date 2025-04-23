@@ -582,6 +582,7 @@ h2 .fa-star {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
+
 /* Expired Deal Card Styles */
 .All-product-card.expired {
   position: relative;
@@ -592,14 +593,15 @@ h2 .fa-star {
   position: absolute;
   top: 0;
   left: 0;
-  width: 12rem;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.3);
   z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  height: 18rem;
+  
 }
 
 .expired-tag {
@@ -1050,6 +1052,15 @@ h2 .fa-star {
   padding: 0 20px;
 }
 
+                                         /* New    Mini Product Card Styles */
+.mini-product.expired {
+  position: relative;
+  opacity: 0.8;
+}
+
+.mini-product.expired .mini-product-image img {
+  filter: grayscale(50%);
+}
 /* category Section */
 
 .Categoy-selling-grid {
@@ -1583,11 +1594,12 @@ margin-bottom: 40px;
 
 .Categoy-selling-row {
   display: flex;
-  gap: 20px;
+    gap: 10px;
+      justify-content: space-around;
 }
 
 .Categoy-selling-column {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
   flex-direction: column;
 }

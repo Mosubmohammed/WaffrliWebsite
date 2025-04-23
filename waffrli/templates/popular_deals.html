@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/popularDeals445.css' %}">
+<link rel="stylesheet" href="{% static 'css/popularDeals4455.css' %}">
 
 <!-- Popular Deals Section -->
 <div class="deals-section">
@@ -172,7 +172,7 @@
             {% if products %}
                 {% for product in products %}
 <!-- Updated Product Card Template -->
-<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+<div class="product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
     <div class="product-image">
         {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
@@ -204,20 +204,27 @@
     <div class="product-details">
         <h3 class="product-title">{{ product.Name }}</h3>
         
-        <div class="price-rating">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="original-price">${{ product.Price }}</span>
+        <div class="price-container">
+            <span class="current-price">{{ product.sale_price }} JD</span>
+            <span class="original-price">{{ product.Price }} JD</span>
 
         </div>
-        
+        <div class="deal-description">{{ product.Description|truncatewords:20 }}</div>
         <div class="store-info">
-            <div class="store">{{ product.store }}</div>
-            <div class="store-type-badge {{ product.store_type }}">
-                {{ product.store_type|title }}
+            <div class="deal-meta">
+                <div class="brand-category">
+                    <span style="color: black;" class="brand">{{ product.brand }}</span>
+                    <span style="color: rgb(214, 16, 16);" class="separator">•</span>
+                    <span style="color: black;" class="category">{{ product.category }}</span>
+                </div>
+               
             </div>
+            <!-- <div class="store-type-badge {{ product.store_type }}">
+                {{ product.store_type|title }}
+            </div> -->
         </div>
         
-        <div class="brand">{{ product.brand }}</div>
+       
         
         <div class="location">
             <i class="fas fa-map-marker-alt"></i> {{ product.city }}
@@ -231,7 +238,9 @@
             {% endif %}
         </div>
         
+        <div class="product-footer">
         {% if product.id %}
+
             <a href="{% url 'product' product.id %}">            
                 <button class="view-deal-btn">
                     <span class="bag-icon">🛍️</span>
@@ -248,12 +257,14 @@
                     </button>
                 </form>
             {% endif %}
+        </div>
         {% else %}
             <button class="view-deal-btn disabled">
                 <span class="bag-icon">🛍️</span>
                 Product Unavailable
             </button>
         {% endif %}
+       
     </div>
 </div>
                 {% endfor %}
