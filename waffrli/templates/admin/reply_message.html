@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div style="background-color: #f8f8f8; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <h3>Original Message</h3>
+        <p><strong>From:</strong> {{ message.sender.username }}</p>
+        <p><strong>Subject:</strong> {{ message.subject }}</p>
+        <p><strong>Date:</strong> {{ message.date_sent|date:"F j, Y, g:i a" }}</p>
+        <div style="background-color: white; padding: 10px; border: 1px solid #e5e5e5;">
+            {{ message.content|linebreaks }}
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <label for="content" class="required">Your Reply:</label>
+                <textarea name="content" id="content" rows="10" cols="80" class="vLargeTextField" required></textarea>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="Send Reply" class="default" name="_save">
+            <a href="{% url 'admin:waffrli_message_change' message.pk %}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

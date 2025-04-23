@@ -37,9 +37,10 @@
 <div class="SettingContainer">
   <div class="SettingSidebar">
     <ul class="nav-menu">
-        <li >Messages ({{ total_messages }})</li>
-        <li class="active"><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
-        <li><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
+      <li>Messages ({{ total_messages }})</li>
+      <li class="{% if active_tab == 'inbox' %}active{% endif %}"><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
+      <li class="{% if active_tab == 'sent' %}active{% endif %}"><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
+      <li class="{% if active_tab == 'contact_admin' %}active{% endif %}"><a href="{% url 'contact_admin' %}"><i class="fas fa-chevron-right"></i> Contact Admin</a></li>
     </ul>
   </div>
 
@@ -75,7 +76,13 @@
                       {{ message.sender.username }}
                   </div>
               </td>
-              <td class="message-cell"><a href="{% url 'view_message' message.id %}">{{ message.content }}</a></td>
+              <td class="message-cell">
+                <a href="{% url 'view_message' message.id %}">{{ message.content }}                   
+                  {% if message.sender.is_staff or message.for_admin %}
+                  <span class="admin-badge">(Admin)</span>
+              {% endif %}</a>
+                
+              </td>
               <td class="time-cell">                                
                 {% if message.date_sent.date == now.date %}
                     {{ message.date_sent|time:"g:i A" }}
@@ -83,6 +90,7 @@
                     {{ message.date_sent|date:"n/j/y" }}
                 {% endif %}
               </td>
+              
           </tr>
         {% endfor %}
       </tbody>

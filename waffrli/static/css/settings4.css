@@ -50,7 +50,14 @@ body {
 .user-nav-icon {
   margin-right: 0.5rem;
 }
-
+.admin-badge {
+  background-color: #ff6b6b;
+  color: red;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  margin-right: 5px;
+}
 /* Settings container */
 .SettingContainer {
   display: flex;

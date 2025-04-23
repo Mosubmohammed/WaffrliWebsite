@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils import timezone
 from django.db.models import Count
@@ -187,8 +188,8 @@ class FollowAdmin(admin.ModelAdmin):
 # Message Admin
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'subject', 'sender_display', 'recipient_display', 'date_sent', 'is_read', 'is_reply')
-    list_filter = ('is_read', 'is_reply', 'date_sent')
+    list_display = ('id', 'subject', 'sender_display', 'recipient_display', 'date_sent', 'is_read', 'is_reply', 'for_admin')
+    list_filter = ('is_read', 'is_reply', 'date_sent', 'for_admin', 'handled_by')
     search_fields = ('subject', 'content', 'sender__username', 'recipient__username')
     readonly_fields = ('date_sent',)
     
@@ -197,7 +198,7 @@ class MessageAdmin(admin.ModelAdmin):
             'fields': ('sender', 'recipient', 'subject', 'content')
         }),
         ('Status', {
-            'fields': ('is_read', 'is_reply', 'parent_message')
+            'fields': ('is_read', 'is_reply', 'parent_message', 'for_admin', 'handled_by')
         }),
         ('Timestamps', {
             'fields': ('date_sent',),
@@ -215,7 +216,38 @@ class MessageAdmin(admin.ModelAdmin):
                           obj.recipient.id, obj.recipient.username)
     recipient_display.short_description = 'Recipient'
     
-    # Admin actions
+    def get_list_display(self, request):
+        list_display = list(super().get_list_display(request))
+        if not 'admin_actions' in list_display:
+            list_display.append('admin_actions')
+        return list_display
+    
+    def admin_actions(self, obj):
+        # Add a quick reply button
+        reply_url = reverse('admin_reply_message', args=[obj.id])
+        return format_html(
+            '<a class="button" href="{}">Reply</a>', 
+            reply_url
+        )
+    admin_actions.short_description = 'Actions'
+    
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            # Superusers see all messages
+            return super().get_queryset(request)
+        elif request.user.is_staff:
+            # Staff see admin-flagged messages and messages where they are a recipient
+            qs = super().get_queryset(request)
+            return qs.filter(Q(for_admin=True) | Q(recipient=request.user))
+        return super().get_queryset(request)
+    
+    def save_model(self, request, obj, form, change):
+        if not change and request.user.is_staff:  # If creating a new message from admin
+            obj.sender = request.user
+            obj.handled_by = request.user
+        super().save_model(request, obj, form, change)
+    
+    # Keep your existing admin actions
     actions = ['mark_as_read', 'mark_as_unread']
     
     def mark_as_read(self, request, queryset):
@@ -358,3 +390,6 @@ class ReportedDealAdmin(admin.ModelAdmin):
     def mark_as_resolved(self, request, queryset):
         queryset.update(status='resolved')
     mark_as_resolved.short_description = "Mark selected reports as resolved"
+
+
+

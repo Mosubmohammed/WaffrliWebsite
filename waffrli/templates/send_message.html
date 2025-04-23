@@ -11,6 +11,16 @@
         <div class="header">
             <h1>Compose Message</h1>
         </div>
+        {% if user.is_authenticated and not user.is_staff %}
+<div class="admin-option">
+    <label class="checkbox-container">
+        <input type="checkbox" name="for_admin" id="for_admin">
+        <span class="checkmark"></span>
+        Send to Administrator
+    </label>
+    <span class="admin-help">Check this box to send your message directly to site administrators.</span>
+</div>
+{% endif %}
         
         <form method="post" action="">
             {% csrf_token %}
