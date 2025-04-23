@@ -297,7 +297,10 @@
                                 <h3>{{ comment.customer.user.username }}</h3>
                                 <div class="comment-meta">
                                     <span class="time">{{ comment.timestamp|timesince }} ago</span>
+                                    <div class="comment-actions">
                                     
+                                       
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -489,30 +492,60 @@
     });
 
     // Menu dropdown functionality
-    const menuBtn = document.getElementById('menuBtn');
-    const menuDropdown = document.getElementById('menuDropdown');
-
-    // Toggle menu on button click
-    menuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menuDropdown.classList.toggle('show');
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-            menuDropdown.classList.remove('show');
-        }
-    });
-
-    // Handle menu item clicks
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', () => {
-            menuDropdown.classList.remove('show');
-            // Add your menu item click handlers here
-            console.log('Clicked:', item.textContent.trim());
+    document.addEventListener('DOMContentLoaded', function() {
+            // Menu dropdown functionality
+            const menuBtn = document.getElementById('menuBtn');
+            const menuDropdown = document.getElementById('menuDropdown');
+            
+            // Toggle menu on button click
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuDropdown.classList.toggle('show');
+                console.log('Menu button clicked, dropdown visible:', menuDropdown.classList.contains('show'));
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+                    menuDropdown.classList.remove('show');
+                }
+            });
+            
+            // Handle menu item clicks
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    menuDropdown.classList.remove('show');
+                    // Add your menu item click handlers here
+                    console.log('Clicked:', item.textContent.trim());
+                });
+            });
         });
-    });
+
+
+    // const menuBtn = document.getElementById('menuBtn');
+    // const menuDropdown = document.getElementById('menuDropdown');
+
+    // // Toggle menu on button click
+    // menuBtn.addEventListener('click', (e) => {
+    //     e.stopPropagation();
+    //     menuDropdown.classList.toggle('show');
+    // });
+
+    // // Close menu when clicking outside
+    // document.addEventListener('click', (e) => {
+    //     if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+    //         menuDropdown.classList.remove('show');
+    //     }
+    // });
+
+    // // Handle menu item clicks
+    // document.querySelectorAll('.menu-item').forEach(item => {
+    //     item.addEventListener('click', () => {
+    //         menuDropdown.classList.remove('show');
+    //         // Add your menu item click handlers here
+    //         console.log('Clicked:', item.textContent.trim());
+    //     });
+    // });
     // Slider functionality
     const slider = document.querySelector('.deals-slider');
     const prevBtn = document.querySelector('.prev');
