@@ -1,0 +1,77 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Administrator{% endblock %}
+
+{% block content %}
+<link href="{% static 'css/sendMessage1.css' %}" rel="stylesheet" />
+
+<div class="SettingContainer">
+    <div class="container">
+        <div class="header">
+            <h1>Contact Administrator</h1>
+        </div>
+        
+        <form method="post" action="">
+            {% csrf_token %}
+            
+            <!-- No recipient field needed - will go to admin -->
+            
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <div class="form-input">
+                    <input type="text" id="subject" name="subject" placeholder="Message Subject" value="{{ subject|default:'' }}" required>
+                </div>
+            </div>
+            
+            <div class="toolbar">
+                <!-- Keep your existing toolbar -->
+                <div class="toolbar-group">
+                    <button type="button" title="Bold">
+                        <svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+                    </button>
+                    <!-- ... other toolbar buttons ... -->
+                </div>
+            </div>
+            
+            <textarea class="editor" name="body" placeholder="Write your message here..." required>{{ body|default:'' }}</textarea>
+            
+            <div class="notification" id="notification">
+                <div class="notification-content">
+                    <span class="notification-message">Message sent to administrator!</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Send to Admin</button>
+                <a href="{% url 'inbox' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simple validation
+            if (!document.getElementById('subject').value || !document.querySelector('.editor').value) {
+                return; // Don't submit if empty
+            }
+            
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    form.submit();
+                }, 300);
+            }, 3000);
+        });
+    });
+</script>
+{% endblock %}

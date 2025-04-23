@@ -20,17 +20,91 @@ from waffrliApp.settings import db
 from django.utils import timezone
 from datetime import datetime
 from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrapper
+from django.contrib import messages as django_messages
+from django.contrib.admin.views.decorators import staff_member_required
+
+
+
 
 
 def home(request):
-
+    # Get recent products for the main section
     products = Product.objects.filter(is_archived=False).order_by('-create_at')
 
     current_time = timezone.now()
     for product in products:
         product.is_expired = product.expires_at <= current_time if product.expires_at else False
     
-    return render(request, 'home.html', {'products': products})
+    # Get specific categories
+    try:
+        phones_category = Category.objects.get(name__icontains='Phones')
+    except Category.DoesNotExist:
+        phones_category = None
+        
+    try:
+        computers_category = Category.objects.get(name__icontains='computers')
+    except Category.DoesNotExist:
+        computers_category = None
+        
+    try:
+        bags_category = Category.objects.get(name__icontains='BagsAndLuggage')
+    except Category.DoesNotExist:
+        bags_category = None
+    
+    # Get products for each category
+    phone_products = []
+    computer_products = []
+    bag_products = []
+    
+    if phones_category:
+        phone_products = Product.objects.filter(
+            category=phones_category,
+            is_archived=False
+        ).order_by('-create_at')[:4]
+    
+    if computers_category:
+        computer_products = Product.objects.filter(
+            category=computers_category,
+            is_archived=False
+        ).order_by('-create_at')[:4]
+    
+    if bags_category:
+        bag_products = Product.objects.filter(
+            category=bags_category,
+            is_archived=False
+        ).order_by('-create_at')[:4]
+    
+    # If any category doesn't have enough products, get products with similar keywords in name
+    if len(phone_products) < 4:
+        additional_phones = Product.objects.filter(
+            Name__icontains='phone',
+            is_archived=False
+        ).exclude(id__in=[p.id for p in phone_products])[:4-len(phone_products)]
+        phone_products = list(phone_products) + list(additional_phones)
+    
+    if len(computer_products) < 4:
+        additional_computers = Product.objects.filter(
+            Name__icontains='computer',
+            is_archived=False
+        ).exclude(id__in=[p.id for p in computer_products])[:4-len(computer_products)]
+        computer_products = list(computer_products) + list(additional_computers)
+    
+    if len(bag_products) < 4:
+        additional_bags = Product.objects.filter(
+            Name__icontains='bag',
+            is_archived=False
+        ).exclude(id__in=[p.id for p in bag_products])[:4-len(bag_products)]
+        bag_products = list(bag_products) + list(additional_bags)
+    
+    # Provide the products in the context
+    context = {
+        'products': products,
+        'phone_products': phone_products,
+        'computer_products': computer_products,
+        'bag_products': bag_products
+    }
+    
+    return render(request, 'home.html', context)
 
 
 
@@ -50,6 +124,51 @@ def product_list(request, page_type=None, category=None):
             user_location['lat'], 
             user_location['lng']
         )
+    
+    # Get daily deals if this is the popular page
+    daily_deals = []
+    if page_type == 'popular':
+        current_time = timezone.now()
+        
+        # Get top 3 deals with highest discount
+        daily_deals = Product.objects.filter(
+            is_archived=False,
+            sale_price__isnull=False,
+            Price__gt=0,
+            expires_at__gt=current_time  # Only include non-expired deals
+        ).exclude(
+            sale_price__gte=F('Price')   # Exclude items with no discount
+        ).annotate(
+            discount_percentage=ExpressionWrapper(
+                ((F('Price') - F('sale_price')) * 100) / F('Price'),
+                output_field=FloatField()
+            )
+        ).order_by('-discount_percentage')[:3]
+        
+        # Add additional attributes to daily deals for display
+        for deal in daily_deals:
+            # Calculate actual discount percentage
+            deal.discount_percentage = round(deal.discount_percentage)
+            
+            # Generate progress percentage based on views and likes
+            deal.progress_percentage = min(deal.views // 5 + deal.likes.count() * 10, 90)
+            
+            # Add status text based on deal properties
+            likes_count = deal.likes.count()
+            views_count = deal.views
+            
+            if likes_count > 50:
+                deal.status_icon = "👑"
+                deal.status_text = "Best Seller"
+            elif views_count > 200:
+                deal.status_icon = "📈"
+                deal.status_text = "Trending"
+            elif likes_count > 20:
+                deal.status_icon = "💎"
+                deal.status_text = "Customer Favorite"
+            else:
+                deal.status_icon = "⭐"
+                deal.status_text = "Popular Choice"
     
     # Handle AJAX/JSON requests
     if is_ajax_request(request):
@@ -89,6 +208,7 @@ def product_list(request, page_type=None, category=None):
         'sort_by': request.GET.get('sort_by', ''),
         'user_has_location': user_location['has_location'],
         'include_expired': request.GET.get('include_expired') == 'true',
+        'daily_deals': daily_deals,  # Add daily deals to context
     }
     
     # Choose the appropriate template
@@ -505,7 +625,8 @@ def register(request):
             return render(request, 'register.html')
         
         try:
-            # Create user in Firebase
+            # Create user in Firebase with the email verification flag set to true
+            # This will automatically send a verification email
             firebase_user = firebase_auth.create_user(
                 email=email,
                 password=password,
@@ -514,21 +635,33 @@ def register(request):
             )
             firebase_uid = firebase_user.uid
             
-            # Generate and send verification email - store the link for debugging
+            # Configure the action URL for email verification
+            # This is important to set up in Firebase console first
+            action_code_settings = firebase_admin.auth.ActionCodeSettings(
+                url="http://127.0.0.1:8000/verified/",
+                handle_code_in_app=False,
+                dynamic_link_domain=None,  # Set this if using Firebase Dynamic Links
+                ios_bundle_id=None,
+                android_package_name=None,
+                android_install_app=False,
+                android_minimum_version=None
+            )
+            
+            # Send verification email using Firebase
             try:
                 verification_link = firebase_auth.generate_email_verification_link(
                     email, 
-                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
-                        url="http://localhost:8000/verified/",
-                        handle_code_in_app=False
-                    )
+                    action_code_settings=action_code_settings
                 )
-                # Print link to console for debugging
-                print(f"Verification link generated: {verification_link}")
-            
+                
+                # Log the verification link for debugging
+                print(f"Verification link for {email}: {verification_link}")
+                
+                # Important: Firebase will automatically send the email
+                # You don't need to send it yourself
+                
             except Exception as email_error:
-                # Log the specific email sending error
-                print(f"Email verification error: {str(email_error)}")
+                print(f"Firebase email generation error: {str(email_error)}")
                 messages.warning(request, "Account created but verification email could not be sent. Please contact support.")
             
             # Create Django User
@@ -580,6 +713,25 @@ def register(request):
     # For GET requests
     return render(request, 'register.html')
 
+def test_firebase_email(email):
+    try:
+        link = firebase_auth.generate_email_verification_link(
+            email,
+            action_code_settings=firebase_admin.auth.ActionCodeSettings(
+                url="http://127.0.0.1:8000/verified/",  # Use your local URL for testing
+                handle_code_in_app=False
+            )
+        )
+        print(f"Verification link generated: {link}")
+        return True
+    except Exception as e:
+        print(f"Error generating verification email: {e}")
+        return False
+    
+# Example - at the bottom of views.py for testing
+# Don't forget to remove this before production
+test_result = test_firebase_email("your.real.email@example.com")
+print(f"Test result: {test_result}")
 
 def check_email_verification(request):
     return render(request, 'verification_success.html')
@@ -1439,7 +1591,16 @@ def send_message(request, user_id=None):
                 'body': body,
                 'inbox_count': Message.objects.filter(recipient=request.user).count(),
                 'sent_count': Message.objects.filter(sender=request.user).count(),
-            })
+            })  
+            
+            
+        if request.POST.get('for_admin'):
+            # Find an admin user
+            admin_user = User.objects.filter(is_superuser=True).first()
+            if admin_user:
+                recipient = admin_user
+                # Set for_admin flag when creating the message
+                new_message.for_admin = True
         
         # Create and save message
         new_message = Message(
@@ -1566,7 +1727,92 @@ def delete_messages(request):
     return redirect('inbox')
 
 
+@staff_member_required
+def admin_reply_message(request, message_id):
+    """Allow admins to quickly reply to messages from the admin interface"""
+    original_message = get_object_or_404(Message, id=message_id)
+    
+    if request.method == 'POST':
+        subject = f"Re: {original_message.subject}" if not original_message.subject.startswith('Re:') else original_message.subject
+        content = request.POST.get('content')
+        
+        if not content:
+            django_messages.error(request, 'Reply cannot be empty.')
+            return redirect('admin:waffrli_message_change', message_id)
+        
+        # Create reply message
+        reply = Message(
+            sender=request.user,
+            recipient=original_message.sender,
+            subject=subject,
+            content=content,
+            is_reply=True,
+            parent_message=original_message,
+            handled_by=request.user,
+            date_sent=timezone.now()
+        )
+        reply.save()
+        
+        # Mark original as read
+        original_message.is_read = True
+        original_message.handled_by = request.user
+        original_message.save()
+        
+        django_messages.success(request, 'Reply sent successfully.')
+        return redirect('admin:waffrli_message_changelist')
+    
+    return render(request, 'admin/reply_message.html', {
+        'message': original_message,
+        'title': f'Reply to: {original_message.subject}'
+    })
+    
 
+
+
+
+@login_required
+def contact_admin(request):
+    # Find an admin user
+    admin_user = User.objects.filter(is_superuser=True).first()
+    if not admin_user:
+        messages.error(request, 'No admin available to receive messages.')
+        return redirect('inbox')
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        body = request.POST.get('body')
+        
+        if not subject or not body:
+            messages.error(request, 'Please fill in all fields.')
+            return render(request, 'contact_admin.html', {
+                'subject': subject,
+                'body': body,
+                'inbox_count': Message.objects.filter(recipient=request.user).count(),
+                'sent_count': Message.objects.filter(sender=request.user).count(),
+                'active_tab': 'contact_admin'
+            })
+        
+        # Create message with admin flag
+        new_message = Message(
+            sender=request.user,
+            recipient=admin_user,
+            subject=subject,
+            content=body,
+            for_admin=True
+        )
+        new_message.save()
+        
+        messages.success(request, 'Message sent to administrators successfully!')
+        return redirect('inbox')
+    
+    return render(request, 'contact_admin.html', {
+        'inbox_count': Message.objects.filter(recipient=request.user).count(),
+        'sent_count': Message.objects.filter(sender=request.user).count(),
+        'active_tab': 'contact_admin'
+    })
+    
+    
+    
     
 def close_account(request):
     if request.method == 'POST':
