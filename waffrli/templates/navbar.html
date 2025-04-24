@@ -46,7 +46,7 @@
           <div class="dropdown">
             <div class="dropdown-select">Categories</div>
             <div class="dropdown-content">
-              <a href="{% url 'AllCategory' %}">All Categories</a>
+              
               {% for category in categories %}
                 <a href="{% url 'category' category.name|slugify %}">{{ category.name }}</a>
               {% endfor %}
@@ -98,14 +98,9 @@
         <a href="{% url 'home' %}">Home</a>
        <a href="{% url 'hot_deals' %}">Hot Deals</a>
         <a href="{% url 'popular' %}">Popular Deals</a>
-        <div class="dropdown">
-          <a class="dropdown-toggle">Categories</a>
-          <div class="dropdown-content">
-            {% for category in categories %}
-              <a href="{% url 'category' category.name|slugify %}">{{ category.name }}</a>
-            {% endfor %}
-          </div>
-        </div>
+        
+          <a href="{% url 'AllCategory' %}">Categories</a>
+        
         <br> <br>
       </div>
     </div>
