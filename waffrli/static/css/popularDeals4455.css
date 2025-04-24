@@ -289,7 +289,7 @@ input[type="range"]::-webkit-slider-thumb {
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
-  height: fit-content;
+
 }
 
 .product-card {
@@ -297,7 +297,7 @@ input[type="range"]::-webkit-slider-thumb {
   overflow: hidden;
 
   width: 15rem;
-  height: 27.3rem;
+  height: max-content;
 }
 
 .product-card:hover {
@@ -372,28 +372,31 @@ border: 1px solid black;
   margin-bottom: 16px;
 }
 
-
 .discount-badge {
+  /* 
+  left: 11rem;
+ */
   position: absolute;
   top: 1px;
-  left: 11rem;
+  left: 9rem;
   background: #fc1111;
   color: white;
   padding: 3px 5px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: bold;
+  width: 6rem;
 }
 
-.nearby-badge
-{     position: absolute;
-  bottom: 7rem;
+.nearby-badge {
+  position: absolute;
+  top: 1px;
   background-color: #10b981;
   left: 1px;
   color: #ffffff;
   font-weight: 500;
   border-radius: 12px;
-  padding: 2px;
+  padding: 3px 5px;
 }
 .product-details {
   padding: 8px; 
@@ -456,7 +459,8 @@ border: 1px solid black;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
-  padding: 20px;
+  /* padding: 20px; */
+  padding: 46px 0rem 25rem;  
 }
 .product-footer {
   display: flex;
@@ -483,33 +487,20 @@ border: 1px solid black;
   position: static;
 }
 
-.like-form {
-  margin-left: 8px;
-}
 
-.like-btn {
-  background: none;
-  border: 1px solid #e53935;
-  color: #e53935;
-  border-radius: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  height: 100%;
-}
 
-.like-btn .fa-heart {
+.fa-heart {
   font-size: 16px;
+  color: #f10404;
+  padding: 8px 12px;
+  display: flex;
+  gap: 6px;
+  background-color: none;
 }
+button[type="submit"] {
 
-.view-deal-btn:hover {
-  background: #bd4535;
-  border: 1px solid black;
+  color: none ; 
 }
-
 
 /* Sort options */
 .sort-options {
