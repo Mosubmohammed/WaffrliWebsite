@@ -1120,13 +1120,15 @@ def post_deal(request):
 
 
 
-@login_required 
+@login_required
 def like_product(request, product_id):
+    # Get the product or return 404
     product = get_object_or_404(Product, id=product_id)
     user = request.user
-
+    
+    # Check if user is authenticated
     if user.is_authenticated:
-    # Toggle like status
+        # Toggle like status
         if user in product.likes.all():
             product.likes.remove(user)
             liked = False
@@ -1138,11 +1140,20 @@ def like_product(request, product_id):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'liked': liked,
-                'likes_count': product.likes.count()
+                'likes_count': product.likes.count()  # Make sure this key matches what the JS is expecting
             })
         
         # For non-AJAX requests, redirect back to the referring page
         return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+    # If not authenticated and it's an AJAX request, return error
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'error': 'Authentication required'
+        }, status=401)
+    
+    # Otherwise redirect to login page
+    return redirect('login')
 
         
 def user_profile(request, identifier):
@@ -1484,27 +1495,42 @@ def update_info(request):
 
 @login_required
 def toggle_save_product(request, product_id):
+    # Get the product or return 404
     product = get_object_or_404(Product, id=product_id)
-    customer = get_object_or_404(Customer, user=request.user)
     
-    if product in customer.saved_products.all():
-        # User has already saved this product, so remove it
-        customer.saved_products.remove(product)
-        is_saved = False
-    else:
-        # User hasn't saved this product, so save it
-        customer.saved_products.add(product)
-        is_saved = True
-    
-    # For AJAX requests
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            'is_saved': is_saved,
-            'saved_count': product.saved_by_customers.count()
-        })
-    
-    # For regular requests
-    return redirect('product', product_id=product_id)
+    try:
+        # Get the customer associated with the current user
+        customer = get_object_or_404(Customer, user=request.user)
+        
+        # Toggle saved status
+        if product in customer.saved_products.all():
+            # User has already saved this product, so remove it
+            customer.saved_products.remove(product)
+            is_saved = False
+        else:
+            # User hasn't saved this product, so save it
+            customer.saved_products.add(product)
+            is_saved = True
+        
+        # For AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'is_saved': is_saved,
+                'saved_count': product.saved_by_customers.count()
+            })
+        
+        # For regular requests, redirect back to product page
+        return redirect('product', pk=product_id)
+        
+    except Customer.DoesNotExist:
+        # Handle case where customer profile doesn't exist
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'error': 'Customer profile not found'
+            }, status=404)
+        
+        # For regular requests, redirect to profile creation or login
+        return redirect('create_profile')  # Replace with your profile creation URL
 
 
 

@@ -2,8 +2,6 @@ from .views import *
 from django.urls import path 
 urlpatterns = [
     path('', home, name='home'),
-    # path('category/<str:category>/', filter_products, name='category'),
-    #  path('filter/<str:category>/', filter_products, name='filter_products'),
     path('category/<str:category>/', product_list, name='category'),
     path('products/', product_list, name='products'),
      path('AllCategory/', AllCategory, name='AllCategory'),
@@ -24,10 +22,10 @@ urlpatterns = [
     path('wishlist/add/', add_wishlist_item, name='add_wishlist_item'),
     path('wishlist/update/<int:item_id>/', update_wishlist_item, name='update_wishlist_item'),
     path('wishlist/delete/<int:item_id>/', delete_wishlist_item, name='delete_wishlist_item'),
-    path('like-product/<int:product_id>/', like_product, name='like_product'),
+    path('like/<int:product_id>/', like_product, name='like_product'),
     path('settings/', settings, name='settings'),
     path('settings/update_info/', update_info, name='update_info'),
-    path('toggle-save-product/<int:product_id>/', toggle_save_product, name='toggle_save_product'),
+    path('save/<int:product_id>/', toggle_save_product, name='toggle_save_product'),
     path('saved-items/', saved_items, name='saved_items'),
     path('inbox/',inbox, name='inbox'),
  path('send_message/', send_message, name='compose_message'),  # No user_id
