@@ -145,6 +145,13 @@ button[type="submit"] {
   align-items: center;
   gap: 20px;
 }
+
+ .fas {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  color: black;
+}
+
 .icon-button {
   display: flex;
   align-items: center;
@@ -776,15 +783,23 @@ h2 .fa-star {
 
 .product-category,
 .product-Store {
-  font-size: 13px;
-
-  font-weight: bold;
+  font-size: 11px;
   margin-bottom: 3px;
+  color: var(--gray);
 }
 
 .product-title {
+  font-size: 15px;
+  color: black;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.product-description
+{
   font-size: 10px;
-  color: var(--gray);
+  color: black;
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -809,7 +824,7 @@ h2 .fa-star {
   margin-left: 6px;
 }
 
-.rating-count {
+.rating-count , .comment-count {
   font-size: 10px;
   color: var(--gray);
 }
@@ -849,11 +864,11 @@ h2 .fa-star {
   color: white;
   border: none;
   border-radius: 3px;
-  padding: 5px 10px;
-  font-size: 11px;
+  padding: 3px 0px;
+  font-size: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .add-to-cart:hover {
@@ -1012,7 +1027,7 @@ h2 .fa-star {
   color: white;
   border: none;
   border-radius: 25px;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   transition: background-color 0.3s ease;
   cursor: pointer;
@@ -1923,7 +1938,7 @@ margin-bottom: 40px;
   color: #ff4444;
   border: none;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
