@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/Sub-categoriesss.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Sub-categoriesss2.css' %}" rel="stylesheet" />
 
 <div class="page-wrapper">
     <div class="hero">
@@ -280,23 +280,26 @@
             {% endif %}
         </div>
         
-        {% if product.id %}
-            <a href="{% url 'product' product.id %}">            
-                <button class="view-deal-btn">
-                    <span class="bag-icon">🛍️</span>
-                    View Deal
-                </button>
-            </a>
-            
-            {% if user.is_authenticated %}
-                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                    {% csrf_token %}
-                    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                        <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                        <span class="like-count">{{ product.likes.count }}</span>
+        <div class="product-footer">
+            {% if product.id %}
+    
+                <a href="{% url 'product' product.id %}">            
+                    <button class="view-deal-btn">
+                        <span class="bag-icon">🛍️</span>
+                        View Deal
                     </button>
-                </form>
-            {% endif %}
+                </a>
+                
+                {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
+                        {% csrf_token %}
+                        <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
+                            <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                            <span class="like-count">{{ product.likes.count }}</span>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
         {% else %}
             <button class="view-deal-btn disabled">
                 <span class="bag-icon">🛍️</span>
