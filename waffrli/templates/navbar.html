@@ -107,37 +107,50 @@
   </header>
   
   <script>
+
+        // Set authentication status
+      window.userIsAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    
+        // Only call updateNotificationCounter if user is logged in
+      if (window.userIsAuthenticated) {
+            // Call the function initially
+            updateNotificationCounter();
+            
+            // Optionally, set an interval to periodically update
+            setInterval(updateNotificationCounter, 60000); // Update every minute
+        }
     // Notification handling
     let notificationPollingInterval = null;
     let lastNotificationCount = null;
     const POLLING_INTERVAL = 5 * 60 * 1000; // 5 minutes
     
-    function updateNotificationCounter() {
-      fetch('/get_notification_count/')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          const counter = document.querySelector('.cart-badge');
-          if (counter) {
-            if (lastNotificationCount === null || lastNotificationCount !== data.count) {
-              counter.textContent = data.count;
-              
-              if (data.count > 0) {
-                counter.style.display = 'block';
-              } else {
-                counter.style.display = 'none';
+// Update notification counter
+function updateNotificationCounter() {
+  // Check if user is logged in (we'll add a flag in the template)
+  if (window.userIsAuthenticated) {
+      fetch('{% url "get_notification_count" %}')
+          .then(response => response.json())
+          .then(data => {
+              const counter = document.querySelector('.cart-badge');
+              if (counter) {
+                  counter.textContent = data.count;
+                  
+                  if (data.count > 0) {
+                      counter.style.display = 'block';
+                  } else {
+                      counter.style.display = 'none';
+                  }
               }
-              
-              lastNotificationCount = data.count;
-            }
-          }
-        })
-        .catch(error => console.error('Error fetching notification count:', error));
-    }
+          })
+          .catch(error => console.error('Error fetching notification count:', error));
+  } else {
+      // Hide the counter for non-logged in users
+      const counter = document.querySelector('.cart-badge');
+      if (counter) {
+          counter.style.display = 'none';
+      }
+  }
+}
     
     function startNotificationPolling() {
       if (notificationPollingInterval) {

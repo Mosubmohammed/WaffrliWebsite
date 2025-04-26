@@ -1,6 +1,5 @@
 import datetime
 from decimal import Decimal, InvalidOperation
-from urllib import request
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login, logout
@@ -2064,11 +2063,15 @@ def delete_notification(request, notification_id):
     except Notification.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
 
-# Ajax endpoint to get the unread notification count
-@login_required
+
+
+
 def get_notification_count(request):
-    count = Notification.objects.filter(user=request.user, is_read=False).count()
-    return JsonResponse({'count': count})
+    if request.user.is_authenticated:
+        count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({'count': count})
+    else:
+        return JsonResponse({'count': 0}, status=403)  # 403 Forbidden
 
 
 def archived_deals(request):

@@ -3,17 +3,10 @@
   <head>
     <title>Ankasory</title>
     <!-- Favicon-->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <link
-      rel="icon"
-      type="image/x-icon"
-      href="{% static 'assets/favicon.ico'%}"
-    />
-
-    <link href="{% static 'css/style7.css' %}" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico'%}"/>
+    <link href="{% static 'css/style71.css' %}" rel="stylesheet" />
 
    
 
@@ -25,17 +18,21 @@
   </head>
   <body>
 
-    {% include 'navbar.html'%} {% if messages %} {% for messge in messages%}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      {{messge}}
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="alert"
-        aria-label="Close"
-      ></button>
+    {% include 'navbar.html'%} 
+    
+    {% if messages %}
+    <div class="popup-messages-container">
+      {% for message in messages %}
+      <div class="popup-message alert-secondary fade show" role="alert">
+        <div class="popup-content">
+          <span class="popup-text">{{ message }}</span>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    {%endfor%} {%endif%} {% block content %} {% endblock %}
+    {% endif %}
+
+    {% block content %} {% endblock %}
 
     <!-- Footer-->
   <!-- Red Line -->
@@ -53,16 +50,7 @@
             <i class="fas fa-map-marker-alt"></i>
             <span>JORDAN</span>
           </div>
-          <!--
-                <div>
-                    <i class="fas fa-phone"></i>
-                    <span>+021-95-51-84</span>
-                </div>
-                <div>
-                    <i class="fas fa-envelope"></i>
-                    <span>email@email.com</span>
-                </div>
-                  -->
+
         </div>
 
       </div>
@@ -113,9 +101,9 @@
   <div class="copyright">
     <p>Copyright ©2025 All rights reserved | Graduation Project by <span class="heart">♥</span> JUST Students</p>
   </div>
+  <script src="{% static 'js/error-handler.js' %}"></script>
 
-    <script src="{% static 'js/scripts.js'%}"></script>
-
-    <!-- Core theme JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+<!-- Core theme JS-->
   </body>
 </html>
