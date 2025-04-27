@@ -40,13 +40,7 @@
             </ul>
         </div>
         
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
+
         
         <form method="POST" enctype="multipart/form-data" class="profile-settings">
             {% csrf_token %}
@@ -89,12 +83,12 @@
                            value="{{ user.customer.formatted_address|default:'' }}">
                 </div>
 
-                <!-- Hidden fields for location data -->
+                
                 <input type="hidden" name="latitude" id="latitude" value="{{ user.customer.latitude|default:'' }}">
                 <input type="hidden" name="longitude" id="longitude" value="{{ user.customer.longitude|default:'' }}">
                 <input type="hidden" name="formatted_address" id="formatted_address" value="{{ user.customer.formatted_address|default:'' }}">
 
-                <!-- Map container -->
+                
                 <div class="form-group">
                     <div id="map-container">
                         <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
@@ -106,7 +100,7 @@
         </form>
     </div>
     
-    <!-- Google Maps JavaScript -->
+
     <script>
         // Add this function to check if location is in Jordan
         function isLocationInJordan(addressComponents) {
@@ -114,7 +108,6 @@
                 return false;
             }
             
-            // Look for Jordan as the country
             const countryComponent = addressComponents.find(
                 component => component.types.includes("country")
             );
@@ -123,14 +116,13 @@
                 return false;
             }
             
-            // Check if the country is Jordan (both short and long names)
             return countryComponent.short_name === "JO" || 
                    countryComponent.long_name.toLowerCase().includes("jordan");
         }
         
-        // Define the initMap function first
+
         function initMap() {
-            // Get the saved latitude and longitude if available
+            
             const savedLat = parseFloat(document.getElementById("latitude").value) || 31.9539;
             const savedLng = parseFloat(document.getElementById("longitude").value) || 35.9106;
             const defaultLocation = { lat: savedLat, lng: savedLng };
@@ -149,20 +141,19 @@
         
             // Create marker - using AdvancedMarkerElement to avoid deprecation warning
             try {
-                // Try to use the new AdvancedMarkerElement if available
+                
                 marker = new google.maps.marker.AdvancedMarkerElement({
                     position: defaultLocation,
                     map: map,
                     draggable: true,
                 });
             
-                // Add click event to the map
                 map.addListener("click", (event) => {
                     marker.position = event.latLng;
                     updateLocationFields(event.latLng);
                 });
             
-                // Update fields when marker is dragged
+                
                 marker.addListener("dragend", () => {
                     updateLocationFields(marker.position);
                     map.panTo(marker.position);
@@ -176,26 +167,24 @@
                     animation: google.maps.Animation.DROP,
                 });
             
-                // Update fields when marker is dragged
+               
                 marker.addListener("dragend", () => {
                     const position = marker.getPosition();
                     updateLocationFields(position);
                     map.panTo(position);
                 });
             
-                // Add click event to the map
+                
                 map.addListener("click", (event) => {
                     marker.setPosition(event.latLng);
                     updateLocationFields(event.latLng);
                 });
             }
         
-            // Set up address autocomplete
             const addressInput = document.getElementById("address");
             autocomplete = new google.maps.places.Autocomplete(addressInput);
             autocomplete.setFields(["geometry", "formatted_address", "address_components"]);
         
-            // When a place is selected, update map and fields
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
             
@@ -204,19 +193,19 @@
                     return;
                 }
                 
-                // Check if location is in Jordan
+                
                 if (!isLocationInJordan(place.address_components)) {
                     alert("Sorry, our service is only available in Jordan at this time.");
-                    // Clear the address field
+                   
                     document.getElementById("address").value = "";
                     document.getElementById("formatted_address").value = "";
                     return;
                 }
             
-                // Update map view
+                
                 map.setCenter(place.geometry.location);
             
-                // Update marker position based on which marker type we're using
+                
                 if (marker.setPosition) {
                     marker.setPosition(place.geometry.location);
                 } else {
@@ -225,26 +214,25 @@
             
                 map.setZoom(15);
             
-                // Update fields
+                
                 updateLocationFields(place.geometry.location);
                 document.getElementById("formatted_address").value = place.formatted_address;
             });
         }
         
         function updateLocationFields(location) {
-            // Update hidden form fields
+            
             document.getElementById("latitude").value = location.lat();
             document.getElementById("longitude").value = location.lng();
         
-            // Get address from coordinates
+
             geocoder.geocode(
                 { location: { lat: location.lat(), lng: location.lng() } },
                 (results, status) => {
                     if (status === "OK" && results[0]) {
-                        // Check if location is in Jordan
                         if (!isLocationInJordan(results[0].address_components)) {
                             alert("Sorry, our service is only available in Jordan at this time.");
-                            // Clear the form fields
+
                             document.getElementById("address").value = "";
                             document.getElementById("formatted_address").value = "";
                             return;
@@ -263,7 +251,6 @@
             );
         }
         
-        // Initialize variables
         let map;
         let marker;
         let geocoder;
@@ -281,9 +268,8 @@
         });
     </script>
     
-    <!-- Load Google Maps API with proper pattern -->
+
     <script>
-        // Load Google Maps API
         (function loadGoogleMapsScript() {
             const script = document.createElement("script");
             script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";

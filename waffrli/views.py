@@ -21,7 +21,7 @@ from datetime import datetime
 from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrapper
 from django.contrib import messages as django_messages
 from django.contrib.admin.views.decorators import staff_member_required
-
+from firebase_admin import auth
 
 
 
@@ -1358,14 +1358,14 @@ def unfollow(request, user_id):
     Follow.objects.filter(follower=request.user, following=user_to_unfollow).delete()
     return redirect('user_profile', identifier=user_id)
 
+
 @login_required
 def settings(request):
     try:
         customer = request.user.customer
-        allow_username_edit = False  # Set to True if you want to allow direct username edits
+        allow_username_edit = False
         
         if request.method == 'POST':
-            # Handle username change request
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
@@ -1390,26 +1390,20 @@ def settings(request):
                         messages.error(request, "Email already in use by another account.")
                         return redirect('settings')
                     
-                    # Store old email for reference
+                    
                     old_email = request.user.email
                     
                     try:
-                        # Update Django User model
+                        
                         request.user.email = email
                         request.user.save()
                         
-                        # Update Customer model
                         customer.email = email
                         customer.save()
                         
-                        # Update Firebase
                         try:
                             firebase_user = FirebaseUser.objects.get(user=request.user)
                             
-                            import firebase_admin
-                            from firebase_admin import auth
-                            
-                            # Update Firebase email
                             auth.update_user(
                                 firebase_user.firebase_uid,
                                 email=email
@@ -1421,21 +1415,15 @@ def settings(request):
                             messages.warning(request, "Email updated in our system but not in authentication system. Please contact support.")
                         
                     except Exception as e:
-                        # Revert changes if something went wrong
                         request.user.email = old_email
                         request.user.save()
                         if hasattr(customer, 'email'):
                             customer.email = old_email
                             customer.save()
                         messages.error(request, f"Failed to update email: {str(e)}")
-                
-                messages.success(request, 'Settings updated successfully!')
                 return redirect('settings')
         
-        context = {
-            'allow_username_edit': allow_username_edit,
-        }
-        return render(request, 'settings.html', context)
+        return render(request, 'settings.html', {'allow_username_edit': allow_username_edit})
     
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
@@ -1450,26 +1438,22 @@ def update_info(request):
         customer = request.user.customer
         
         if request.method == 'POST':
-            # Get updated information
+            
             first_name = request.POST.get('first_name', '')
             last_name = request.POST.get('last_name', '')
-            
-            # Update user information in Django User model
+
             request.user.first_name = first_name
             request.user.last_name = last_name
             request.user.save()
             
-            # Update customer profile information including first_name and last_name
             customer.first_name = first_name
             customer.last_name = last_name
             customer.phone = request.POST.get('phone', '')
             
-            # Get location data from form
             latitude = request.POST.get('latitude')
             longitude = request.POST.get('longitude')
             formatted_address = request.POST.get('formatted_address')
             
-            # Update location data if provided
             if latitude and longitude:
                 customer.latitude = float(latitude)
                 customer.longitude = float(longitude)
@@ -1477,12 +1461,10 @@ def update_info(request):
             if formatted_address:
                 customer.formatted_address = formatted_address
             
-            # Update profile image if provided
             if request.FILES.get('image'):
                 customer.image = request.FILES.get('image')
             
             customer.save()
-            messages.success(request, 'Profile updated successfully!')
             return redirect('update_info')
         
         return render(request, 'update_info.html')
@@ -1536,27 +1518,25 @@ def toggle_save_product(request, product_id):
 
 @login_required
 def saved_items(request):
-    try:
-        # Get the customer associated with the current user
-        customer = Customer.objects.get(user=request.user)
+    if request.user.is_authenticated:
+        try:
+            customer = Customer.objects.get(user=request.user)
+            saved_products = customer.saved_products.all().order_by('-id')
+            
+            context = {
+                'saved_products': saved_products,
+                'saved_count': saved_products.count(),
+            }
+            
+            return render(request, 'saved_items.html', context)
         
-        # Get all products saved by this customer
-        saved_products = customer.saved_products.all().order_by('-id')
-        
-        context = {
-            'saved_products': saved_products,
-            'saved_count': saved_products.count(),
-        }
-        
-        return render(request, 'saved_items.html', context)
-    
-    except Customer.DoesNotExist:
-        # Handle case where customer doesn't exist
-        context = {
-            'saved_products': [],
-            'saved_count': 0,
-        }
-        return render(request, 'saved_items.html', context)
+        except Customer.DoesNotExist:
+            messages.error(request, "Customer profile not found. Please contact support.")
+            return redirect('home')
+
+    else:
+        messages.error(request, "You need to be logged in to view saved items.")
+        return redirect('login')
     
     
     
