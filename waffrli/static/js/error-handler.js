@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
           popup.addEventListener('animationend', function() {
               popup.remove();
           });
-      }, 7000);
+      }, 5000);
   });
 });
 
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Don't show errors in production if you don't want users to see them
       if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         // Optional: log to server instead
-        // sendErrorToServer(message);
+        sendErrorToServer(message);
         message = "An error occurred. Our team has been notified.";
       }
   
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             popup.remove();
           });
         }
-      }, 7000);
+      }, 5000);
     }
   
     // Helper function to get CSRF token
