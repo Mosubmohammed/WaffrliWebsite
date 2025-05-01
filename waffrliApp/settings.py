@@ -86,18 +86,18 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
-    'default': dj_database_url.parse(
-        "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# DATABASES = {
+#     'default': dj_database_url.parse(
+#         "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+#     )
+# }
 
 
 # Password validation

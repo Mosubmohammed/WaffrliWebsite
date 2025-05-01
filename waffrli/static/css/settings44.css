@@ -95,9 +95,9 @@ body {
 
 .nav-menu li.active a {
   background-color: #e9ecef;
-  color: #007bff;
+  color: red;
   font-weight: 600;
-  border-left: 3px solid #007bff;
+  border-left: 3px solid red;
 }
 
 .nav-menu li a:hover {

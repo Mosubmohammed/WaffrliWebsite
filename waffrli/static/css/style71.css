@@ -16,7 +16,6 @@
   text-decoration: none;
 }
 
-
 body {
   background-color: #f5f5f5;
   /* background-color: yellow; */
@@ -218,7 +217,7 @@ button[type="submit"] {
   gap: 20px;
 }
 
- .fas {
+.fas {
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
   color: black;
@@ -619,7 +618,6 @@ h2 .fa-star {
   margin-left: auto;
 }
 
-
 .prev-grid-btn,
 .next-grid-btn {
   background: #ff3333;
@@ -687,7 +685,6 @@ h2 .fa-star {
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  
 }
 
 .expired-tag {
@@ -868,8 +865,7 @@ h2 .fa-star {
   overflow: hidden;
 }
 
-.product-description
-{
+.product-description {
   font-size: 10px;
   color: black;
   margin-bottom: 6px;
@@ -896,7 +892,8 @@ h2 .fa-star {
   margin-left: 6px;
 }
 
-.rating-count , .comment-count {
+.rating-count,
+.comment-count {
   font-size: 10px;
   color: var(--gray);
 }
@@ -1146,7 +1143,7 @@ h2 .fa-star {
   padding: 0 20px;
 }
 
-                                         /* New    Mini Product Card Styles */
+/* New    Mini Product Card Styles */
 .mini-product.expired {
   position: relative;
   opacity: 0.8;
@@ -1688,8 +1685,8 @@ margin-bottom: 40px;
 
 .Categoy-selling-row {
   display: flex;
-    gap: 10px;
-      justify-content: space-around;
+  gap: 10px;
+  justify-content: space-around;
 }
 
 .Categoy-selling-column {

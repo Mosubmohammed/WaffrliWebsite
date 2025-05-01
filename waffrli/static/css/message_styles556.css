@@ -201,7 +201,7 @@ textarea.form-control {
   display: flex;
   align-items: center;
   justify-content: center;
-  color:  #2954d3;
+  color:  red;
   text-decoration: none;
   border-radius: 6px;
   padding: 8px;
@@ -214,8 +214,8 @@ textarea.form-control {
 }
 
 .send-message-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: red;
+  color: black;
   padding: 8px 16px;
   border-radius: 6px;
   text-decoration: none;
