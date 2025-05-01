@@ -4,7 +4,7 @@
 {% block title %}Messaging System{% endblock %}
 
 {% block content %}
-<link href="{% static 'css/settings4.css' %}" rel="stylesheet" />
+<link href="{% static 'css/settings44.css' %}" rel="stylesheet" />
 <nav class="user-navbar">
   <ul>
       <li>
@@ -37,7 +37,7 @@
 <div class="SettingContainer">
   <div class="SettingSidebar">
     <ul class="nav-menu">
-      <li>Messages ({{ total_messages }})</li>
+      <h6>Messages</h6>
       <li class="{% if active_tab == 'inbox' %}active{% endif %}"><a href="{% url 'inbox' %}"><i class="fas fa-chevron-right"></i> Inbox ({{ inbox_count }})</a></li>
       <li class="{% if active_tab == 'sent' %}active{% endif %}"><a href="{% url 'sent_items' %}"><i class="fas fa-chevron-right"></i> Sent Items ({{ sent_count }})</a></li>
       <li class="{% if active_tab == 'contact_admin' %}active{% endif %}"><a href="{% url 'contact_admin' %}"><i class="fas fa-chevron-right"></i> Contact Admin</a></li>
@@ -58,7 +58,7 @@
     <table class="sent-items-table">
       <tbody>
         {% for message in messages %}
-          <tr>
+          <tr data-message-id="{{ message.id }}">
               <td class="action-cell">
                   <button class="delete-btn" onclick="deleteMessage({{ message.id }})">
                       <i class="fas fa-trash-alt"></i>
@@ -77,7 +77,7 @@
                   </div>
               </td>
               <td class="message-cell">
-                <a href="{% url 'view_message' message.id %}">{{ message.content }}                   
+                <a href="{% url 'view_message' message.id %}">{{ message.subject }}                   
                   {% if message.sender.is_staff or message.for_admin %}
                   <span class="admin-badge">(Admin)</span>
               {% endif %}</a>
@@ -102,49 +102,69 @@
           <span class="empty-state-hint">New messages will appear here</span>
       </div>
     {% endif %}
+    
+    {% csrf_token %}
   </div>
+
+
 </div>
 
-<!-- Add jQuery before custom scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://kit.fontawesome.com/a076d05399.js"></script>
 <script>
-  function deleteMessage(messageId) {
-    if (confirm("Are you sure you want to delete this message?")) {
-      var form = $("<form></form>");
-      form.attr("method", "post");
-      form.attr("action", '{% url "delete_messages" %}');
-
+ // Replace the existing deleteMessage function with this streamlined version
+ function deleteMessage(messageId, folder='inbox') {
+  if (confirm("Are you sure you want to delete this message?")) {
+      // Create form with CSRF token
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{% url "delete_messages" %}';
+      
       // Add CSRF token
-      form.append(
-        $("<input>").attr({
-          type: "hidden",
-          name: "csrfmiddlewaretoken",
-          value: "{{ csrf_token }}",
-        })
-      );
-
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = '{{ csrf_token }}';
+      form.appendChild(csrfInput);
+      
       // Add message ID
-      form.append(
-        $("<input>").attr({
-          type: "hidden",
-          name: "message_ids",
-          value: messageId,
-        })
-      );
-
-      // Add current folder - set to "inbox" for this template
-      form.append(
-        $("<input>").attr({
-          type: "hidden",
-          name: "folder",
-          value: "inbox",
-        })
-      );
-
-      $("body").append(form);
+      const messageIdInput = document.createElement('input');
+      messageIdInput.type = 'hidden';
+      messageIdInput.name = 'message_ids';
+      messageIdInput.value = messageId;
+      form.appendChild(messageIdInput);
+      
+      // Add folder
+      const folderInput = document.createElement('input');
+      folderInput.type = 'hidden';
+      folderInput.name = 'folder';
+      folderInput.value = folder;
+      form.appendChild(folderInput);
+      
+      // Submit the form
+      document.body.appendChild(form);
       form.submit();
-    }
   }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Simple validation
+      if (!document.getElementById('subject').value || !document.querySelector('.editor').value) {
+          return; // Don't submit if empty
+      }
+      
+      const notification = document.getElementById('notification');
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+              form.submit();
+          }, 300);
+      }, 3000);
+  });
+});
 </script>
 {% endblock %}

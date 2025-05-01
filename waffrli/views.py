@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.urls import reverse
 import firebase_admin
 from waffrli.filters import ProductFilter
 from .models import *
@@ -27,7 +28,6 @@ from firebase_admin import auth
 
 
 def home(request):
-    # Get recent products for the main section
     products = Product.objects.filter(is_archived=False).order_by('-create_at')
 
     current_time = timezone.now()
@@ -910,11 +910,6 @@ def forgot_password(request):
 
 
 def password_reset_callback(request):
-    """Callback endpoint after Firebase password reset"""
-    # Extract the new Firebase password and user info from the callback
-    # This is where you'd sync the Django user's password with Firebase
-    
-    # For now, just inform the user
     messages.success(request, "Your password has been reset successfully. You can now log in with your new password.")
     return redirect('login')
 
@@ -927,7 +922,7 @@ def search(request):
             Q(category__name__icontains=searched)
         )
 
-        result_count = results.count()  # Count the number of results
+        result_count = results.count()
 
         if not results:
             messages.error(request, "No matching products found.")
@@ -935,8 +930,8 @@ def search(request):
 
         return render(request, "search.html", {
             'searched': results,
-            'search_term': searched,  # Pass the search term
-            'result_count': result_count  # Pass the result count
+            'search_term': searched,
+            'result_count': result_count
         })
 
     return render(request, "home.html")
@@ -1359,6 +1354,7 @@ def unfollow(request, user_id):
     return redirect('user_profile', identifier=user_id)
 
 
+
 @login_required
 def settings(request):
     try:
@@ -1369,7 +1365,7 @@ def settings(request):
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
-                    # Check if username already exists
+
                     if User.objects.filter(username=new_username).exists():
                         messages.error(request, "Username already exists. Please choose another one.")
                         return redirect('settings')
@@ -1379,13 +1375,13 @@ def settings(request):
                     messages.success(request, 'Username updated successfully!')
                     return redirect('settings')
             
-            # Handle the main form with Save Changes button
+
             if 'update_profile' in request.POST:
                 email = request.POST.get('email')
                 
                 # Check if email has changed
                 if email and email != request.user.email:
-                    # Check if email already exists for another user
+
                     if User.objects.filter(email=email).exclude(id=request.user.id).exists():
                         messages.error(request, "Email already in use by another account.")
                         return redirect('settings')
@@ -1455,8 +1451,11 @@ def update_info(request):
             formatted_address = request.POST.get('formatted_address')
             
             if latitude and longitude:
-                customer.latitude = float(latitude)
-                customer.longitude = float(longitude)
+                try:
+                    customer.latitude = float(latitude)
+                    customer.longitude = float(longitude)
+                except ValueError:
+                    messages.warning(request, 'Invalid location coordinates provided.')
             
             if formatted_address:
                 customer.formatted_address = formatted_address
@@ -1465,6 +1464,7 @@ def update_info(request):
                 customer.image = request.FILES.get('image')
             
             customer.save()
+            messages.success(request, 'Profile information updated successfully!')
             return redirect('update_info')
         
         return render(request, 'update_info.html')
@@ -1474,70 +1474,80 @@ def update_info(request):
         return redirect('settings')
 
 
-@login_required
 def toggle_save_product(request, product_id):
-    # Get the product or return 404
-    product = get_object_or_404(Product, id=product_id)
-    
-    try:
-        # Get the customer associated with the current user
-        customer = get_object_or_404(Customer, user=request.user)
-        
-        # Toggle saved status
-        if product in customer.saved_products.all():
-            # User has already saved this product, so remove it
-            customer.saved_products.remove(product)
-            is_saved = False
-        else:
-            # User hasn't saved this product, so save it
-            customer.saved_products.add(product)
-            is_saved = True
-        
-        # For AJAX requests
+
+    if not request.user.is_authenticated:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
-                'is_saved': is_saved,
-                'saved_count': product.saved_by_customers.count()
-            })
+                'error': 'Authentication required',
+                'redirect_url': reverse('login')
+            }, status=401)
         
-        # For regular requests, redirect back to product page
-        return redirect('product', pk=product_id)
-        
-    except Customer.DoesNotExist:
-        # Handle case where customer profile doesn't exist
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'error': 'Customer profile not found'
-            }, status=404)
-        
-        # For regular requests, redirect to profile creation or login
-        return redirect('create_profile')  # Replace with your profile creation URL
-
-
-
-
-@login_required
-def saved_items(request):
-    if request.user.is_authenticated:
-        try:
-            customer = Customer.objects.get(user=request.user)
-            saved_products = customer.saved_products.all().order_by('-id')
-            
-            context = {
-                'saved_products': saved_products,
-                'saved_count': saved_products.count(),
-            }
-            
-            return render(request, 'saved_items.html', context)
-        
-        except Customer.DoesNotExist:
-            messages.error(request, "Customer profile not found. Please contact support.")
-            return redirect('home')
-
-    else:
-        messages.error(request, "You need to be logged in to view saved items.")
+        messages.warning(request, "You need to log in to save products.")
         return redirect('login')
     
+
+    try:
+        product = get_object_or_404(Product, id=product_id)
+        
+        customer = Customer.objects.get(user=request.user)
+
+        if product in customer.saved_products.all():
+                # User has already saved this product, so remove it
+                customer.saved_products.remove(product)
+                is_saved = False
+                message = f"'{product.Name}' removed from your saved items."
+        else:
+                # User hasn't saved this product, so save it
+                customer.saved_products.add(product)
+                is_saved = True
+                message = f"'{product.Name}' added to your saved items."
+            
+
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                messages.success(request, message)
+            
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'is_saved': is_saved,
+                    'saved_count': customer.saved_products.count(),
+                    'message': message
+                })
+            
+        return redirect('product', pk=product_id)
+            
+
+    
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'error': f'An error occurred: {str(e)}'
+            }, status=500)
+        
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('home')
+
+
+def saved_items(request):
+
+    if not request.user.is_authenticated:
+        messages.warning(request, "You need to be logged in to view saved items.")
+        return redirect('login')
+    
+    try:
+        customer = Customer.objects.get(user=request.user)
+        saved_products = customer.saved_products.all().order_by('-id')
+        
+        context = {
+            'saved_products': saved_products,
+            'saved_count': saved_products.count(),
+        }
+        
+        return render(request, 'saved_items.html', context)
+        
+    except Customer.DoesNotExist:
+        messages.error(request, "Customer profile not found. Please contact support.")
+        return redirect('home')
     
     
 def inbox(request):
@@ -1604,15 +1614,14 @@ def send_message(request, user_id=None):
             admin_user = User.objects.filter(is_superuser=True).first()
             if admin_user:
                 recipient = admin_user
-                # Set for_admin flag when creating the message
-                new_message.for_admin = True
         
         # Create and save message
         new_message = Message(
             sender=request.user,
             recipient=recipient,
             subject=subject,
-            content=body
+            content=body,
+            for_admin=True if request.POST.get('for_admin') else False
         )
         new_message.save()
         
@@ -1627,22 +1636,46 @@ def send_message(request, user_id=None):
     })
 
 
+from django.db.models import Q
+
 @login_required
 def view_message(request, message_id):
     try:
-        message = Message.objects.get(id=message_id, recipient=request.user)
+        # Try to find the message where the user is either the recipient OR the sender
+        message = Message.objects.filter(
+            id=message_id
+        ).filter(
+            Q(recipient=request.user) | Q(sender=request.user)
+        ).first()
+        
+        if not message:
+            raise Message.DoesNotExist
+            
+        is_inbox = message.recipient == request.user
+        
+
+        if is_inbox and not message.is_read:
+            message.is_read = True
+            message.save()
+        
+        inbox_count = Message.objects.filter(recipient=request.user).count()
+        sent_count = Message.objects.filter(sender=request.user).count()
+        total_messages = inbox_count + sent_count
+        
+        context = {
+            'message': message,
+            'is_inbox': is_inbox,
+            'inbox_count': inbox_count,
+            'sent_count': sent_count,
+            'total_messages': total_messages,
+            'active_tab': 'inbox' if is_inbox else 'sent'
+        }
+        
+        return render(request, 'view_message.html', context)
+        
     except Message.DoesNotExist:
         messages.error(request, 'Message not found.')
         return redirect('inbox')
-    
-    context = {
-        'message': message,
-        'inbox_count': Message.objects.filter(recipient=request.user).count(),
-        'sent_count': Message.objects.filter(sender=request.user).count(),
-        'active_tab': 'inbox'
-    }
-    
-    return render(request, 'view_message.html', context)
 
 @login_required
 def reply_message(request, message_id):
@@ -1702,26 +1735,26 @@ def sent_items(request):
     return render(request, 'sent_items.html', context)
 
 
+@login_required
 def delete_messages(request):
     if request.method == 'POST':
         message_ids = request.POST.getlist('message_ids')
         folder = request.POST.get('folder', 'inbox')
         
         if message_ids:
+            # Create a base query that joins inbox and sent conditions
+            base_query = Q(id__in=message_ids) & (
+                Q(recipient=request.user) | Q(sender=request.user)
+            )
+            
             if folder == 'inbox':
-                # Only delete inbox messages that belong to this user
-                messages_to_delete = Message.objects.filter(
-                    id__in=message_ids,
-                    recipient=request.user
-                )
+                # Only allow deleting inbox messages where user is recipient
+                base_query &= Q(recipient=request.user)
             else:  # sent folder
-                # Only delete sent messages that belong to this user
-                messages_to_delete = Message.objects.filter(
-                    id__in=message_ids,
-                    sender=request.user
-                )
+                # Only allow deleting sent messages where user is sender
+                base_query &= Q(sender=request.user)
                 
-            deleted_count = messages_to_delete.delete()[0]
+            deleted_count = Message.objects.filter(base_query).delete()[0]
             messages.success(request, f'{deleted_count} message(s) deleted successfully.')
         
         if folder == 'sent':
