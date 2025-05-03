@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
+from supabase import create_client
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 import dj_database_url
@@ -41,13 +42,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'waffrli',  
+    'authentication',
 
 ]
 
 MIDDLEWARE = [
-    'waffrli.middleware.FirebaseAuthMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'authentication.middleware.SupabaseAuthMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,19 +88,24 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
-#     'default': dj_database_url.parse(
-#         "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
-#     )
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
 
+DATABASES = {
+    'default': dj_database_url.parse(
+        "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+    )
+}
+
+# Add your actual values here
+SUPABASE_URL = "https://oktylpzgktpunvmqfamf.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdHlscHpna3RwdW52bXFmYW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxODA4MDYsImV4cCI6MjA2MDc1NjgwNn0.v0CQDk7INWh4XdU_w5DfoSVFbAIm7hOIEJok26zjcXg"
+
+SUPABASE = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -147,8 +154,8 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-cred = credentials.Certificate(os.path.join(BASE_DIR, "waffrli-30386-firebase-adminsdk-fbsvc-fba7e0c47b.json"))
-firebase_app = firebase_admin.initialize_app(cred)
+# cred = credentials.Certificate(os.path.join(BASE_DIR, "waffrli-30386-firebase-adminsdk-fbsvc-fba7e0c47b.json"))
+# firebase_app = firebase_admin.initialize_app(cred)
 
-# Initialize Firestore
-db = firestore.client()
+# # Initialize Firestore
+# db = firestore.client()

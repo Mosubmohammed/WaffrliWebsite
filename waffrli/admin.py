@@ -4,17 +4,9 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.db.models import Count
 from .models import (
-    FirebaseUser, Category, Customer, Product, Comment, 
+    Category, Customer, Product, Comment, 
     Follow, Message, WishlistItem, Notification, ReportedDeal
 )
-
-# FirebaseUser Admin
-@admin.register(FirebaseUser)
-class FirebaseUserAdmin(admin.ModelAdmin):
-    list_display = ('user', 'firebase_uid', 'email_verified')
-    search_fields = ('user__username', 'user__email', 'firebase_uid')
-    list_filter = ('email_verified',)
-    raw_id_fields = ('user',)
 
 # Category Admin
 @admin.register(Category)

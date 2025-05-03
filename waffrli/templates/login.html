@@ -1,9 +1,8 @@
 {% extends "base.html" %}
- {% load static %}
+{% load static %}
 
- 
- {% block content %}
- <link href="{% static 'css/Register_Stylee6.css' %}" rel="stylesheet" />
+{% block content %}
+<link href="{% static 'css/Register_Stylee6.css' %}" rel="stylesheet" />
     <div class="container">
         <div id="loginForm" class="Login-container">
             <div class="Login-left-side">             
@@ -34,13 +33,13 @@
                             <span class="checkbox-custom"></span>
                             Remember me
                         </label>
-                        <a href="resetPassword.html" class="forgot-link" id="forgotPassword">Forgot Password?</a>
+                        <a href="{% url 'forgot_password' %}" class="forgot-link" id="forgotPassword">Forgot Password?</a>
                     </div>
 
                     <button type="submit" class="submit-btn">Sign In</button>
 
                     <p class="login-link">
-                        Don't have an account? <a href="register.html" id="showSignup">Sign up</a>
+                        Don't have an account? <a href="{% url 'register' %}" id="showSignup">Sign up</a>
                     </p>
                 </form>
             </div>

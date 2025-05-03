@@ -7,23 +7,19 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 from django.urls import reverse
-import firebase_admin
 from waffrli.filters import ProductFilter
 from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
 from django.contrib.auth.models import User
-from firebase_admin import auth as firebase_auth
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils import *
-from waffrliApp.settings import db
 from django.utils import timezone
 from datetime import datetime
 from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrapper
 from django.contrib import messages as django_messages
 from django.contrib.admin.views.decorators import staff_member_required
-from firebase_admin import auth
-
+from authentication.models import SupabaseUser
 
 
 
@@ -587,328 +583,6 @@ def product(request, pk):
 
 
 
-def register(request):
-    if request.method == 'POST':
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        gender = request.POST.get('gender')
-        image = request.FILES.get('image')
-        
-        # Get location data from form
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-        formatted_address = request.POST.get('formatted_address')
-        
-        # Generate username from email (or use a field in your form for username)
-        username = first_name
-        
-        # Basic validation
-        if password != confirm_password:
-            messages.error(request, "Passwords don't match")
-            return render(request, 'register.html')
-        
-        if User.objects.filter(username=username).exists():
-            # Make username unique if it already exists
-            base_username = username
-            counter = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{counter}"
-                counter += 1
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists")
-            return render(request, 'register.html')
-        
-        try:
-            # Create user in Firebase with the email verification flag set to true
-            # This will automatically send a verification email
-            firebase_user = firebase_auth.create_user(
-                email=email,
-                password=password,
-                display_name=f"{first_name} {last_name}",
-                email_verified=False  # Explicitly set as not verified
-            )
-            firebase_uid = firebase_user.uid
-            
-            # Configure the action URL for email verification
-            # This is important to set up in Firebase console first
-            action_code_settings = firebase_admin.auth.ActionCodeSettings(
-                url="http://127.0.0.1:8000/verified/",
-                handle_code_in_app=False,
-                dynamic_link_domain=None,  # Set this if using Firebase Dynamic Links
-                ios_bundle_id=None,
-                android_package_name=None,
-                android_install_app=False,
-                android_minimum_version=None
-            )
-            
-            # Send verification email using Firebase
-            try:
-                verification_link = firebase_auth.generate_email_verification_link(
-                    email, 
-                    action_code_settings=action_code_settings
-                )
-                
-                # Log the verification link for debugging
-                print(f"Verification link for {email}: {verification_link}")
-                
-                # Important: Firebase will automatically send the email
-                # You don't need to send it yourself
-                
-            except Exception as email_error:
-                print(f"Firebase email generation error: {str(email_error)}")
-                messages.warning(request, "Account created but verification email could not be sent. Please contact support.")
-            
-            # Create Django User
-            django_user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                is_active=True  # User can still log in to your site, but you can check verification status
-            )
-            
-            # Link Django User to Firebase
-            FirebaseUser.objects.create(
-                user=django_user,
-                firebase_uid=firebase_uid,
-                email_verified=False  # Track verification status in your database
-            )
-            
-            # Create Customer profile with location data
-            customer = Customer.objects.create(
-                user=django_user,
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                email=email,
-                password=password,
-                gender=gender,
-                # Add location data
-                latitude=float(latitude) if latitude else None,
-                longitude=float(longitude) if longitude else None,
-                formatted_address=formatted_address,
-            )
-            
-            # Add image if provided
-            if image:
-                customer.image = image
-                customer.save()
-            
-            login(request, django_user)
-            
-            messages.success(request, "Registration successful! Please check your email to verify your account.")
-            return redirect('home')  
-            
-        except Exception as e:
-            messages.error(request, f"Registration failed: {str(e)}")
-            return render(request, 'register.html')
-    
-    # For GET requests
-    return render(request, 'register.html')
-
-def test_firebase_email(email):
-    try:
-        link = firebase_auth.generate_email_verification_link(
-            email,
-            action_code_settings=firebase_admin.auth.ActionCodeSettings(
-                url="http://127.0.0.1:8000/verified/",  # Use your local URL for testing
-                handle_code_in_app=False
-            )
-        )
-        print(f"Verification link generated: {link}")
-        return True
-    except Exception as e:
-        print(f"Error generating verification email: {e}")
-        return False
-    
-# Example - at the bottom of views.py for testing
-# Don't forget to remove this before production
-test_result = test_firebase_email("your.real.email@example.com")
-print(f"Test result: {test_result}")
-
-def check_email_verification(request):
-    return render(request, 'verification_success.html')
-
-
-def verify_email_status(request):
-    # Function to check if a user's email is verified
-    if request.user.is_authenticated:
-        try:
-            firebase_user = FirebaseUser.objects.get(user=request.user)
-            # Get fresh user data from Firebase
-            firebase_user_info = firebase_auth.get_user(firebase_user.firebase_uid)
-            
-            # Update local record if verification status changed
-            if firebase_user_info.email_verified != firebase_user.email_verified:
-                firebase_user.email_verified = firebase_user_info.email_verified
-                firebase_user.save()
-            
-            return firebase_user.email_verified
-        except FirebaseUser.DoesNotExist:
-            return False
-    return False
-
-
-
-def login_view(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        try:
-            # Try Django authentication first - trying email as username
-            user = authenticate(request, username=email, password=password)
-            
-            # If that fails, try finding the user by email and then authenticate with their username
-            if user is None:
-                try:
-                    django_user = User.objects.get(email=email)
-                    user = authenticate(request, username=django_user.username, password=password)
-                except User.DoesNotExist:
-                    user = None
-                    
-            if user is not None:
-                # User authenticated successfully with Django
-                login(request, user)
-                
-                # Check if user has a Firebase profile
-                firebase_profile = FirebaseUser.objects.filter(user=user).first()
-                if firebase_profile:
-                    try:
-                        # Verify the user exists in Firebase
-                        firebase_auth.get_user(firebase_profile.firebase_uid)
-                    except Exception as firebase_error:
-                        # Firebase verification failed, but still allow Django login
-                        print(f"Firebase verification error: {str(firebase_error)}")
-                        messages.warning(request, "Logged in successfully, but there may be an issue with your account. Some features may be limited.")
-                        return redirect('home')
-                
-                # All good
-                messages.success(request, "Login successful!")
-                return redirect('home')
-            else:
-                # Authentication failed
-                messages.error(request, "Invalid email or password.")
-                return render(request, 'login.html')
-                
-        except Exception as e:
-            messages.error(request, f"Login error: {str(e)}")
-            return render(request, 'login.html')
-            
-    # For GET requests
-    return render(request, 'login.html')
-
-def logout_user(request):
-    logout(request)
-    messages.success(request, 'Logged out successfully!')
-    return redirect('home')
-
-
-
-def restPassword(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        new_password = request.POST.get('new_password')
-        
-        if not email or not new_password:
-            messages.error(request, "Email and new password are required.")
-            return render(request, 'restPassword.html')
-        
-        try:
-            # Update Django user password
-            user = User.objects.get(email=email)
-            user.set_password(new_password)
-            user.save()
-            
-            # Update Customer model password
-            try:
-                customer = Customer.objects.get(user=user)
-                customer.password = new_password  # Note: This stores plaintext password which is not recommended
-                customer.save()
-            except Customer.DoesNotExist:
-                messages.warning(request, "User found but customer profile not found.")
-            
-            # Update Firebase user password
-            try:
-                firebase_user = FirebaseUser.objects.get(user=user)
-                firebase_auth.update_user(
-                    firebase_user.firebase_uid,
-                    password=new_password
-                )
-                messages.success(request, "Password reset successfully! You can now log in with your new password.")
-            except FirebaseUser.DoesNotExist:
-                messages.warning(request, "Password reset successful in our system, but not synchronized with authentication provider.")
-            except Exception as firebase_e:
-                messages.warning(request, "Password reset successful in our system, but not synchronized with authentication provider.")
-                print(f"Firebase password update error: {str(firebase_e)}")
-            
-            return redirect('login')
-            
-        except User.DoesNotExist:
-            messages.error(request, "User not found.")
-            return render(request, 'restPassword.html')
-        except Exception as e:
-            messages.error(request, f"Password reset error: {str(e)}")
-            return render(request, 'restPassword.html')
-            
-    # For GET requests
-    return render(request, 'restPassword.html')
-
-def forgot_password(request):
-    """Handle forgot password requests"""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        
-        if not email:
-            messages.error(request, "Email is required.")
-            return render(request, 'forgot_password.html')
-            
-        try:
-            # Check if user exists in Django
-            user_exists = User.objects.filter(email=email).exists()
-            
-            if not user_exists:
-                # Don't reveal if user exists or not for security
-                messages.success(request, "If your email exists in our system, you will receive a password reset link.")
-                return render(request, 'forgot_password.html')
-                
-            # Send password reset email via Firebase
-            try:
-                reset_link = firebase_auth.generate_password_reset_link(
-                    email, 
-                    action_code_settings=firebase_admin.auth.ActionCodeSettings(
-                        url="http://localhost:8000/password_reset_callback/",
-                        handle_code_in_app=False
-                    )
-                )
-                # Here you would actually send the email with the reset_link
-                # For debugging, just print it
-                print(f"Password reset link: {reset_link}")
-                messages.success(request, "Password reset link has been sent to your email.")
-            except Exception as firebase_e:
-                # Fallback to Django's password reset if Firebase fails
-                print(f"Firebase password reset error: {str(firebase_e)}")
-                # Implement Django's built-in password reset here
-                # Or redirect to Django's password reset view
-                messages.warning(request, "Please use our standard password reset process.")
-                return redirect('password_reset')  # Django's built-in view
-                
-            return redirect('login')
-            
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-            return render(request, 'forgot_password.html')
-            
-    # For GET requests
-    return render(request, 'forgot_password.html')
-
-
 def password_reset_callback(request):
     messages.success(request, "Your password has been reset successfully. You can now log in with your new password.")
     return redirect('login')
@@ -938,7 +612,7 @@ def search(request):
 
     
 def post_deal(request):
-    """View to handle posting new deals and archiving deals"""
+
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
@@ -1355,6 +1029,7 @@ def unfollow(request, user_id):
 
 
 
+
 @login_required
 def settings(request):
     try:
@@ -1365,7 +1040,6 @@ def settings(request):
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
-
                     if User.objects.filter(username=new_username).exists():
                         messages.error(request, "Username already exists. Please choose another one.")
                         return redirect('settings')
@@ -1375,22 +1049,17 @@ def settings(request):
                     messages.success(request, 'Username updated successfully!')
                     return redirect('settings')
             
-
             if 'update_profile' in request.POST:
                 email = request.POST.get('email')
                 
-                # Check if email has changed
                 if email and email != request.user.email:
-
                     if User.objects.filter(email=email).exclude(id=request.user.id).exists():
                         messages.error(request, "Email already in use by another account.")
                         return redirect('settings')
                     
-                    
                     old_email = request.user.email
                     
                     try:
-                        
                         request.user.email = email
                         request.user.save()
                         
@@ -1398,16 +1067,20 @@ def settings(request):
                         customer.save()
                         
                         try:
-                            firebase_user = FirebaseUser.objects.get(user=request.user)
+                            supabase_user = SupabaseUser.objects.get(user=request.user)
                             
-                            auth.update_user(
-                                firebase_user.firebase_uid,
-                                email=email
+                            supabase_response = settings.SUPABASE.auth.update_user(
+                                attributes={
+                                    "email": email,
+                                }
                             )
                             
-                            messages.success(request, 'Email updated successfully!')
-                        
-                        except FirebaseUser.DoesNotExist:
+                            if supabase_response.user.email_confirmed_at is None:
+                                messages.info(request, 'Email update initiated. Please check your inbox to confirm your new email.')
+                            else:
+                                messages.success(request, 'Email updated successfully!')
+                            
+                        except SupabaseUser.DoesNotExist:
                             messages.warning(request, "Email updated in our system but not in authentication system. Please contact support.")
                         
                     except Exception as e:
@@ -1417,6 +1090,7 @@ def settings(request):
                             customer.email = old_email
                             customer.save()
                         messages.error(request, f"Failed to update email: {str(e)}")
+                
                 return redirect('settings')
         
         return render(request, 'settings.html', {'allow_username_edit': allow_username_edit})
@@ -1424,7 +1098,6 @@ def settings(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('home')
-
 
     
     
@@ -1852,48 +1525,48 @@ def contact_admin(request):
     
     
     
-def close_account(request):
-    if request.method == 'POST':
-        user = request.user
-        confirmation = request.POST.get('confirm', '')
+# def close_account(request):
+#     if request.method == 'POST':
+#         user = request.user
+#         confirmation = request.POST.get('confirm', '')
         
-        if confirmation != 'DELETE':
-            messages.error(request, "Please type 'DELETE' to confirm account deletion.")
-            return render(request, 'confirm_account_deletion.html')
+#         if confirmation != 'DELETE':
+#             messages.error(request, "Please type 'DELETE' to confirm account deletion.")
+#             return render(request, 'confirm_account_deletion.html')
             
-        if user.is_authenticated:
-            try:
-                # Get Firebase UID for the user
-                firebase_user = FirebaseUser.objects.get(user=user)
+#         if user.is_authenticated:
+#             try:
+#                 # Get Firebase UID for the user
+#                 firebase_user = FirebaseUser.objects.get(user=user)
                 
-                # Delete user from Firebase
-                firebase_auth.delete_user(firebase_user.firebase_uid)
+#                 # Delete user from Firebase
+#                 firebase_auth.delete_user(firebase_user.firebase_uid)
                 
-                # Log the user out
-                logout(request)
+#                 # Log the user out
+#                 logout(request)
                 
-                # Delete Django user (will cascade to Customer due to OneToOneField)
-                user.delete()
+#                 # Delete Django user (will cascade to Customer due to OneToOneField)
+#                 user.delete()
                 
-                messages.success(request, "Your account has been successfully deleted.")
-                return redirect('home')  # Redirect to home page
+#                 messages.success(request, "Your account has been successfully deleted.")
+#                 return redirect('home')  # Redirect to home page
                 
-            except FirebaseUser.DoesNotExist:
-                # If no Firebase user exists, just delete the Django user
-                logout(request)
-                user.delete()
-                messages.success(request, "Your account has been successfully deleted.")
-                return redirect('home')
+#             except FirebaseUser.DoesNotExist:
+#                 # If no Firebase user exists, just delete the Django user
+#                 logout(request)
+#                 user.delete()
+#                 messages.success(request, "Your account has been successfully deleted.")
+#                 return redirect('home')
                 
-            except Exception as e:
-                messages.error(request, f"Error deleting account: {str(e)}")
-                return redirect('settings')
-        else:
-            messages.error(request, "You must be logged in to delete your account.")
-            return redirect('login')
-    else:
-        # Display confirmation page for GET requests
-        return render(request, 'confirm_account_deletion.html')
+#             except Exception as e:
+#                 messages.error(request, f"Error deleting account: {str(e)}")
+#                 return redirect('settings')
+#         else:
+#             messages.error(request, "You must be logged in to delete your account.")
+#             return redirect('login')
+#     else:
+#         # Display confirmation page for GET requests
+#         return render(request, 'confirm_account_deletion.html')
     
     
 
