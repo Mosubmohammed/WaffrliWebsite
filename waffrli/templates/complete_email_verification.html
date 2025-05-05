@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link href="{% static 'css/Register_Stylee6.css' %}" rel="stylesheet" />
+
+<div class="resetContainer">
+    <div class="form-header">
+        <h3>Complete Email Verification</h3>
+        <p>Please enter your email address to complete the verification process</p>
+    </div>
+
+    <form method="post" action="{% url 'complete_email_verification' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="email" id="email" name="email" required>
+            <label for="email">Email Address</label>
+        </div>
+        
+        <button type="submit" class="submit-btn">Verify Email</button>
+    </form>
+</div>
+{% endblock %}
