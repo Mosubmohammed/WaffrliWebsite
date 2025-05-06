@@ -3,7 +3,7 @@
 
 <main>
   <div class="Category-container">
-    <!-- Category Banners -->
+    <!-- Category Banners
     <div class="category-banners fade-in">
       <div class="category-banner">
         <a href="{% url 'category' 'Laptops' %}">
@@ -40,7 +40,20 @@
           </div>
         </a>
       </div>
+    </div> -->
+
+    <div class="welcome-section fade-in">
+      <div class="welcome-banner">
+        <div class="welcome-content">
+          <h2>Welcome to Waffrli</h2>
+          <p>Discover Amazing Deals & Save Big Today!</p>
+        </div>
+        <div class="welcome-image">
+          <img src="{% static 'img/product01.png' %}" alt="Featured Product">
+        </div>
+      </div>
     </div>
+
 
     <!-- Nearby Products -->
     <div class="section-heading slide-up">
@@ -111,7 +124,9 @@
           
           <!-- Card Footer with Buttons -->
           <div class="card-footer">
+           
             <!-- Like button -->
+          
             <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
               <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
             </button>
@@ -122,7 +137,8 @@
               <i class="far fa-comment"></i>
             </button>
             <h3 class="comment-count">{{ product.comments.count }}</h3>
-            
+          
+
             <!-- View product button -->
             <a href="{% url 'product' product.id %}">
               <button class="add-to-cart {% if product.is_expired %}expired-btn{% endif %}" {% if product.is_expired %}disabled{% endif %}>
@@ -205,6 +221,7 @@
     
     <!-- Card Footer with Buttons -->
     <div class="card-footer">
+ 
       <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
         <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
       </button>
@@ -215,7 +232,7 @@
         <i class="far fa-comment"></i>
       </button>
       <h3 class="rating-count">{{ product.comments.count }}</h3>
-      
+   
       <a href="{% url 'product' product.id %}">
         <button class="add-to-cart {% if product.is_expired %}expired-btn{% endif %}" {% if product.is_expired %}disabled{% endif %}>
           {% if product.is_expired %}Expired{% else %}Show the deal {% endif %}
@@ -368,10 +385,7 @@
             <div class="mini-product-category">{{ product.category.name }}</div>
             <h4 class="mini-product-title">{{ product.Name }}</h4>
             <div class="mini-product-price">${{ product.sale_price }}</div>
-            <div class="popularity-indicators">
-              <span><i class="fas fa-heart"></i> {{ product.likes.count }}</span>
-              <span><i class="fas fa-eye"></i> {{ product.views }}</span>
-            </div>
+      
           </div>
         </div>
       {% empty %}
