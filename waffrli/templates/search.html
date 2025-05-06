@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'css/Searchh1.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Searchh11.css' %}" rel="stylesheet" />
 
 <div class="search-page-container">
   
@@ -61,13 +61,7 @@
             <span class="current-price">{{ product.sale_price }} JD</span>
             <span class="original-price">${{ product.price }} JD</span>
           </div>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-          
-          </div>
+       
         </div>
         
         <!-- Store Info -->
@@ -84,9 +78,11 @@
             <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
             <span style="color: black;"  class="like-count">{{ product.likes.count }}</span>
           </button>
-          <button class="comment-btn">
+          <button class="comment-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
             <i class="far fa-comment"></i>
+            <span style="color: black;"  class="like-count">{{ product.comments.count }}</span>
           </button>
+         
           <a href="{% url 'product' product.id %}">
             <button class="add-to-cart">Show the Deal</button>
           </a>
