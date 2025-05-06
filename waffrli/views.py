@@ -1524,62 +1524,6 @@ def contact_admin(request):
     
     
     
-    
-# def close_account(request):
-#     if request.method == 'POST':
-#         user = request.user
-#         confirmation = request.POST.get('confirm', '')
-        
-#         if confirmation != 'DELETE':
-#             messages.error(request, "Please type 'DELETE' to confirm account deletion.")
-#             return render(request, 'confirm_account_deletion.html')
-            
-#         if user.is_authenticated:
-#             try:
-#                 # Get Firebase UID for the user
-#                 firebase_user = FirebaseUser.objects.get(user=user)
-                
-#                 # Delete user from Firebase
-#                 firebase_auth.delete_user(firebase_user.firebase_uid)
-                
-#                 # Log the user out
-#                 logout(request)
-                
-#                 # Delete Django user (will cascade to Customer due to OneToOneField)
-#                 user.delete()
-                
-#                 messages.success(request, "Your account has been successfully deleted.")
-#                 return redirect('home')  # Redirect to home page
-                
-#             except FirebaseUser.DoesNotExist:
-#                 # If no Firebase user exists, just delete the Django user
-#                 logout(request)
-#                 user.delete()
-#                 messages.success(request, "Your account has been successfully deleted.")
-#                 return redirect('home')
-                
-#             except Exception as e:
-#                 messages.error(request, f"Error deleting account: {str(e)}")
-#                 return redirect('settings')
-#         else:
-#             messages.error(request, "You must be logged in to delete your account.")
-#             return redirect('login')
-#     else:
-#         # Display confirmation page for GET requests
-#         return render(request, 'confirm_account_deletion.html')
-    
-    
-
-
-# def hot_deals(request):
-#     return product_list_base(request, page_type='hot_deals')
-
-# def filter_hot_deals(request):
-#     return product_list_base(request, page_type='hot_deals')
-
-
-# def popular_deals(request):
-#     return product_list_base(request, page_type='popular')
 
 
 @login_required
