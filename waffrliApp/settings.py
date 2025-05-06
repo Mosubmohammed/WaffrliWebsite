@@ -154,8 +154,4 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# cred = credentials.Certificate(os.path.join(BASE_DIR, "waffrli-30386-firebase-adminsdk-fbsvc-fba7e0c47b.json"))
-# firebase_app = firebase_admin.initialize_app(cred)
 
-# # Initialize Firestore
-# db = firestore.client()
