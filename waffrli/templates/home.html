@@ -129,14 +129,16 @@
           
             <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
               <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+              <h3 class="rating-count">{{ product.likes.count }}</h3>
             </button>
-            <h3 class="rating-count">{{ product.likes.count }}</h3>
+            
             
             <!-- Comment button -->
             <button class="comment-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
               <i class="far fa-comment"></i>
+              <h3 class="comment-count">{{ product.comments.count }}</h3>
             </button>
-            <h3 class="comment-count">{{ product.comments.count }}</h3>
+            
           
 
             <!-- View product button -->
