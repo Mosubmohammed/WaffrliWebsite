@@ -12,4 +12,6 @@ urlpatterns = [
     path('verify/', verify_email_callback, name='verify_email_callback'),
     path('complete-password-reset/', complete_password_reset, name='complete_password_reset'),
     path('complete-email-verification/', complete_email_verification, name='complete_email_verification'),
+    path('reset-password/', reset_password_view, name='reset_password'),
+    path('close-account/', close_account, name='close_account'),
 ]

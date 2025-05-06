@@ -113,6 +113,7 @@ def login_view(request):
         print(f"Attempting login for email: {email}")
         
         try:
+            # Check if user exists in Django
             try:
                 django_user = User.objects.get(email=email)
                 print(f"Found Django user: {django_user.username}")
@@ -120,111 +121,71 @@ def login_view(request):
                 messages.error(request, "Invalid email or password.")
                 return render(request, 'login.html', {'email': email})
             
-            # Try Django authentication first
-            user = authenticate(request, username=django_user.username, password=password)
-            if user is not None:
-                print(f"Django authentication successful for {email}")
-                
-                # Try Supabase authentication
-                try:
-                    supabase_response = settings.SUPABASE.auth.sign_in_with_password({
-                        "email": email,
-                        "password": password
-                    })
-                    
-                    if not supabase_response.user.email_confirmed_at:
-                        messages.error(request, "Please verify your email address before logging in.")
-                        context = {
-                            'email': email,
-                            'show_resend': True
-                        }
-                        return render(request, 'login.html', context)
-                        
-                    # Both Django and Supabase authentication successful
-                    login(request, user)
-                    request.session['supabase_access_token'] = supabase_response.session.access_token
-                    request.session['supabase_user_id'] = supabase_response.user.id
-                    
-                    # Ensure Customer model is in sync
-                    try:
-                        customer = Customer.objects.get(email=email)
-                        if customer.password != password:
-                            # Update Customer model password if out of sync
-                            customer.password = password
-                            customer.save()
-                            print(f"Updated Customer model password during login for {email}")
-                    except Customer.DoesNotExist:
-                        print(f"No Customer found with email {email}")
-                    
-                    messages.success(request, "Login successful!")
-                    return redirect('home')
-                    
-                except Exception as supabase_e:
-                    print(f"Supabase authentication failed: {str(supabase_e)}")
-                    
-                    # Check if this is a new system (e.g. after password reset)
-                    # If Django auth is successful but Supabase auth failed,
-                    # attempt to repair the Supabase account
-                    try:
-                        # Try to get the user from Supabase to check if they exist
-                        supabase_user = settings.SUPABASE.auth.admin.get_user_by_email(email)
-                        if supabase_user:
-                            # If account exists in Supabase, offer password reset
-                            messages.error(request, "Your account exists but the password may be out of sync. Please reset your password.")
-                            context = {
-                                'email': email,
-                                'show_reset': True
-                            }
-                            return render(request, 'login.html', context)
-                    except:
-                        # If we couldn't check Supabase user, just suggest password reset
-                        messages.error(request, "Authentication error. Your password may need to be synchronized. Please try resetting your password.")
-                        return render(request, 'login.html', {'email': email, 'show_reset': True})
-            else:
-                print(f"Django authentication failed for {email}")
-                
-                # Try the Customer model directly
-                try:
-                    customer = Customer.objects.get(email=email)
-                    if customer.password == password:
-                        # If Customer password matches but Django authentication failed,
-                        # update the Django User password to match
+            # Try the Customer model directly first
+            try:
+                customer = Customer.objects.get(email=email)
+                if customer.password == password:
+                    # If Customer password matches, sync Django user password if needed
+                    if not django_user.check_password(password):
                         django_user.set_password(password)
                         django_user.save()
                         print(f"Updated Django User password to match Customer model for {email}")
+                    
+                    # Authenticate with Django
+                    user = authenticate(request, username=django_user.username, password=password)
+                    if user is not None:
+                        # Login successful
+                        login(request, user)
+                        messages.success(request, "Login successful!")
+                        return redirect('home')
+                    else:
+                        print(f"Django authentication failed even after password sync")
+                        messages.error(request, "Authentication error. Please try again.")
+                        return render(request, 'login.html', {'email': email})
+                else:
+                    # If Customer password doesn't match, try Django auth directly
+                    user = authenticate(request, username=django_user.username, password=password)
+                    if user is not None:
+                        # If Django auth works, update Customer password
+                        customer.password = password
+                        customer.save()
+                        print(f"Updated Customer model password during login for {email}")
                         
-                        # Try authentication again
-                        user = authenticate(request, username=django_user.username, password=password)
-                        if user is not None:
-                            # Try Supabase login
-                            try:
-                                supabase_response = settings.SUPABASE.auth.sign_in_with_password({
-                                    "email": email,
-                                    "password": password
-                                })
-                                
-                                login(request, user)
-                                request.session['supabase_access_token'] = supabase_response.session.access_token
-                                request.session['supabase_user_id'] = supabase_response.user.id
-                                
-                                messages.success(request, "Login successful after synchronization!")
-                                return redirect('home')
-                            except:
-                                # If Supabase still fails, offer password reset
-                                messages.error(request, "Your account was partially synchronized. Please reset your password to complete synchronization.")
-                                return render(request, 'login.html', {'email': email, 'show_reset': True})
-                        else:
-                            messages.error(request, "Authentication synchronization failed. Please reset your password.")
-                            return render(request, 'login.html', {'email': email, 'show_reset': True})
-                except Customer.DoesNotExist:
+                        # Login successful
+                        login(request, user)
+                        messages.success(request, "Login successful!")
+                        return redirect('home')
+                    else:
+                        messages.error(request, "Invalid email or password.")
+                        return render(request, 'login.html', {'email': email})
+            except Customer.DoesNotExist:
+                print(f"No Customer found with email {email}")
+                
+                # If no Customer but Django user exists, try Django auth
+                user = authenticate(request, username=django_user.username, password=password)
+                if user is not None:
+                    # Create a Customer record if it doesn't exist
+                    Customer.objects.create(
+                        user=django_user,
+                        email=email,
+                        password=password,
+                        first_name=django_user.first_name,
+                        last_name=django_user.last_name,
+                    )
+                    print(f"Created new Customer record for {email}")
+                    
+                    # Login successful
+                    login(request, user)
+                    messages.success(request, "Login successful!")
+                    return redirect('home')
+                else:
                     messages.error(request, "Invalid email or password.")
                     return render(request, 'login.html', {'email': email})
-                
-                messages.error(request, "Invalid email or password.")
-                return render(request, 'login.html', {'email': email})
-                
+        
         except Exception as e:
             messages.error(request, f"Login error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return render(request, 'login.html', {'email': email})
     
     # Add a flag to show password reset option
@@ -342,9 +303,7 @@ def verify_email_callback(request):
     print(f"Verification callback accessed with: token={token}, type={type_param}, redirect_to={redirect_to}")
     
     if type_param == 'signup' and (token or token_hash):
-        # The issue is here - we need to get the email from the token first
-        # Since we don't have the email directly in the URL parameters,
-        # we need to redirect to a page where the user can enter their email
+
         request.session['signup_token'] = token or token_hash
         request.session['signup_type'] = type_param
         
@@ -353,8 +312,7 @@ def verify_email_callback(request):
         
     elif type_param == 'recovery' and (token or token_hash):
         try:
-            # For password recovery, redirect to the complete_password_reset page
-            # Store the token in session
+
             request.session['reset_token'] = token or token_hash
             request.session['reset_type'] = type_param
             
@@ -391,7 +349,6 @@ def complete_password_reset(request):
         type_param = request.session.get('reset_type')
         
         try:
-            # Verify with both email and token
             params = {
                 'email': email,
                 'token': token,
@@ -400,55 +357,56 @@ def complete_password_reset(request):
             
             print(f"Attempting verification with params: {params}")
             supabase_response = settings.SUPABASE.auth.verify_otp(params)
+            print(f"Supabase response: {supabase_response}")
             
-            # If verification successful, update password
-            if supabase_response and hasattr(supabase_response, 'session') and supabase_response.session:
+            if supabase_response:
                 try:
-                    # Update Supabase password if possible
-                    try:
-                        # Try to update the Supabase password using the session token
-                        supabase_session = supabase_response.session.access_token
-                        settings.SUPABASE.auth.sign_in_with_password({
-                            "email": email,
-                            "password": new_password
-                        })
-                        print("Successfully updated Supabase password")
-                    except Exception as supabase_e:
-                        print(f"Could not update Supabase password: {str(supabase_e)}")
-                    
-                    # Update Django user password
+
                     django_user = User.objects.get(email=email)
                     django_user.set_password(new_password)
                     django_user.save()
                     print(f"Updated Django User password for {email}")
                     
-                    # Update Customer model password
+
                     try:
                         customer = Customer.objects.get(email=email)
                         customer.password = new_password
                         customer.save()
                         print(f"Updated Customer model password for {email}")
                     except Customer.DoesNotExist:
-                        print(f"No Customer found with email {email}")
+
+                        Customer.objects.create(
+                            user=django_user,
+                            email=email,
+                            password=new_password,
+                            first_name=django_user.first_name,
+                            last_name=django_user.last_name,
+                        )
+                        print(f"Created new Customer record for {email}")
                     
-                    # Clean up session
-                    del request.session['reset_token']
-                    del request.session['reset_type']
+                    if 'reset_token' in request.session: 
+                        del request.session['reset_token']
+                    if 'reset_type' in request.session:
+                        del request.session['reset_type']
                     
-                    # Store the email in session to pre-fill login form
+
                     request.session['reset_email'] = email
                     
-                    messages.success(request, "Your password has been reset successfully! Please log in with your new password.")
+                    messages.success(request, "Your password has been updated. Please log in with your new password.")
                     return redirect('login')
                 except User.DoesNotExist:
-                    messages.error(request, "User not found.")
+                    messages.error(request, "User not found in our system.")
             else:
-                messages.error(request, "Invalid email or token combination.")
+                messages.error(request, "Invalid verification. Please try resetting your password again.")
+                return redirect('forgot_password')
                 
         except Exception as e:
             messages.error(request, f"Error during password recovery: {str(e)}")
+            import traceback
+            traceback.print_exc()
             
     return render(request, 'complete_password_reset.html')
+
 
 def complete_email_verification(request):
     """Handle the final step of email verification with both email and token."""
@@ -511,3 +469,128 @@ def complete_email_verification(request):
             messages.error(request, f"Error verifying email: {str(e)}")
             
     return render(request, 'complete_email_verification.html')
+
+
+def reset_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if not email or not new_password or not confirm_password:
+            messages.error(request, "All fields are required.")
+            return render(request, 'restPassword.html')
+            
+        if new_password != confirm_password:
+            messages.error(request, "Passwords don't match.")
+            return render(request, 'restPassword.html')
+        
+        try:
+            # Check if user exists
+            try:
+                django_user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                messages.error(request, "No account found with this email.")
+                return render(request, 'restPassword.html')
+            
+            # Update Django User password
+            django_user.set_password(new_password)
+            django_user.save()
+            print(f"Updated Django User password for {email}")
+            
+            # Update Customer model password
+            try:
+                customer = Customer.objects.get(email=email)
+                customer.password = new_password
+                customer.save()
+                print(f"Updated Customer model password for {email}")
+            except Customer.DoesNotExist:
+                # Create Customer if it doesn't exist
+                Customer.objects.create(
+                    user=django_user,
+                    email=email,
+                    password=new_password,
+                    first_name=django_user.first_name,
+                    last_name=django_user.last_name,
+                )
+                print(f"Created new Customer record for {email}")
+            
+            messages.success(request, "Your password has been updated successfully! Please log in with your new password.")
+            return redirect('login')
+            
+        except Exception as e:
+            messages.error(request, f"Error updating password: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    
+    return render(request, 'restPassword.html')
+
+
+def close_account(request):
+    if request.method == 'POST':
+        user = request.user
+        confirmation = request.POST.get('confirm', '')
+        
+        if confirmation != 'DELETE':
+            messages.error(request, "Please type 'DELETE' to confirm account deletion.")
+            return render(request, 'confirm_account_deletion.html')
+        
+        if user.is_authenticated:
+            try:
+                # Get Supabase user ID for the user
+                try:
+                    supabase_user = SupabaseUser.objects.get(user=user)
+                    supabase_id = supabase_user.supabase_id
+
+                    try:
+                        # First attempt with the Supabase client if available
+                        settings.SUPABASE.auth.admin.delete_user(supabase_id)
+                        print(f"Successfully deleted Supabase user with ID: {supabase_id}")
+                    except Exception as supabase_e:
+                        print(f"Could not delete Supabase user with client: {str(supabase_e)}")
+                        
+                        # Fallback to direct HTTP request
+                        import requests
+                        
+
+                        supabase_url = settings.SUPABASE_URL
+                        supabase_key = settings.SUPABASE_KEY  
+                        
+                        headers = {
+                            'Content-Type': 'application/json',
+                            'apikey': supabase_key,
+                            'Authorization': f'Bearer {supabase_key}'
+                        }
+                        
+                        url = f"{supabase_url}/auth/v1/admin/users/{supabase_id}"
+                        
+                        try:
+                            response = requests.delete(url, headers=headers)
+                            if response.status_code == 200:
+                                print(f"Successfully deleted Supabase user with ID: {supabase_id} via API")
+                            else:
+                                print(f"Failed to delete Supabase user via API: {response.status_code}, {response.text}")
+                        except Exception as api_e:
+                            print(f"API call error: {str(api_e)}")
+                            
+                except SupabaseUser.DoesNotExist:
+                    print("No Supabase user record found for this user")
+                
+                # Log the user out
+                logout(request)
+                
+                # Delete Django user (will cascade to Customer due to OneToOneField)
+                user.delete()
+                
+                messages.success(request, "Your account has been successfully deleted.")
+                return redirect('home')  # Redirect to home page
+                
+            except Exception as e:
+                messages.error(request, f"Error deleting account: {str(e)}")
+                return redirect('settings')
+        else:
+            messages.error(request, "You must be logged in to delete your account.")
+            return redirect('login')
+    else:
+        # Display confirmation page for GET requests
+        return render(request, 'confirm_account_deletion.html')
