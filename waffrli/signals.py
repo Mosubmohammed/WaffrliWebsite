@@ -82,15 +82,14 @@ def create_report_status_notification(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Product)
 def notify_owner_when_deal_removed(sender, instance, **kwargs):
-    # Check if this is a new product (no notification needed)
+
     if instance.pk is None:
         return
     
-    # Get the original/existing product before changes
     try:
         original_product = Product.objects.get(pk=instance.pk)
     except Product.DoesNotExist:
-        return  # New product, no notification needed
+        return
     
     # Check if the product has been removed (is_archived changed from False to True)
     if not original_product.is_archived and instance.is_archived:
@@ -99,14 +98,12 @@ def notify_owner_when_deal_removed(sender, instance, **kwargs):
         # Get the owner user
         owner = instance.user
         if not owner:
-            return  # No owner to notify
+            return
         
-        # Create notification for the owner
+
         title = f"Your Deal Has Been Removed: {instance.Name}"
         message = f"Your deal '{instance.Name}' has been removed by an administrator."
-        
-        # Add removal reason if there is an admin comment somewhere
-        # Assuming ReportedDeal might contain the reason in admin_notes
+
         recent_reports = ReportedDeal.objects.filter(product=instance, status='approved').order_by('-updated_at')
         
         if recent_reports.exists() and recent_reports.first().admin_notes:
