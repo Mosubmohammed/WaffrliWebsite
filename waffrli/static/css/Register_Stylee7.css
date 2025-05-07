@@ -15,12 +15,14 @@
   border-radius: 5px;
   font-size: 14px;
   color: white;
-  background-color: #28a745; /* Green for success */
+  background-color: #28a745;
+  /* Green for success */
   transition: opacity 0.5s;
 }
 
 .notification.error {
-  background-color: #dc3545; /* Red for errors */
+  background-color: #dc3545;
+  /* Red for errors */
 }
 
 .notification.hide {
@@ -41,6 +43,32 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   margin: 0%;
+}
+
+.New-Confirmation-container {
+  width: 38rem;
+  height: 27rem;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 70%), 0 10px 10px -5px #e31e24;
+  margin: 5rem 33rem;
+  padding: 6rem;
+}
+
+
+
+
+
+.New-resetContainer {
+  width: 38rem;
+  height: 27rem;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 70%), 0 10px 10px -5px #e31e24;
+  margin: 5rem 34rem;
+  padding: 2rem;
 }
 
 .left-side {
@@ -141,6 +169,7 @@
   font-size: 1rem;
   color: #9ca3af;
 }
+
 .form-group-pic input[type="file"] {
   width: 28%;
   padding: 0px;
@@ -152,6 +181,7 @@
   cursor: pointer;
   transition: all 0.3sease;
 }
+
 .signup-form {
   width: 100%;
 }
@@ -194,8 +224,8 @@
   font-size: 0.875rem;
 }
 
-.form-group input:focus + label,
-.form-group input:not(:placeholder-shown) + label {
+.form-group input:focus+label,
+.form-group input:not(:placeholder-shown)+label {
   top: 0;
   transform: translateY(-50%) scale(0.85);
   background: white;
@@ -216,12 +246,14 @@
   margin-top: 5px;
   flex-direction: column;
 }
+
 .Grnder-form-group {
   display: flex;
   gap: 35px;
   /* margin-top: 8px; */
   margin: 23px 6px;
 }
+
 .radio-option {
   display: flex;
   align-items: center;
@@ -325,6 +357,20 @@
   color: white;
 }
 
+.verify-submit-btn
+ {
+  width: 50%;
+  padding: 0.875rem;
+  background: #000000f5;
+  color: white;
+  border-radius: 34px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.3sease;
+  margin: 1px 7rem;
+}
+
+
 .login-link {
   text-align: center;
   margin-top: 1.5rem;
@@ -341,6 +387,7 @@
 .login-link a:hover {
   text-decoration: underline;
 }
+
 .error-message {
   color: red;
   font-size: 12px;
@@ -359,11 +406,13 @@
 .signIn-form {
   width: 100%;
 }
+
 .img2 {
   width: 50px;
   height: 50px;
   padding: 2rem;
 }
+
 .remember-forgot {
   display: flex;
   justify-content: space-between;
@@ -393,7 +442,7 @@
   display: none;
 }
 
-.remember-label input:checked + .checkbox-custom::after {
+.remember-label input:checked+.checkbox-custom::after {
   content: "✓";
   position: absolute;
   top: 50%;
@@ -535,11 +584,13 @@
 }
 
 .notification.success {
-  background-color: #28a745; /* Green */
+  background-color: #28a745;
+  /* Green */
 }
 
 .notification.error {
-  background-color: #dc3545; /* Red */
+  background-color: #dc3545;
+  /* Red */
 }
 
 .notification.hidden {

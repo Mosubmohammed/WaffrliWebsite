@@ -44,11 +44,14 @@
 .search-results-count {
   font-weight: 700;
   color: #000;
+  font-size: 24px;
 }
 
 #searchTerm {
+
   font-style: italic;
   color: #bd4535;
+  font-size: 21px;
 }
 
 /* ===== Product Grid ===== */
@@ -237,8 +240,8 @@
 
 /* ===== Store Info ===== */
 .store-info {
-  padding: 0;
-  font-size: 13px;
+  padding: 0px 3px;
+  font-size: 11px;
   color: #555;
   font-weight: 500;
 }
@@ -285,18 +288,20 @@
 
 /* ===== Show Deal Button ===== */
 .add-to-cart {
-  margin-left: auto;
-  background: #000000e8;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0px 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex
+    /* margin-left: auto; */
+    background: #000000e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    /* padding: 0px 1px; */
+    font-size: 11px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex
 ;
-  align-items: center;
+    align-items: center;
+    width: max-content;
+    padding: 4px;
 }
 
 .add-to-cart:hover {
