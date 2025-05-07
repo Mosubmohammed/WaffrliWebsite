@@ -225,8 +225,9 @@ textarea.form-control {
 }
 
 .send-message-button:hover {
-  background-color: #2954d3;
+  background-color: #ffc2c2;
   transform: translateY(-1px);
+  border: 1px solid black;
 }
 
 .message-title {

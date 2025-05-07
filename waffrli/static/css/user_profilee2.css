@@ -2,6 +2,8 @@
   background: white;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
 }
 
 .user-navbar ul {
@@ -23,9 +25,10 @@
   border-radius: 6px;
   transition: all 0.2s;
 }
+
 .customer-new-deal-card {
   background: linear-gradient(to right, #f0fdfa, #858585);
- /* border: 1px solid #000000;*/
+  /* border: 1px solid #000000;*/
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
@@ -36,12 +39,15 @@
   display: block;
   margin-bottom: 1rem;
 }
+
 .customer-deal-text {
   color: #4b5563;
   margin-bottom: 1.5rem;
 }
-.customer-post-deal-btn{
-  background: #e31e24;;
+
+.customer-post-deal-btn {
+  background: #e31e24;
+  ;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -50,9 +56,11 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.customer-post-deal-btn:hover{
-  background: #000000;
+
+.customer-post-deal-btn:hover {
+  background: #000000;
 }
+
 .user-nav-link:hover {
   background: rgba(0, 0, 0, 0.05);
   color: #e31e24;
@@ -66,6 +74,7 @@
 .user-nav-icon {
   margin-right: 0.5rem;
 }
+
 .customer-container {
   max-width: 64rem;
   margin: 2rem auto;
@@ -75,7 +84,7 @@
 /* Profile Card */
 .customer-profile-card {
   background: white;
-  border-radius: 0.75rem;
+
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -123,11 +132,13 @@
   margin-top: 0.5rem;
   display: flex;
   gap: 1rem;
-  font-size: small;
+  font-size: 12px;
 }
+
 .customer-follow-icon {
   margin-right: 0.25rem;
 }
+
 .customer-stat-link {
   color: rgb(75, 85, 99);
   text-decoration: none;
@@ -214,6 +225,7 @@
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
 }
+
 /* Stats Grid */
 .customer-stats-grid {
   display: grid;
@@ -352,9 +364,11 @@
   margin-right: 0.25rem;
   color: rgb(0, 0, 0);
 }
+
 .customer-deal-meta span {
   color: black;
 }
+
 .customer-deal-stats {
   display: flex;
   justify-content: space-between;
@@ -409,6 +423,7 @@
   align-items: center;
   gap: 0.25rem;
 }
+
 .deal-pic {
   width: 130px;
   height: 130px;
@@ -416,6 +431,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 /* Modal */
 .customer-modal {
   display: none;
@@ -523,6 +539,7 @@ textarea:focus {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -533,6 +550,7 @@ textarea:focus {
     transform: scale(0.95);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

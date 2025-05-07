@@ -15,10 +15,12 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   text-decoration: none;
 }
+
 a {
   /* color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1)); */
-  text-decoration: none; 
+  text-decoration: none;
 }
+
 body {
   background-color: #f5f5f5;
   /* background-color: yellow; */
@@ -42,7 +44,8 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   animation: popup-slide-in 0.3s ease-out forwards;
-  border-left: 4px solid #6c757d; /* Secondary color border */
+  border-left: 4px solid #6c757d;
+  /* Secondary color border */
 }
 
 .popup-content {
@@ -75,6 +78,7 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -87,6 +91,7 @@ body {
     transform: translateX(0);
     opacity: 1;
   }
+
   to {
     transform: translateX(100%);
     opacity: 0;
@@ -96,6 +101,7 @@ body {
 .popup-message.fade-out {
   animation: popup-fade-out 0.3s ease-in forwards;
 }
+
 /* Top Bar */
 .top-bar {
   background-color: #000000;
@@ -123,22 +129,26 @@ body {
   display: flex;
   gap: 20px;
 }
+
 .account-section span {
   color: white;
   text-decoration: none;
   font-size: smaller;
 }
+
 .account-section a,
 span {
   color: white;
   text-decoration: none;
   font-size: smaller;
 }
+
 .account-section span:hover {
   color: rgb(241, 38, 38);
   text-decoration: none;
   font-size: smaller;
 }
+
 .account-section a:hover {
   color: rgb(241, 38, 38);
   text-decoration: none;
@@ -164,6 +174,7 @@ span {
   transform: scale(1.05);
   color: #e31e24;
 }
+
 /* Search Bar */
 .search-section {
   background-color: #000000;
@@ -172,22 +183,28 @@ span {
   justify-content: space-between;
   align-items: center;
 }
-button[type="submit"] {
+
+
+.search-submit-btn {
   background-color: #b40707a6;
   color: white;
   border: 2px solid #3f030333;
   border-radius: 33px;
 }
+
+
 .search-container {
   display: flex;
   flex-grow: 1;
   max-width: 600px;
   margin: 0 auto;
 }
+
 .search-container form {
   display: flex;
   width: 100%;
 }
+
 .search-container select {
   padding: 10px;
   border: none;
@@ -210,6 +227,7 @@ button[type="submit"] {
   border-radius: 0 4px 4px 0;
   cursor: pointer;
 }
+
 .search-button:hover {
   background-color: #c01232;
 }
@@ -256,6 +274,7 @@ button[type="submit"] {
   min-width: 18px;
   text-align: center;
 }
+
 .dropdown-select {
   padding: 10px 15px;
   border: none;
@@ -384,6 +403,7 @@ button[type="submit"] {
 }
 
 @media (max-width: 992px) {
+
   .contact-info,
   .account-section {
     display: none;
@@ -562,15 +582,16 @@ header {
     height: auto;
     text-align: center;
   }
-  
+
   .welcome-content {
     padding: 0;
   }
-  
+
   .welcome-image {
     display: none;
   }
 }
+
 /* Category Banners */
 .category-banners {
   display: grid;
@@ -643,15 +664,18 @@ header {
   font-size: 24px;
   font-weight: 700;
 }
+
 .fa-map-marker-alt,
 .fa-fire {
   margin-right: 10px;
   color: #ff4444;
 }
+
 h2 .fa-star {
   margin-right: 10px;
   color: #ffd700;
 }
+
 .view-more {
   display: flex;
   align-items: center;
@@ -682,6 +706,7 @@ h2 .fa-star {
   background-color: var(--primary);
   color: white;
 }
+
 .slider-controls {
   display: flex;
   gap: 10px;
@@ -702,7 +727,10 @@ h2 .fa-star {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+
 }
+
+
 
 .prev-grid-btn:hover,
 .next-grid-btn:hover {
@@ -722,11 +750,13 @@ h2 .fa-star {
   gap: 20px;
   transition: transform 0.3s ease-in-out;
 }
+
 .All-product-wrapper {
   overflow: hidden;
   margin: 0 auto;
   padding: 20px 0;
 }
+
 .All-product-card {
   background-color: white;
   overflow: hidden;
@@ -793,6 +823,7 @@ h2 .fa-star {
 .All-product-card.expired .quick-actions {
   display: none;
 }
+
 /* Product Grid */
 .product-grid {
   display: grid;
@@ -800,6 +831,7 @@ h2 .fa-star {
   gap: 20px;
   transition: transform 0.3s ease-in-out;
 }
+
 .product-card {
   background-color: white;
 
@@ -993,8 +1025,8 @@ h2 .fa-star {
   display: flex;
   align-items: center;
   justify-content: center;
-} 
-  
+}
+
 .add-to-cart {
   background-color: var(--primary);
   color: white;
@@ -1006,7 +1038,7 @@ h2 .fa-star {
   transition: background-color 0.3s ease;
   white-space: normal;
 }
-  
+
 .rating-count,
 .comment-count {
   font-size: 12px;
@@ -1040,6 +1072,7 @@ h2 .fa-star {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1051,6 +1084,7 @@ h2 .fa-star {
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -1100,7 +1134,7 @@ h2 .fa-star {
 .all-prev-btn:hover,
 .all-next-btn:hover {
   background: #cc000086;
- 
+
 }
 
 @keyframes fadeIn {
@@ -1108,6 +1142,7 @@ h2 .fa-star {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1120,26 +1155,31 @@ h2 .fa-star {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-height: 300px; /* Reduced height */
+  max-height: 300px;
+  /* Reduced height */
 }
 
 .hot-deal-product img {
-  max-height: 200px; /* Reduced image height */
+  max-height: 200px;
+  /* Reduced image height */
   width: auto;
   object-fit: contain;
 }
 
 .hot-deal-content {
   text-align: center;
-  padding: 20px; /* Reduced padding */
+  padding: 20px;
+  /* Reduced padding */
 }
 
 .countdown {
-  margin: 15px 0; /* Reduced margin */
+  margin: 15px 0;
+  /* Reduced margin */
 }
 
 .countdown-item {
-  padding: 10px 15px; /* Reduced padding */
+  padding: 10px 15px;
+  /* Reduced padding */
 }
 
 .hot-deal-content {
@@ -1210,9 +1250,11 @@ h2 .fa-star {
   0% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-15px);
   }
+
   100% {
     transform: translateY(0px);
   }
@@ -1233,6 +1275,7 @@ h2 .fa-star {
 .mini-product.expired .mini-product-image img {
   filter: grayscale(50%);
 }
+
 /* category Section */
 
 .Categoy-selling-grid {
@@ -1241,6 +1284,7 @@ h2 .fa-star {
   gap: 15px;
   margin-bottom: 30px;
 }
+
 .category-links {
   display: flex;
   align-items: center;
@@ -1262,6 +1306,7 @@ h2 .fa-star {
   color: #ccc;
   font-size: 0.8rem;
 }
+
 /*
 .mini-product {
   display: flex;
@@ -1298,6 +1343,7 @@ h2 .fa-star {
   flex: 1;
   position: relative;
 }
+
 .discount-badge {
   position: absolute;
   top: -10px;
@@ -1314,6 +1360,7 @@ h2 .fa-star {
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
 .mini-product-title {
   font-size: 16px;
   font-weight: 600;
@@ -1337,7 +1384,7 @@ h2 .fa-star {
   border-radius: 15px;
   padding: 4px 8px;
   color: white;
-  font-size:13.75px;
+  font-size: 13.75px;
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
@@ -1356,6 +1403,7 @@ h2 .fa-star {
 .popularity-badge .views i {
   color: #ffd700;
 }
+
 .popular-products-slider {
   overflow: hidden;
   position: relative;
@@ -1381,6 +1429,7 @@ h2 .fa-star {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .popular-prev-btn:hover,
@@ -1400,9 +1449,11 @@ h2 .fa-star {
   .category-banners {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .Categoy-selling-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1412,19 +1463,24 @@ h2 .fa-star {
   .nav-links {
     display: none;
   }
+
   .mobile-menu {
     display: block;
   }
+
   .hot-deal-container {
     flex-direction: column;
   }
+
   .hot-deal-content,
   .hot-deal-images {
     width: 100%;
   }
+
   .hot-deal-images {
     margin-top: 30px;
   }
+
   .countdown-item {
     width: 50px;
     height: 50px;
@@ -1435,22 +1491,28 @@ h2 .fa-star {
   .category-banners {
     grid-template-columns: 1fr;
   }
+
   .product-grid {
     grid-template-columns: 1fr;
   }
+
   .Categoy-selling-grid {
     grid-template-columns: 1fr;
   }
+
   .countdown {
     gap: 10px;
   }
+
   .countdown-item {
     width: 45px;
     height: 45px;
   }
+
   .countdown-number {
     font-size: 16px;
   }
+
   .countdown-text {
     font-size: 10px;
   }
@@ -1478,6 +1540,7 @@ h2 .fa-star {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1488,6 +1551,7 @@ h2 .fa-star {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1499,11 +1563,13 @@ h2 .fa-star {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
+
 /* Hot Deal Section - Horizontal Layout */
 .hot-deal {
   background-color: #f0f2f5;
@@ -1610,9 +1676,11 @@ h2 .fa-star {
   0% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-15px);
   }
+
   100% {
     transform: translateY(0px);
   }
@@ -1805,6 +1873,7 @@ margin-bottom: 40px;
   padding: 5px 6px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .prev-btn:hover,
@@ -1817,11 +1886,13 @@ margin-bottom: 40px;
   margin-bottom: 20px;
   transition: all 0.3s ease-in-out;
 }
+
 @keyframes slideLeft {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -1833,6 +1904,7 @@ margin-bottom: 40px;
     transform: translateX(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -1933,6 +2005,7 @@ margin-bottom: 40px;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
 }
+
 .nav-controls span {
   cursor: pointer;
   padding: 5px 10px;
@@ -1943,11 +2016,13 @@ margin-bottom: 40px;
   color: #ff3333;
   transform: scale(1.1);
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1980,11 +2055,9 @@ margin-bottom: 40px;
   overflow: hidden;
   /* margin: 20px 9rem; */
   margin: 40px 8rem;
-  background: linear-gradient(
-    135deg,
-    rgba(224, 6, 6, 0.9),
-    rgba(231, 54, 54, 0.9)
-  );
+  background: linear-gradient(135deg,
+      rgba(224, 6, 6, 0.9),
+      rgba(231, 54, 54, 0.9));
 }
 
 .featured-deals-container {
@@ -2192,6 +2265,7 @@ margin-bottom: 40px;
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -2203,11 +2277,13 @@ margin-bottom: 40px;
     transform: translateX(0);
     opacity: 1;
   }
+
   to {
     transform: translateX(100%);
     opacity: 0;
   }
 }
+
 /* Footer Styles */
 .footer {
   background-color: #000000;
@@ -2330,6 +2406,7 @@ margin-bottom: 40px;
 .payment-icons a:hover {
   opacity: 0.8;
 }
+
 @media (max-width: 768px) {
   .footer-section {
     width: 46%;
