@@ -1011,7 +1011,7 @@ h2 .fa-star {
 .comment-count {
   font-size: 12px;
   color: black;
-  /* padding-right: 17px;  */
+  padding: 6px;
 }
 
 
@@ -1089,18 +1089,18 @@ h2 .fa-star {
 .all-prev-btn,
 .all-next-btn {
   background: #ff3333;
-  color: rgb(27, 4, 4);
+  color: white;
   border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
+  padding: 5px 6px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .all-prev-btn:hover,
 .all-next-btn:hover {
-  background: #cc0000;
-  transform: scale(1.05);
+  background: #cc000086;
+ 
 }
 
 @keyframes fadeIn {
@@ -1337,7 +1337,7 @@ h2 .fa-star {
   border-radius: 15px;
   padding: 4px 8px;
   color: white;
-  font-size: 0.75rem;
+  font-size:13.75px;
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
@@ -1377,15 +1377,16 @@ h2 .fa-star {
   background: #ff3333;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 5px 6px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 }
 
 .popular-prev-btn:hover,
 .popular-next-btn:hover {
-  background: #cc0000;
+  background: #cc000086;
+
 }
 
 /* Responsive Design */
@@ -1463,7 +1464,7 @@ h2 .fa-star {
 
 .slide-up {
   animation: slideUp 0.8s ease forwards;
-  opacity: 0;
+
   transform: translateY(20px);
 }
 
@@ -1798,20 +1799,18 @@ margin-bottom: 40px;
 
 .prev-btn,
 .next-btn {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10%;
-  background-color: #f8c4c4;
+  background: #ff3333;
+  color: white;
+  border: none;
+  padding: 5px 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 .prev-btn:hover,
 .next-btn:hover {
-  background-color: #e1e1e1;
+  background: #cc000086;
+
 }
 
 .mini-product-item {
@@ -1840,16 +1839,7 @@ margin-bottom: 40px;
   }
 }
 
-.nav-controls .prev-btn,
-.nav-controls .next-btn {
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
 
-.nav-controls .prev-btn:hover,
-.nav-controls .next-btn:hover {
-  color: var(--primary);
-}
 .category-label {
   font-size: 12px;
   color: #999;
@@ -1988,7 +1978,8 @@ margin-bottom: 40px;
   width: 80%;
   height: 180px;
   overflow: hidden;
-  margin: 20px 9rem;
+  /* margin: 20px 9rem; */
+  margin: 40px 8rem;
   background: linear-gradient(
     135deg,
     rgba(224, 6, 6, 0.9),
@@ -2120,17 +2111,10 @@ margin-bottom: 40px;
 }
 
 .slider-btn:hover {
-  background: white;
-  color: #ff6666;
+
+  color: #f31111;
 }
 
-.prev-btn {
-  left: 15px;
-}
-
-.next-btn {
-  right: 15px;
-}
 /* Static/css/error-handler.css */
 
 .js-error-container {
