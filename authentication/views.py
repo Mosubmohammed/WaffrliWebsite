@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+import requests
 from .models import SupabaseUser 
 from waffrli.models import Customer
 from django.conf import settings
@@ -110,10 +111,8 @@ def login_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         
-        print(f"Attempting login for email: {email}")
         
         try:
-            # Check if user exists in Django
             try:
                 django_user = User.objects.get(email=email)
                 print(f"Found Django user: {django_user.username}")
@@ -121,37 +120,32 @@ def login_view(request):
                 messages.error(request, "Invalid email or password.")
                 return render(request, 'login.html', {'email': email})
             
-            # Try the Customer model directly first
+
             try:
                 customer = Customer.objects.get(email=email)
                 if customer.password == password:
-                    # If Customer password matches, sync Django user password if needed
                     if not django_user.check_password(password):
                         django_user.set_password(password)
                         django_user.save()
-                        print(f"Updated Django User password to match Customer model for {email}")
-                    
-                    # Authenticate with Django
+
                     user = authenticate(request, username=django_user.username, password=password)
                     if user is not None:
-                        # Login successful
+
                         login(request, user)
                         messages.success(request, "Login successful!")
                         return redirect('home')
                     else:
-                        print(f"Django authentication failed even after password sync")
                         messages.error(request, "Authentication error. Please try again.")
                         return render(request, 'login.html', {'email': email})
                 else:
-                    # If Customer password doesn't match, try Django auth directly
+
                     user = authenticate(request, username=django_user.username, password=password)
                     if user is not None:
-                        # If Django auth works, update Customer password
+
                         customer.password = password
                         customer.save()
-                        print(f"Updated Customer model password during login for {email}")
                         
-                        # Login successful
+
                         login(request, user)
                         messages.success(request, "Login successful!")
                         return redirect('home')
@@ -159,12 +153,9 @@ def login_view(request):
                         messages.error(request, "Invalid email or password.")
                         return render(request, 'login.html', {'email': email})
             except Customer.DoesNotExist:
-                print(f"No Customer found with email {email}")
                 
-                # If no Customer but Django user exists, try Django auth
                 user = authenticate(request, username=django_user.username, password=password)
                 if user is not None:
-                    # Create a Customer record if it doesn't exist
                     Customer.objects.create(
                         user=django_user,
                         email=email,
@@ -172,9 +163,7 @@ def login_view(request):
                         first_name=django_user.first_name,
                         last_name=django_user.last_name,
                     )
-                    print(f"Created new Customer record for {email}")
-                    
-                    # Login successful
+
                     login(request, user)
                     messages.success(request, "Login successful!")
                     return redirect('home')
@@ -184,16 +173,12 @@ def login_view(request):
         
         except Exception as e:
             messages.error(request, f"Login error: {str(e)}")
-            import traceback
-            traceback.print_exc()
             return render(request, 'login.html', {'email': email})
-    
-    # Add a flag to show password reset option
     show_reset = request.GET.get('reset', False)
     
     return render(request, 'login.html', {'email': reset_email, 'show_reset': show_reset})
 
-def logout_user(request):
+def logout_view(request):
     try:
         settings.SUPABASE.auth.sign_out()
     except:
@@ -538,36 +523,41 @@ def close_account(request):
         if user.is_authenticated:
             try:
                 # Get Supabase user ID for the user
+                supabase_deleted = False
                 try:
                     supabase_user = SupabaseUser.objects.get(user=user)
                     supabase_id = supabase_user.supabase_id
-
+                    
                     try:
-                        # First attempt with the Supabase client if available
+                        # First attempt with the Supabase client
                         settings.SUPABASE.auth.admin.delete_user(supabase_id)
                         print(f"Successfully deleted Supabase user with ID: {supabase_id}")
+                        supabase_deleted = True
                     except Exception as supabase_e:
                         print(f"Could not delete Supabase user with client: {str(supabase_e)}")
                         
-                        # Fallback to direct HTTP request
-                        import requests
-                        
-
                         supabase_url = settings.SUPABASE_URL
-                        supabase_key = settings.SUPABASE_KEY  
-                        
+                        supabase_service_key = settings.SUPABASE_SERVICE_KEY  # Use service role key for admin operations
+
                         headers = {
                             'Content-Type': 'application/json',
-                            'apikey': supabase_key,
-                            'Authorization': f'Bearer {supabase_key}'
+                            'apikey': supabase_service_key,
+                            'Authorization': f'Bearer {supabase_service_key}'
                         }
                         
                         url = f"{supabase_url}/auth/v1/admin/users/{supabase_id}"
                         
+                        # Print debug info
+                        print(f"Attempting to delete user via API at: {url}")
+                        
                         try:
                             response = requests.delete(url, headers=headers)
-                            if response.status_code == 200:
+                            print(f"Response status: {response.status_code}")
+                            print(f"Response body: {response.text}")
+                            
+                            if response.status_code in [200, 204]:  # Both are valid success codes
                                 print(f"Successfully deleted Supabase user with ID: {supabase_id} via API")
+                                supabase_deleted = True
                             else:
                                 print(f"Failed to delete Supabase user via API: {response.status_code}, {response.text}")
                         except Exception as api_e:
@@ -576,21 +566,27 @@ def close_account(request):
                 except SupabaseUser.DoesNotExist:
                     print("No Supabase user record found for this user")
                 
-                # Log the user out
-                logout(request)
+                # Log the user out - import auth_logout at the top of your file
+                from django.contrib.auth import logout as auth_logout
+                auth_logout(request)
                 
-                # Delete Django user (will cascade to Customer due to OneToOneField)
+                # Delete Django user
                 user.delete()
                 
-                messages.success(request, "Your account has been successfully deleted.")
-                return redirect('home')  # Redirect to home page
+                if supabase_deleted:
+                    messages.success(request, "Your account has been successfully deleted from all systems.")
+                else:
+                    messages.success(request, "Your account has been deleted from our system, but there might have been an issue with external services.")
+                    # You could log this for admin follow-up
+                
+                return redirect('home')
                 
             except Exception as e:
                 messages.error(request, f"Error deleting account: {str(e)}")
                 return redirect('settings')
         else:
             messages.error(request, "You must be logged in to delete your account.")
-            return redirect('login')
+            return redirect('login')  # Use the URL name 'login', not the function name
     else:
         # Display confirmation page for GET requests
         return render(request, 'confirm_account_deletion.html')

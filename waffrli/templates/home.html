@@ -3,44 +3,7 @@
 
 <main>
   <div class="Category-container">
-    <!-- Category Banners
-    <div class="category-banners fade-in">
-      <div class="category-banner">
-        <a href="{% url 'category' 'Laptops' %}">
-          <div class="banner-content">
-            <h3>Laptop Collection</h3>
-            <p>Exclusive deals</p>
-          </div>
-          <div class="banner-image">
-            <img src="{% static 'img/product04.png' %}" alt="Laptop">
-          </div>
-        </a>
-      </div>
-      
-      <div class="category-banner">
-        <a href="{% url 'category' 'ComputersAccessories' %}">
-          <div class="banner-content">
-            <h3>Accessories Collection</h3>
-            <p>Top brands</p>
-          </div>
-          <div class="banner-image">
-            <img src="{% static 'img/product02.png' %}" alt="Accessories">
-          </div>
-        </a>
-      </div>
-      
-      <div class="category-banner">
-        <a href="{% url 'category' 'cameras' %}">
-          <div class="banner-content">
-            <h3>Cameras Collection</h3>
-            <p>Special offers</p>
-          </div>
-          <div class="banner-image">
-            <img src="{% static 'img/product09.png' %}" alt="Cameras">
-          </div>
-        </a>
-      </div>
-    </div> -->
+
 
     <div class="welcome-section fade-in">
       <div class="welcome-banner">
@@ -67,7 +30,7 @@
     <div class="product-grid slide-up">
         {% for product in products %}
         {% if product.distance_to is not None %}
-        <div class="product-card {% if product.is_expired %}expired{% endif %}">
+        <div class="product-card {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           {% if product.is_expired %}
           <div class="expired-overlay">
             <span class="expired-tag">EXPIRED</span>
@@ -140,13 +103,6 @@
             </button>
             
           
-
-            <!-- View product button -->
-            <a href="{% url 'product' product.id %}">
-              <button class="add-to-cart {% if product.is_expired %}expired-btn{% endif %}" {% if product.is_expired %}disabled{% endif %}>
-                {% if product.is_expired %}Expired{% else %}Show the deal {% endif %}
-              </button>
-            </a>
           </div>
         </div>
         {% endif %}
@@ -580,8 +536,28 @@
 
 
 <script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Check if the click wasn't on an interactive element
+        if (!e.target.closest('.action-btn') && 
+            !e.target.closest('.like-btn') && 
+            !e.target.closest('.comment-btn') && 
+            !e.target.closest('.add-to-cart') &&
+            !e.target.closest('a')) {
+          const productUrl = this.getAttribute('data-product-url');
+          if (productUrl) {
+            window.location.href = productUrl;
+          }
+        }
+      });
+    });
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
-    // Like button functionality
       // Like button functionality
       document.querySelectorAll(".like-btn").forEach((button) => {
         button.addEventListener("click", function (event) {
