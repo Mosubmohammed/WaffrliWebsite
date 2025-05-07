@@ -36,7 +36,6 @@ body {
 }
 .container   {
   min-height: 100vh;
-  background-color: #f5f5f7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,6 +373,9 @@ body {
   color: #6e6e73;
   font-size: 13px;
   flex-direction: row-reverse;
+}
+.deal-stats a{
+color: black;
 }
 
 .stat-item {
@@ -1231,9 +1233,10 @@ body {
 .price-highlight {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: #f35959;
+  background: gainsboro;
   border-radius: 6px;
-  color: white;
+  color: black;
+  height: 3.7rem;
 }
 
 .price-highlight p {

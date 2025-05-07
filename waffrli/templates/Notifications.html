@@ -128,7 +128,6 @@
     const isCurrentlyRead = notification.getAttribute("data-read") === "true";
 
     if (isCurrentlyRead) {
-      // Mark as unread (not implemented in your view, so we'll just mark as read again)
       markAsRead(id);
     } else {
       markAsRead(id);
@@ -177,7 +176,37 @@
         console.error("Error marking notification as read:", error)
       );
   }
-
+  function markAsUnread(id) {
+    const notification = document.querySelector(`.notification-item[data-id="${id}"]`);
+    
+    fetch(`/mark_notification_unread/${id}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          notification.classList.add("unread");
+          notification.setAttribute("data-read", "false");
+          notification.querySelector(".mark-read-btn").textContent = "Mark as read";
+  
+          if (currentTab === "read") {
+            notification.style.display = "none";
+            const visibleNotifications = document.querySelectorAll(
+              '.notification-item[style="display: flex;"]'
+            );
+            if (visibleNotifications.length === 0) {
+              emptyState.style.display = "flex";
+            }
+          }
+        }
+      })
+      .catch((error) => console.error("Error marking notification as unread:", error));
+  }
+  
   // Mark all notifications as read
   function markAllAsRead() {
     fetch("/mark_all_read/", {

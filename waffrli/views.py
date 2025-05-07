@@ -10,6 +10,7 @@ from django.urls import reverse
 from waffrli.filters import ProductFilter
 from .models import *
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.db.models import Count, F, ExpressionWrapper, FloatField,Sum
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -30,7 +31,7 @@ def home(request):
     for product in products:
         product.is_expired = product.expires_at <= current_time if product.expires_at else False
     
-    # Get specific categories
+
     try:
         phones_category = Category.objects.get(name__icontains='Phones')
     except Category.DoesNotExist:
@@ -46,7 +47,6 @@ def home(request):
     except Category.DoesNotExist:
         bags_category = None
     
-    # Get products for each category
     phone_products = []
     computer_products = []
     bag_products = []
@@ -91,7 +91,6 @@ def home(request):
         ).exclude(id__in=[p.id for p in bag_products])[:4-len(bag_products)]
         bag_products = list(bag_products) + list(additional_bags)
     
-    # Provide the products in the context
     context = {
         'products': products,
         'phone_products': phone_products,
@@ -104,14 +103,13 @@ def home(request):
 
 
 def product_list(request, page_type=None, category=None):
-    # Build base queryset according to page type
+
     products = get_base_queryset(request, page_type, category)
     
-    # Apply filters
+
     filter_set = ProductFilter(request.GET, queryset=products, request=request)
     filtered_products = filter_set.qs
     
-    # Handle distance-based sorting if user has location
     user_location = get_user_location(request)
     if request.GET.get('sort_by') == 'distance' and user_location['has_location']:
         filtered_products = sort_by_distance(
@@ -120,19 +118,18 @@ def product_list(request, page_type=None, category=None):
             user_location['lng']
         )
     
-    # Get daily deals if this is the popular page
     daily_deals = []
     if page_type == 'popular':
         current_time = timezone.now()
         
-        # Get top 3 deals with highest discount
+
         daily_deals = Product.objects.filter(
             is_archived=False,
             sale_price__isnull=False,
             Price__gt=0,
-            expires_at__gt=current_time  # Only include non-expired deals
+            expires_at__gt=current_time
         ).exclude(
-            sale_price__gte=F('Price')   # Exclude items with no discount
+            sale_price__gte=F('Price') 
         ).annotate(
             discount_percentage=ExpressionWrapper(
                 ((F('Price') - F('sale_price')) * 100) / F('Price'),
@@ -140,15 +137,11 @@ def product_list(request, page_type=None, category=None):
             )
         ).order_by('-discount_percentage')[:3]
         
-        # Add additional attributes to daily deals for display
+
         for deal in daily_deals:
-            # Calculate actual discount percentage
             deal.discount_percentage = round(deal.discount_percentage)
-            
-            # Generate progress percentage based on views and likes
             deal.progress_percentage = min(deal.views // 5 + deal.likes.count() * 10, 90)
             
-            # Add status text based on deal properties
             likes_count = deal.likes.count()
             views_count = deal.views
             
@@ -165,23 +158,18 @@ def product_list(request, page_type=None, category=None):
                 deal.status_icon = "⭐"
                 deal.status_text = "Popular Choice"
     
-    # Handle AJAX/JSON requests
     if is_ajax_request(request):
         return JsonResponse({
             'products': format_products_for_json(filtered_products, request, user_location)
         })
     
-    # Handle pagination
     page_obj = paginate_products(request, filtered_products)
     
-    # Calculate distances for products in current page if user has location
     if user_location['has_location']:
         add_distances_to_products(page_obj, user_location['lat'], user_location['lng'])
     
-    # Get filter options (unique stores, cities, brands)
     filter_options = get_filter_options(filtered_products)
-    
-    # Prepare context
+
     context = {
         'products': page_obj,
         'page_obj': page_obj,
@@ -203,23 +191,22 @@ def product_list(request, page_type=None, category=None):
         'sort_by': request.GET.get('sort_by', ''),
         'user_has_location': user_location['has_location'],
         'include_expired': request.GET.get('include_expired') == 'true',
-        'daily_deals': daily_deals,  # Add daily deals to context
+        'daily_deals': daily_deals, 
     }
     
-    # Choose the appropriate template
     template = get_template_for_page(page_type, category)
     
     return render(request, template, context)
 
+
+
 def get_base_queryset(request, page_type, category):
-    """Get the base queryset according to page type and category."""
     if page_type == 'hot_deals' and not any([
         request.GET.getlist('store'), 
         request.GET.getlist('location'), 
         request.GET.getlist('brand')
     ]):
-        # Hot deals with no filters - apply 70% discount requirement
-        # We can use the model's is_hot_deal method to filter products with >=70% discount
+
         hot_deals = Product.objects.filter(
             sale_price__isnull=False,
             Price__gt=0
@@ -235,7 +222,6 @@ def get_base_queryset(request, page_type, category):
         return hot_deals
     
     elif page_type == 'hot_deals':
-        # Hot deals with filters - basic criteria without 70% requirement
         return Product.objects.filter(
             sale_price__isnull=False,
             Price__gt=0
@@ -249,7 +235,6 @@ def get_base_queryset(request, page_type, category):
         ).select_related('category', 'user', 'customer_pic_id')
     
     elif page_type == 'popular':
-        # Popular deals based on likes and views
         return Product.objects.annotate(
             like_count=Count('likes'),
             popularity_score=ExpressionWrapper(
@@ -259,16 +244,16 @@ def get_base_queryset(request, page_type, category):
         ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')
     
     elif category:
-        # Category filter
+
         category_obj = get_object_or_404(Category, name__iexact=category.replace('-', ' ').strip())
         return Product.objects.filter(category=category_obj).select_related('category', 'user', 'customer_pic_id')
     
     else:
-        # All products
         return Product.objects.all().select_related('category', 'user', 'customer_pic_id')
 
+
+
 def get_user_location(request):
-    """Extract user location data if available."""
     result = {'has_location': False, 'lat': None, 'lng': None}
     
     if request.user.is_authenticated:
@@ -283,21 +268,18 @@ def get_user_location(request):
     
     return result
 
+
 def sort_by_distance(queryset, user_lat, user_lng):
-    """Sort products by distance to user."""
     products_list = list(queryset)
     
-    # Calculate distances
     for product in products_list:
         if product.latitude is not None and product.longitude is not None:
             product.distance_to = product.distance_to(user_lat, user_lng)
         else:
             product.distance_to = float('inf')
-    
-    # Sort by distance
+
     products_list.sort(key=lambda x: x.distance_to if isinstance(x.distance_to, (int, float)) else float('inf'))
     
-    # Convert back to a Django queryset with preserved order
     product_ids = [p.id for p in products_list]
     
     if product_ids:
@@ -306,37 +288,32 @@ def sort_by_distance(queryset, user_lat, user_lng):
     
     return queryset
 
+
 def is_ajax_request(request):
     """Determine if this is an AJAX/JSON request."""
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET
 
+
 def format_products_for_json(products, request, user_location):
-    """Format products for JSON response (without using serializers)."""
     products_data = []
     
     for product in products:
-        # Get customer pic URL if available
         customer_pic_url = None
         if product.customer_pic_id and product.customer_pic_id.image:
             customer_pic_url = product.customer_pic_id.image.url
         
-        # Use the model's get_discount_percentage method
         discount_percentage = getattr(product, 'discount_percentage', None)
         if discount_percentage is None:
             discount_percentage = product.get_discount_percentage()
         
-        # Check if liked by current user
         liked_by_user = request.user in product.likes.all() if request.user.is_authenticated else False
         
-        # Calculate distance using the model's distance_to method
         distance = None
         if user_location['has_location'] and product.latitude and product.longitude:
             distance = product.distance_to(user_location['lat'], user_location['lng'])
         
-        # Use the model's get_savings_amount method for savings
         savings = product.get_savings_amount()
         
-        # Check if product is expired
         is_expired = product.is_expired()
         
         products_data.append({
@@ -366,6 +343,8 @@ def format_products_for_json(products, request, user_location):
         })
     
     return products_data
+
+
 # Updated pagination function to ensure ordering
 def paginate_products(request, products):
     """Handle pagination logic with consistent ordering."""
@@ -405,7 +384,6 @@ def paginate_products(request, products):
             return paginator.page(paginator.num_pages)
 
 def add_distances_to_products(products, user_lat, user_lng):
-    """Add distance attribute to each product in the collection."""
     for product in products:
         if product.latitude and product.longitude:
             product.distance_to = product.distance_to(user_lat, user_lng)
@@ -413,20 +391,16 @@ def add_distances_to_products(products, user_lat, user_lng):
             product.distance_to = None
 
 def get_filter_options(products):
-    """Get unique values for filter dropdowns."""
-    # Get unique store names (case-insensitive)
+
     store_values = products.values_list('store', flat=True)
     stores_list = sorted(set(store.strip().lower() for store in store_values if store), key=lambda x: x.lower())
     
-    # Get unique city names (case-insensitive)
     city_values = products.values_list('city', flat=True)
     cities_list = sorted(set(city.strip().lower() for city in city_values if city), key=lambda x: x.lower())
     
-    # Get unique brand names (case-insensitive)
     brand_values = products.values_list('brand', flat=True)
     brands_list = sorted(set(brand.strip().lower() for brand in brand_values if brand), key=lambda x: x.lower())
     
-    # Define list of main Jordan cities
     jordan_cities = [
         'Amman', 'Zarqa', 'Irbid', 'Aqaba', 'Salt', 'Madaba', 'Jerash',
         'Ajloun', 'Mafraq', 'Tafilah', 'Karak', 'Ma\'an', 'Ramtha', 'Sahab', 
@@ -439,7 +413,6 @@ def get_filter_options(products):
         if city and city.capitalize() not in jordan_cities:
             jordan_cities.append(city.capitalize())
     
-    # Sort the cities alphabetically
     jordan_cities.sort()
     
     return {
@@ -449,8 +422,8 @@ def get_filter_options(products):
         'jordan_cities': jordan_cities
     }
 
+
 def get_page_title(request, page_type, category):
-    """Get the appropriate page title."""
     if page_type == 'hot_deals':
         if any([request.GET.getlist('store'), request.GET.getlist('location'), request.GET.getlist('brand')]):
             return "Hot Deals (Filtered)"
@@ -464,7 +437,6 @@ def get_page_title(request, page_type, category):
         return "All Deals"
 
 def get_template_for_page(page_type, category):
-    """Get the appropriate template for the page."""
     if page_type == 'hot_deals':
         return 'hot_deals.html'
     elif page_type == 'popular':
@@ -488,99 +460,129 @@ def AllCategory(request):
 
 def product(request, pk):
     try:
-        # Get the product
         product = get_object_or_404(Product, id=pk)
         
-        # Increment views
         product.increment_views()
-        
-        # Get related products right away (so it's always defined)
+
         related_products = Product.objects.filter(
             category=product.category
         ).exclude(
             id=product.id
         ).order_by(
-            '-create_at'  # Sort by newest first
-        )[:6]  # Limit to 6 products
+            '-create_at' 
+        )[:6]  
         
-        # Calculate discount percentage for product
+
         if product.Price and product.sale_price:
             product.discount_percentage = product.get_discount_percentage()
         else:
             product.discount_percentage = 0
         
-        # Calculate discount for related products
         for related_product in related_products:
             if related_product.Price and related_product.sale_price:
                 related_product.discount_percentage = related_product.get_discount_percentage()
             else:
                 related_product.discount_percentage = 0
             
-            # Add a flag for popular products
             related_product.is_popular = related_product.views > 100 or related_product.likes.count() > 10
-            
-            # Add time ago for display
+
             related_product.time_ago = related_product.create_at
         
-        # Get the user's following status if logged in
+
         is_following = False
         if request.user.is_authenticated and request.user != product.user:
-            # Assuming you have a following relationship model
-            # is_following = Following.objects.filter(follower=request.user, followed=product.user).exists()
-            pass
+            is_following = Follow.objects.filter(follower=request.user, following=product.user).exists()
+            
         
-        # Count deals by this user
+
         deal_count = Product.objects.filter(user=product.user).count()
         
-        # Handle POST request for comment submission
+
+        comment_count = Comment.objects.filter(customer__user=product.user).count()
+        
+
+        total_likes_received = Product.objects.filter(user=product.user).aggregate(Sum('likes'))['likes__sum'] or 0
+        reputation_points = total_likes_received * 5
+        
+
         if request.method == 'POST':
             comment_text = request.POST.get('comment')
             
             if not request.user.is_authenticated:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Please log in to comment.'
+                    }, status=401)
                 messages.warning(request, 'Please log in to comment.')
+                
             elif not comment_text or comment_text.strip() == '':
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Please write a comment before posting.'
+                    }, status=400)
                 messages.warning(request, 'Please write a comment before posting.')
             else:
                 try:
-                    # Get the current logged-in user's customer
+
                     customer = Customer.objects.get(user=request.user)
                     
-                    # Create and save the comment
-                    Comment.objects.create(
+                    comment = Comment.objects.create(
                         product=product,
                         customer=customer,
                         text=comment_text
                     )
+
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        user_image = None
+                        if customer.image:
+                            user_image = customer.image.url
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'comment': {
+                                'id': comment.id,
+                                'text': comment.text,
+                                'username': request.user.username,
+                                'user_image': user_image,
+                                'time_ago': 'Just now'
+                            }
+                        })
+                    
                     messages.success(request, 'Your comment has been posted successfully!')
                     
-                    # Redirect after POST to prevent duplicate submissions
                     return redirect('product', pk=pk)
                     
                 except Customer.DoesNotExist:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Your user profile is missing. Please contact support.'
+                        }, status=400)
                     messages.error(request, 'Your user profile is missing. Please contact support.')
         
-        # Retrieve all comments for this product
+
         comments = Comment.objects.filter(product=product).order_by('-timestamp')
         
-        # Create context with all necessary data
+
         context = {
             'product': product,
             'comments': comments,
             'related_products': related_products,
             'is_following': is_following,
             'deal_count': deal_count,
+            'comment_count': comment_count,
+            'reputation_points': reputation_points,
+            'total_likes_received': total_likes_received,
             'user': request.user,
         }
-        
-        # Debug image URLs
-        print(f"Product image URL: {product.image.url if product.image else 'No image'}")
         
         return render(request, 'product.html', context)
         
     except Product.DoesNotExist:
         messages.error(request, 'That product does not exist.')
         return redirect('home')
-
 
 
 def password_reset_callback(request):
@@ -1012,18 +1014,22 @@ def delete_wishlist_item(request, item_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+
 @login_required
+@require_POST
 def follow(request, user_id):
     user_to_follow = get_object_or_404(User, id=user_id)
     if user_to_follow != request.user:
         Follow.objects.get_or_create(follower=request.user, following=user_to_follow)
-    return redirect('user_profile', identifier=user_id)
+    return JsonResponse({'status': 'followed'})
 
 @login_required
+@require_POST
 def unfollow(request, user_id):
     user_to_unfollow = get_object_or_404(User, id=user_id)
     Follow.objects.filter(follower=request.user, following=user_to_unfollow).delete()
-    return redirect('user_profile', identifier=user_id)
+    return JsonResponse({'status': 'unfollowed'})
+
 
 
 
@@ -1666,6 +1672,15 @@ def notifications_view(request):
     }
     
     return render(request, 'notifications.html', context)
+@login_required
+def mark_notification_unread(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.is_read = False
+        notification.save()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
 
 @login_required
 def mark_notification_read(request, notification_id):
@@ -1699,7 +1714,23 @@ def get_notification_count(request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()
         return JsonResponse({'count': count})
     else:
-        return JsonResponse({'count': 0}, status=403)  # 403 Forbidden
+        return JsonResponse({'count': 0}, status=403)  
+
+
+def archive_deal(request, deal_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'You must be logged in to archive deals.'}, status=401)
+
+    try:
+        deal = Product.objects.get(id=deal_id, user=request.user, is_archived=False)
+        deal.is_archived = True
+        deal.archived_at = timezone.now()
+        deal.save()
+        return JsonResponse({'success': 'Deal archived successfully.'})
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Deal not found or already archived.'}, status=404)
+
+
 
 
 def archived_deals(request):
