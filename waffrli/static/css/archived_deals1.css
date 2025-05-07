@@ -44,8 +44,8 @@
 }
 
 .deal-image {
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: auto;
   overflow: hidden;
   background: #f5f5f5;
   display: flex;
@@ -56,7 +56,7 @@
 .deal-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
 }
 
 .placeholder-image {
@@ -87,7 +87,7 @@
 
 .deal-details {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 10px;
   font-size: 14px;
 }
@@ -166,27 +166,26 @@
 }
 
 .btn-edit {
-  background: #4a89dc;
+  background: #e05d5d;
   color: white;
 }
 
 .btn-edit:hover {
-  background: #5d9cec;
+ border: 1px solid black;
 }
 
 .btn-publish {
-  background: #37bc9b;
+  background: #e05d5d;
   color: white;
 }
 
 .btn-publish:hover {
-  background: #48cfad;
+  border: 1px solid black;
 }
 
 .btn-publish:disabled {
-  background: #a8d5ca;
-  cursor: not-allowed;
-  opacity: 0.7;
+  background: #e05d5d;
+  color: white;
 }
 
 .btn-delete {
@@ -195,7 +194,8 @@
 }
 
 .btn-delete:hover {
-  background: #ed5565;
+  border: 1px solid black;
+  background-color: #e05d5d;
 }
 
 .inline-form {

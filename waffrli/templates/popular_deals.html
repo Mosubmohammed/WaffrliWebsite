@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/popularDeals4455.css' %}">
+<link rel="stylesheet" href="{% static 'css/popularDeals9.css' %}">
 
 <!-- Popular Deals Section -->
 <div class="deals-section">
@@ -209,7 +209,7 @@
             <span class="original-price">{{ product.Price }} JD</span>
 
         </div>
-        <div class="deal-description">{{ product.Description|truncatewords:20 }}</div>
+        <div class="deal-description">{{ product.Description|truncatewords:10 }}</div>
         <div class="store-info">
             <div class="deal-meta">
                 <div class="brand-category">
@@ -233,7 +233,7 @@
             {% if user_has_location and product.latitude and product.longitude %}
                 <div class="distance-info">
                     <i class="fas fa-route"></i>
-                    <span style="color: black;">{{ product.distance_to|floatformat:1 }} km away</span>
+                    <span style="color: black; font-size: 9px;">{{ product.distance_to|floatformat:1 }} km </span>
                 </div>
             {% endif %}
         </div>

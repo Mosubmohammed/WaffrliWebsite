@@ -3,7 +3,7 @@
 
 {% block content %}
 <link href="{% static 'css/DealDetailsStyle.css' %}" rel="stylesheet" />
-<link href="{% static 'css/EditDealStyle.css' %}" rel="stylesheet" />
+<link href="{% static 'css/EditDealStyle1.css' %}" rel="stylesheet" />
 <!-- Add Google Maps API -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places"></script>
 
@@ -16,7 +16,7 @@
           <div class="breadcrumbs">
             <a href="{% url 'home' %}">Home</a> &gt; 
             <a href="{% url 'product' product.id %}">{{ product.Name }}</a> &gt; 
-            <span>Edit Deal</span>
+            <span class="breadcrumbs">Edit Deal</span>
           </div>
         </div>
 

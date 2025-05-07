@@ -221,10 +221,12 @@ body {
 .dots {
   width: 4px;
   height: 4px;
-  background-color: #ee0000;
+  background-color: #6e6e73;
   border-radius: 50%;
   position: relative;
 }
+
+
 
 .dots::before,
 .dots::after {

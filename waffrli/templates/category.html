@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/Sub-categoriesss2.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Sub-categoriesss9.css' %}" rel="stylesheet" />
 
 <div class="page-wrapper">
     <div class="hero">
@@ -258,15 +258,19 @@
             <span class="original-price">${{ product.Price }}</span>
 
         </div>
-        
+        <div class="deal-description">{{ product.Description|truncatewords:20 }}</div>
         <div class="store-info">
-            <div class="store">{{ product.store }}</div>
-            <div class="store-type-badge {{ product.store_type }}">
-                {{ product.store_type|title }}
+            <div class="deal-meta">
+                <div class="brand-category">
+                    <span style="color: black;" class="brand">{{ product.brand }}</span>
+                    <span style="color: rgb(214, 16, 16);" class="separator">•</span>
+                    <span style="color: black;" class="category">{{ product.category }}</span>
+                </div>
+               
             </div>
+        
         </div>
         
-        <div class="brand">{{ product.brand }}</div>
         
         <div class="location">
             <i class="fas fa-map-marker-alt"></i> {{ product.city }}
@@ -275,7 +279,7 @@
             {% if user_has_location and product.latitude and product.longitude %}
                 <div class="distance-info">
                     <i class="fas fa-route"></i>
-                    <span style="color: black;">{{ product.distance_to|floatformat:1 }} km away</span>
+                    <span style="color: black;">{{ product.distance_to|floatformat:1 }}km</span>
                 </div>
             {% endif %}
         </div>
@@ -295,7 +299,7 @@
                         {% csrf_token %}
                         <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
                             <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                            <span class="like-count">{{ product.likes.count }}</span>
+                            <span style="color: black;" class="like-count">{{ product.likes.count }}</span>
                         </button>
                     </form>
                 {% endif %}
