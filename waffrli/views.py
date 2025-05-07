@@ -825,12 +825,11 @@ def like_product(request, product_id):
 
         
 def user_profile(request, identifier):
-    # Try to see if identifier is numeric (an ID)
+
     try:
         user_id = int(identifier)
         profile_user = get_object_or_404(User, id=user_id)
     except ValueError:
-        # If not numeric, treat as username
         profile_user = get_object_or_404(User, username=identifier)
     
     is_following = Follow.objects.filter(follower=request.user, following=profile_user).exists()
@@ -840,7 +839,6 @@ def user_profile(request, identifier):
     deal_count = Product.objects.filter(user=profile_user).count()
     comment_count = Comment.objects.filter(customer=profile_user.customer).count()
 
-    # Find the best deal (highest likes) and annotate with comment count
     best_deal = (
         Product.objects.filter(user=profile_user)
         .annotate(comment_count=Count("comments"))

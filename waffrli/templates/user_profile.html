@@ -136,7 +136,7 @@
             <div class="customer-deal-info">
                 <a href="{% url 'product' best_deal.id %}" class="customer-deal-title">{{ best_deal.Name }}</a>
                 <div class="customer-deal-meta">
-                    <span>Posted {{ best_deal.created_at|date:"m/d/Y h:i:s A" }}</span>
+                    <span>Posted {{ best_deal.create_at|date:"m/d" }}</span>
                     <span>•</span>
                     <span>by <a href="{% url 'user_profile' best_deal.user.id %}">{{ best_deal.user.username }}</a></span>
                     {% if best_deal.category and best_deal.category.slug %}
@@ -151,7 +151,7 @@
                     <div class="customer-deal-rating">
                         <div class="customer-vote-count">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                            +{{ best_deal.likes.v }}
+                            +{{ best_deal.views }}
                         </div>
                         <div class="customer-thumbs-up">
                             <i class="fas fa-thumbs-up"></i>
