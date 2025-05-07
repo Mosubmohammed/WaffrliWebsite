@@ -3,7 +3,8 @@
 
 <main>
   <div class="Category-container">
-   
+
+
     <div class="welcome-section fade-in">
       <div class="welcome-banner">
         <div class="welcome-content">
@@ -29,7 +30,7 @@
     <div class="product-grid slide-up">
         {% for product in products %}
         {% if product.distance_to is not None %}
-        <div class="product-card {% if product.is_expired %}expired{% endif %}">
+        <div class="product-card {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           {% if product.is_expired %}
           <div class="expired-overlay">
             <span class="expired-tag">EXPIRED</span>
@@ -102,13 +103,6 @@
             </button>
             
           
-
-            <!-- View product button -->
-            <a href="{% url 'product' product.id %}">
-              <button class="add-to-cart {% if product.is_expired %}expired-btn{% endif %}" {% if product.is_expired %}disabled{% endif %}>
-                {% if product.is_expired %}Expired{% else %}Show the deal {% endif %}
-              </button>
-            </a>
           </div>
         </div>
         {% endif %}
@@ -544,65 +538,80 @@
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // Like button functionality
-  document.querySelectorAll(".like-btn").forEach((button) => {
-    button.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
 
-      if (button.hasAttribute('disabled')) {
-        return; // Don't process if button is disabled
-      }
-
-      // Get the product ID from the data attribute
-      const productId = this.getAttribute("data-product-id");
-      const likeIcon = this.querySelector("i");
-      
-      // Get the correct count element - make sure to target only the count within THIS button
-      const likeCount = this.querySelector(".rating-count"); 
-      
-      // Get the CSRF token
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-      // Make AJAX request to the like endpoint
-      fetch(`/like/${productId}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": csrfToken,
-          "X-Requested-With": "XMLHttpRequest"
-        },
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+  document.addEventListener('DOMContentLoaded', function() {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Check if the click wasn't on an interactive element
+        if (!e.target.closest('.action-btn') && 
+            !e.target.closest('.like-btn') && 
+            !e.target.closest('.comment-btn') && 
+            !e.target.closest('.add-to-cart') &&
+            !e.target.closest('a')) {
+          const productUrl = this.getAttribute('data-product-url');
+          if (productUrl) {
+            window.location.href = productUrl;
+          }
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Like response:", data); // Debug: log the response
-        
-        // Update the heart icon
-        if (data.liked) {
-          likeIcon.classList.remove("far");
-          likeIcon.classList.add("fas");
-        } else {
-          likeIcon.classList.remove("fas");
-          likeIcon.classList.add("far");
-        }
-        
-        // Update the like count
-        if (likeCount) {
-          likeCount.textContent = data.likes_count;
-        } else {
-          console.error("Like count element not found within button:", button);
-        }
-      })
-      .catch(error => {
-        console.error('Error toggling like:', error);
       });
     });
   });
+
+  document.addEventListener('DOMContentLoaded', function () {
+      // Like button functionality
+      document.querySelectorAll(".like-btn").forEach((button) => {
+        button.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+    
+          if (button.hasAttribute('disabled')) {
+            return; // Don't process if button is disabled
+          }
+    
+          // Get the product ID from the data attribute
+          const productId = this.getAttribute("data-product-id");
+          const likeIcon = this.querySelector("i");
+          const likeCount = this.nextElementSibling; // The rating count is the next element
+          
+          // Get the CSRF token
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+          // Make AJAX request to the like endpoint
+          fetch(`/like/${productId}/`, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrfToken,
+              "X-Requested-With": "XMLHttpRequest"
+            },
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Update the heart icon
+            if (data.liked) {
+              likeIcon.classList.remove("far");
+              likeIcon.classList.add("fas");
+            } else {
+              likeIcon.classList.remove("fas");
+              likeIcon.classList.add("far");
+            }
+            
+            // Update the like count
+            if (likeCount) {
+              likeCount.innerText = data.likes_count;
+            }
+          })
+          .catch(error => {
+            console.error('Error toggling like:', error);
+          });
+        });
+      });
     
   // Save button functionality
   document.querySelectorAll(".save-btn").forEach((button) => {
