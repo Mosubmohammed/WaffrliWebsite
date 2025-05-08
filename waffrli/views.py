@@ -203,13 +203,13 @@ def product_list(request, page_type=None, category=None):
 def get_base_queryset(request, page_type, category):
     if page_type == 'hot_deals' and not any([
         request.GET.getlist('store'), 
-        request.GET.getlist('location'), 
+        request.GET.getlist('location'),
         request.GET.getlist('brand')
     ]):
-
         hot_deals = Product.objects.filter(
             sale_price__isnull=False,
-            Price__gt=0
+            Price__gt=0,
+            is_archived=False  # Exclude archived deals
         ).exclude(
             sale_price__gte=F('Price')
         ).annotate(
@@ -220,11 +220,12 @@ def get_base_queryset(request, page_type, category):
         ).filter(discount_percentage__gte=70).select_related('category', 'user', 'customer_pic_id')
         
         return hot_deals
-    
+        
     elif page_type == 'hot_deals':
         return Product.objects.filter(
             sale_price__isnull=False,
-            Price__gt=0
+            Price__gt=0,
+            is_archived=False  # Exclude archived deals
         ).exclude(
             sale_price__gte=F('Price')
         ).annotate(
@@ -233,24 +234,29 @@ def get_base_queryset(request, page_type, category):
                 output_field=FloatField()
             )
         ).select_related('category', 'user', 'customer_pic_id')
-    
+        
     elif page_type == 'popular':
-        return Product.objects.annotate(
+        return Product.objects.filter(
+            is_archived=False  # Exclude archived deals
+        ).annotate(
             like_count=Count('likes'),
             popularity_score=ExpressionWrapper(
                 (F('like_count') * 3) + F('views'),
                 output_field=FloatField()
             )
         ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')
-    
+        
     elif category:
-
         category_obj = get_object_or_404(Category, name__iexact=category.replace('-', ' ').strip())
-        return Product.objects.filter(category=category_obj).select_related('category', 'user', 'customer_pic_id')
-    
+        return Product.objects.filter(
+            category=category_obj,
+            is_archived=False  # Exclude archived deals
+        ).select_related('category', 'user', 'customer_pic_id')
+        
     else:
-        return Product.objects.all().select_related('category', 'user', 'customer_pic_id')
-
+        return Product.objects.filter(
+            is_archived=False  # Exclude archived deals
+        ).select_related('category', 'user', 'customer_pic_id')
 
 
 def get_user_location(request):
@@ -290,7 +296,7 @@ def sort_by_distance(queryset, user_lat, user_lng):
 
 
 def is_ajax_request(request):
-    """Determine if this is an AJAX/JSON request."""
+
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET
 
 
@@ -345,7 +351,7 @@ def format_products_for_json(products, request, user_location):
     return products_data
 
 
-# Updated pagination function to ensure ordering
+
 def paginate_products(request, products):
     """Handle pagination logic with consistent ordering."""
     # Ensure products have a consistent ordering if not already ordered
@@ -585,9 +591,6 @@ def product(request, pk):
         return redirect('home')
 
 
-def password_reset_callback(request):
-    messages.success(request, "Your password has been reset successfully. You can now log in with your new password.")
-    return redirect('login')
 
 def search(request):
     if request.method == "POST":
@@ -599,10 +602,6 @@ def search(request):
         )
 
         result_count = results.count()
-
-        if not results:
-            messages.error(request, "No matching products found.")
-            return render(request, "home.html")
 
         return render(request, "search.html", {
             'searched': results,
@@ -619,15 +618,26 @@ def post_deal(request):
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
     
-    # For GET requests - just display the form
+    
+    jordan_cities = [
+        'Amman', 'Zarqa', 'Irbid', 'Aqaba', 'Salt', 'Madaba', 'Jerash',
+        'Ajloun', 'Mafraq', 'Tafilah', 'Karak', 'Ma\'an', 'Ramtha', 'Sahab', 
+        'Russeifa', 'Al-Quwaysimah', 'Wadi as-Ser', 'Tila al-Ali', 'Baqa\'a',
+        'Zarqa Camp', 'Suwaylih', 'Um al-Jimal', 'Petra', 'Azraq'
+    ]
+    
     if request.method != "POST":
         categories = Category.objects.all()
-        return render(request, "post_deal.html", {'categories': categories})
+        context = {
+            'categories': categories,
+            'jordan_cities': jordan_cities
+        }
+        return render(request, "post_deal.html", context)
     
-    # Get the action type (post or archive)
+    
     action = request.POST.get('action', 'post')
     
-    # Fetch common form data for both actions
+
     name = request.POST.get('deal-title', '')
     url = request.POST.get('deal-url', '')
     sale_price = request.POST.get('sale-price', '')
@@ -640,7 +650,7 @@ def post_deal(request):
     store_type = request.POST.get('store-type', 'online')
     pic = request.FILES.get('image')
     
-    # Handle expiration date
+    
     expiration_type = request.POST.get('expiration-type', 'default')
     
     if expiration_type == 'custom':
@@ -891,16 +901,11 @@ def user_profile(request, identifier):
 
 @login_required
 def wishlist(request):
-    """
-    Display the wishlist page with the user's wishlist items
-    """
-    # Get the user's wishlist items
+
     wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-created_at')
-    
-    # Get all categories from the database
+
     categories = Category.objects.all()
     
-    # Get unread notification count for the navbar
     unread_notification_count = Notification.objects.filter(user=request.user, is_read=False).count()
     
     context = {
@@ -913,14 +918,12 @@ def wishlist(request):
 
 @login_required
 def add_wishlist_item(request):
-    """
-    Add a new wishlist item
-    """
+
     try:
-        # Parse the JSON data from the request
+
         data = json.loads(request.body)
         
-        # Get the category instance
+
         try:
             category = Category.objects.get(id=data.get('category'))
             category_name = category.name  # Get the name from the Category object
@@ -949,9 +952,7 @@ def add_wishlist_item(request):
 
 @login_required
 def update_wishlist_item(request, item_id):
-    """
-    Update a wishlist item
-    """
+
     try:
         # Get the wishlist item
         wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
@@ -984,9 +985,7 @@ def update_wishlist_item(request, item_id):
 
 @login_required
 def delete_wishlist_item(request, item_id):
-    """
-    Delete a wishlist item
-    """
+
     try:
         # Get the wishlist item
         wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
@@ -2009,8 +2008,21 @@ def publish_archived_deal(request, deal_id):
 
 @login_required
 def report_deal(request, product_id):
-    """AJAX view for reporting a deal"""
-    product = get_object_or_404(Product, id=product_id)
+    """View for reporting a deal as problematic"""
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False, 
+            'message': 'Invalid request method'
+        }, status=405)
+
+    # Get the product or return 404
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Product not found'
+        }, status=404)
     
     # Get the customer profile for the logged-in user
     try:
@@ -2023,10 +2035,11 @@ def report_deal(request, product_id):
     
     # Get form data
     reason = request.POST.get('reason')
-    details = request.POST.get('message')
+    details = request.POST.get('message', '')
     
     # Validate data
-    if not reason or reason not in dict(ReportedDeal.REPORT_REASONS):
+    valid_reasons = [choice[0] for choice in ReportedDeal.REPORT_REASONS]
+    if not reason or reason not in valid_reasons:
         return JsonResponse({
             'success': False,
             'message': 'Please select a valid reason.'
@@ -2042,19 +2055,27 @@ def report_deal(request, product_id):
     if existing_report:
         return JsonResponse({
             'success': False,
-            'message': f"You've already reported this deal as '{dict(ReportedDeal.REPORT_REASONS).get(reason)}'."
+            'message': f"You've already reported this deal with this reason."
         })
     
     # Create the report
-    report = ReportedDeal.objects.create(
-        product=product,
-        reporter=customer,
-        reason=reason,
-        details=details
-    )
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Thank you for your report. Our team will review it soon.'
-    })
+    try:
+        report = ReportedDeal.objects.create(
+            product=product,
+            reporter=customer,
+            reason=reason,
+            details=details
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Thank you for your report. Our team will review it soon.'
+        })
+    except Exception as e:
+        # Log the error (replace with your logging method)
+        print(f"Error creating report: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'An error occurred while saving your report. Please try again.'
+        }, status=500)
 

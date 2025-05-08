@@ -28,91 +28,85 @@
     </div>
 
     <div class="product-grid slide-up">
-        {% for product in products %}
-        {% if product.distance_to is not None %}
-        <div class="product-card {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
-          {% if product.is_expired %}
-          <div class="expired-overlay">
-            <span class="expired-tag">EXPIRED</span>
-          </div>
-          {% endif %}
-          <div class="card-header">
-            <div class="user-info">
-              {% if product.user.customer.image %}
-              <img src="{{ product.user.customer.image.url }}" alt="User Avatar" class="profile-pic">
-            {% else %}
-              <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
-            {% endif %}
-            
-            
-              <div class="user-details">
-                <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
-                <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
-              </div>
-            </div>
-            <div class="product-badge">{{ product.get_discount_percentage }}%</div>
-          </div>
-          
-          <div class="product-image">
-            {% if product.image %}
-              <img src="{{ product.image.url }}" alt="{{ product.Name }}">
-            {% else %}
-              <img src="{% static 'images/no-image.png' %}" alt="No image available">
-            {% endif %}
-            <div class="quick-actions">
-
-              <!-- Save button -->
-              {% if request.user.is_authenticated %}
-              <div class="action-btn save-btn" data-product-id="{{ product.id }}">
-                {% with customer=request.user.customer %}
-                  <i class="{% if product in customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
-                {% endwith %}
-              </div>
-              {% else %}
-              <div class="action-btn" onclick="window.location.href='{% url 'login' %}'">
-                <i class="fa-regular fa-bookmark"></i>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-          
-          <div class="product-info">
-            <h3 class="product-title">{{ product.Name }}</h3>
-            <div class="product-Store">{{ product.store }}</div>
-            <div class="product-price">
-              <span class="current-price">${{ product.sale_price }}</span>
-              <span class="old-price">${{ product.Price }}</span>
-            </div>
-          </div>
-          
-          <!-- Card Footer with Buttons -->
-          <div class="card-footer">
-           
-            <!-- Like button -->
-          
-            <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
-              <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-              <h3 class="rating-count">{{ product.likes.count }}</h3>
-            </button>
-            
-            
-            <!-- Comment button -->
-            <button class="comment-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
-              <i class="far fa-comment"></i>
-              <h3 class="comment-count">{{ product.comments.count }}</h3>
-            </button>
-            
-          
-          </div>
+      {% for product in products %}
+      {% if product.distance_to is not None %}
+      <div class="product-card {% if product.is_expired %}expired{% endif %}" 
+           {% if not product.is_expired %}onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;"{% endif %}>
+        {% if product.is_expired %}
+        <div class="expired-overlay">
+          <span class="expired-tag">EXPIRED</span>
         </div>
         {% endif %}
-        {% empty %}
-          <div class="no-products-message">
-            <i class="fas fa-map-marker-alt"></i>
-            <h3>No Nearby Deals Found</h3>
-            <p>We couldn't find any deals near your location. Try expanding your search area in settings.</p>
+        <div class="card-header">
+          <div class="user-info">
+            {% if product.user.customer.image %}
+            <img src="{{ product.user.customer.image.url }}" alt="User Avatar" class="profile-pic">
+            {% else %}
+            <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
+            {% endif %}
+            
+            <div class="user-details">
+              <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
+              <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
+            </div>
           </div>
-        {% endfor %}
+          <div class="product-badge">{{ product.get_discount_percentage }}%</div>
+        </div>
+        
+        <div class="product-image">
+          {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.Name }}">
+          {% else %}
+          <img src="{% static 'images/no-image.png' %}" alt="No image available">
+          {% endif %}
+          <div class="quick-actions">
+            <!-- Save button -->
+            {% if request.user.is_authenticated and not product.is_expired %}
+            <div class="action-btn save-btn" data-product-id="{{ product.id }}">
+              {% with customer=request.user.customer %}
+              <i class="{% if product in customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
+              {% endwith %}
+            </div>
+            {% else %}
+            <div class="action-btn" onclick="window.location.href='{% url 'login' %}'">
+              <i class="fa-regular fa-bookmark"></i>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-title">{{ product.Name }}</h3>
+          <div class="product-Store">{{ product.store }}</div>
+          <div class="product-price">
+            <span class="current-price">${{ product.sale_price }}</span>
+            <span class="old-price">${{ product.Price }}</span>
+          </div>
+        </div>
+        
+        <!-- Card Footer with Buttons -->
+        <div class="card-footer">
+          <!-- Like button -->
+          <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
+            <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+            <h3 class="rating-count">{{ product.likes.count }}</h3>
+          </button>
+          
+          <!-- Comment button -->
+          <button class="comment-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
+            <i class="far fa-comment"></i>
+            <h3 class="comment-count">{{ product.comments.count }}</h3>
+          </button>
+        </div>
+      </div>
+      {% endif %}
+      {% empty %}
+      <div class="no-products-message">
+        <i class="fas fa-map-marker-alt"></i>
+        <h3>No Nearby Deals Found</h3>
+        <p>We couldn't find any deals near your location. Try expanding your search area in settings.</p>
+      </div>
+      {% endfor %}
     </div>
 
     <br>
@@ -160,11 +154,13 @@
       <img src="{% static 'images/no-image.png' %}" alt="No image available">
       {% endif %}
       <div class="quick-actions">
-        <div class="action-btn"><i class="fas fa-heart"></i></div>
-        <div  class="action-btn"><i class="fas fa-eye"></i></div>
+
+        {% if not product.is_expired %}
         <div class="action-btn save-btn" data-product-id="{{ product.id }}">
           <i class="{% if request.user.is_authenticated and product in request.user.customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
         </div>
+          {% endif %}
+
       </div>
     </div>
     

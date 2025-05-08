@@ -373,16 +373,16 @@
 <div class="report-modal-overlay" id="reportModal">
     <div class="report-modal-box">
         <div class="report-modal-header">
-            <h2 class="report-modal-title">Report Post</h2>
-            <button class="report-close-button" id="closeModal">×</button>
+            <h2 class="report-modal-title">Report This Deal</h2>
+            <button type="button" class="report-close-button" id="closeModal">×</button>
         </div>
-        <form id="reportForm">
+        <form id="reportForm" method="POST">
             {% csrf_token %}
             <div class="report-form-group">
                 <label class="report-form-label">Choose your reason</label>
                 <div class="report-radio-option">
                     <input type="radio" id="reason-expired" name="reason" value="expired" required>
-                    <label for="reason-expired">Expired</label>
+                    <label for="reason-expired">Expired Deal</label>
                 </div>
                 <div class="report-radio-option">
                     <input type="radio" id="reason-spam" name="reason" value="spam">
@@ -402,16 +402,16 @@
                 </div>
             </div>
             <div class="report-form-group">
-                <label class="report-form-label" for="message">Message</label>
+                <label class="report-form-label" for="message">Additional Details</label>
                 <textarea id="message" name="message" class="report-textarea"
-                    placeholder="Please provide additional details..."></textarea>
+                    placeholder="Please provide any additional details that will help us understand the issue..."></textarea>
             </div>
-            <button type="submit" class="report-submit-button">Submit</button>
+            <button type="submit" class="report-submit-button">Submit Report</button>
         </form>
     </div>
 </div>
 
-<!-- Hidden form for delete submission -->
+
 <form id="delete-form" action="{% url 'delete_deal' 0 %}" method="POST" style="display: none;">
     {% csrf_token %}
 </form>
