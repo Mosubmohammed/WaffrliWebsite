@@ -84,7 +84,7 @@
               <span class="old-price">${{ product.Price }}</span>
             </div>
           </div>
-          
+        
           <!-- Card Footer with Buttons -->
           <div class="card-footer">
            
@@ -160,8 +160,8 @@
       <img src="{% static 'images/no-image.png' %}" alt="No image available">
       {% endif %}
       <div class="quick-actions">
-        <div class="action-btn"><i class="fas fa-heart"></i></div>
-        <div  class="action-btn"><i class="fas fa-eye"></i></div>
+       
+      
         <div class="action-btn save-btn" data-product-id="{{ product.id }}">
           <i class="{% if request.user.is_authenticated and product in request.user.customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
         </div>

@@ -920,6 +920,10 @@ h2 .fa-star {
   text-transform: uppercase;
 }
 
+.mini-product.expired .discount-badge
+{
+  background: #757575;
+}
 
 .mini-product.expired .expired-badge {
   background: #757575;
@@ -1101,12 +1105,12 @@ h2 .fa-star {
 
 .quick-actions {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 38px;
+  right: 12px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  opacity: 0;
+  /* opacity: 0; */
   transform: translateX(10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
@@ -1191,6 +1195,7 @@ h2 .fa-star {
   align-items: center;
 }
 
+
 .like-btn,
 .comment-btn {
   background: none;
@@ -1211,7 +1216,7 @@ h2 .fa-star {
   color: white;
   border: none;
   border-radius: 3px;
-  padding: 3px 0px;
+  padding: 6px 10px;
   font-size: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
