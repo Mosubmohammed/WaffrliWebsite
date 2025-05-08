@@ -221,7 +221,8 @@ button {
 }
 
 
-#archive-btn {
+.Post-btns
+{
   background-color: #e9ecef;
   color: #000000;
   display: flex;
@@ -229,12 +230,11 @@ button {
   justify-content: center;
   border-radius: 33px;
 }
-
-#archive-btn i {
+.Post-btns i {
   font-size: 16px;
 }
 
-#archive-btn:hover {
+.Post-btns:hover {
   background-color: #dee2e6;
 }
 

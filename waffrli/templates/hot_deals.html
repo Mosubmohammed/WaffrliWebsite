@@ -1,7 +1,7 @@
 {% extends "base.html" %}   
 {% load static %} 
 {% block content %}
-<link href="{% static 'css/hotDeals9.css' %}" rel="stylesheet" />
+<link href="{% static 'css/hotDeals98.css' %}" rel="stylesheet" />
 <!-- Hero Section -->
 <div class="hero-section">
     <div class="hero-content">
@@ -278,7 +278,7 @@
             {% if user_has_location and product.latitude and product.longitude %}
                 <div class="distance-info">
                     <i class="fas fa-route"></i>
-                    <span style="color: black;">{{ product.distance_to|floatformat:1 }} km away</span>
+                    <span style="color: black;">{{ product.distance_to|floatformat:1 }} km</span>
                 </div>
             {% endif %}
         </div>

@@ -6,29 +6,38 @@
   padding: 1rem;
 }
 
-/* ===== Sidebar Styling ===== */
-.sidebar {
-  flex: 0 0 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+
 
 .ad-space {
   width: 100%;
+  height: 300px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.ad-space a {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .ad-image {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 11rem;
+  height: 21rem;
+  object-fit: cover;
+  transition: transform 0.3sease;
+  border-radius: 0rem;
+}
+
+.ad-image:hover {
+  transform: scale(1.05);
 }
 
 /* ===== Main Section ===== */
 .search-main {
   flex: 1;
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -57,7 +66,7 @@
 /* ===== Product Grid ===== */
 .search-products-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 20px;
   margin-top: 25px;
 }
