@@ -218,7 +218,7 @@
         <div class="mini-products-container">
           {% for product in products %}
             {% if product.get_discount_percentage >= 70 %}
-              <div class="mini-product {% if product.is_expired %}expired{% endif %}"  onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+              <div class="mini-product  {% if product.is_expired %}expired{% endif %}"  onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
                 {% if product.is_expired %}
                 <div class="expired-overlay">
                   <span class="expired-tag">EXPIRED</span>
@@ -326,7 +326,7 @@
   <div class="popular-products-slider">
     <div class="popular-products-container">
       {% for product in products %}
-        <div class="mini-product {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+        <div class="mini-product  {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           {% if product.is_expired %}
           <div class="expired-overlay">
             <span class="expired-tag">EXPIRED</span>
