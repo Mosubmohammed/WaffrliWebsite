@@ -207,7 +207,8 @@ body {
   color: #000000;
   border: 1px solid #ff2222;
   text-decoration: none;
-  padding: 7px 42px;
+  display: flex;
+      justify-content: center;
 }
 
 .filter-btn.reset:hover {
@@ -272,6 +273,8 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Products Grid */
+
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -328,7 +331,7 @@ input[type="range"]::-webkit-slider-thumb {
 .discount-badge {
   position: absolute;
   top: 9px;
-  left: 125px;
+  left: 155px;
   background: linear-gradient(135deg, #ff3333, #ff0000);
   color: white;
   padding: 2px 5px;
@@ -536,11 +539,14 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Subproducts Grid */
+
 .Subproducts-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
-  padding: 46px 0rem 25rem;  
+  display: grid
+  ;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 24px;
+      padding: 0px 0rem 48rem;
+      align-content: center;
 }
 
 /* Responsive Adjustments */
