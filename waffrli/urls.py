@@ -6,7 +6,6 @@ urlpatterns = [
     path('products/', product_list, name='products'),
      path('AllCategory/', AllCategory, name='AllCategory'),
     path('product/<str:pk>/', product, name='product'),
-    path('password_reset_callback/', password_reset_callback, name='password_reset_callback'),
     path('search/', search, name='search'),
     path('post_deal/', post_deal, name='post_deal'),
     path("user_profile/<str:identifier>/", user_profile, name="user_profile"),

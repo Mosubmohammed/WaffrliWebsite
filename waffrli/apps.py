@@ -7,5 +7,4 @@ class WaffrliConfig(AppConfig):
 
 
     def ready(self):
-        """Import signal handlers when the app is ready"""
         import waffrli.signals  

@@ -28,22 +28,22 @@
     </div>
 
     <div class="product-grid slide-up">
-        {% for product in products %}
-        {% if product.distance_to is not None %}
-        <div class="product-card {% if product.is_expired %}expired{% endif %}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
-          {% if product.is_expired %}
-          <div class="expired-overlay">
-            <span class="expired-tag">EXPIRED</span>
-          </div>
-          {% endif %}
-          <div class="card-header">
-            <div class="user-info">
-              {% if product.user.customer.image %}
-              <img src="{{ product.user.customer.image.url }}" alt="User Avatar" class="profile-pic">
+      {% for product in products %}
+      {% if product.distance_to is not None %}
+      <div class="product-card {% if product.is_expired %}expired{% endif %}" 
+           {% if not product.is_expired %}onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;"{% endif %}>
+        {% if product.is_expired %}
+        <div class="expired-overlay">
+          <span class="expired-tag">EXPIRED</span>
+        </div>
+        {% endif %}
+        <div class="card-header">
+          <div class="user-info">
+            {% if product.user.customer.image %}
+            <img src="{{ product.user.customer.image.url }}" alt="User Avatar" class="profile-pic">
             {% else %}
-              <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
+            <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
             {% endif %}
-            
             
               <div class="user-details">
                 <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
@@ -165,6 +165,7 @@
         <div class="action-btn save-btn" data-product-id="{{ product.id }}">
           <i class="{% if request.user.is_authenticated and product in request.user.customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
         </div>
+
       </div>
     </div>
     

@@ -623,44 +623,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // --- REPORT MODAL FUNCTIONALITY ---
-    const reportButton = document.getElementById('reportButton');
-    const reportModal = document.getElementById('reportModal');
-    const closeModal = document.getElementById('closeModal');
-    const reportForm = document.getElementById('reportForm');
+// --- REPORT MODAL FUNCTIONALITY ---
+const reportButton = document.getElementById('reportButton');
+const reportModal = document.getElementById('reportModal');
+const closeModal = document.getElementById('closeModal');
+const reportForm = document.getElementById('reportForm');
 
-    if (reportButton && reportModal) {
-        reportButton.addEventListener('click', function() {
-            reportModal.style.display = 'flex';
-        });
-    }
+if (reportButton && reportModal) {
+    reportButton.addEventListener('click', function() {
+        reportModal.style.display = 'flex';
+    });
+}
 
-    if (closeModal && reportModal) {
-        closeModal.addEventListener('click', function() {
+if (closeModal && reportModal) {
+    closeModal.addEventListener('click', function() {
+        reportModal.style.display = 'none';
+    });
+}
+
+if (reportModal) {
+    reportModal.addEventListener('click', function(event) {
+        if (event.target === reportModal) {
             reportModal.style.display = 'none';
-        });
-    }
+        }
+    });
+}
 
-    if (reportModal) {
-        reportModal.addEventListener('click', function(event) {
-            if (event.target === reportModal) {
-                reportModal.style.display = 'none';
-            }
-        });
-    }
-
-    if (reportForm) {
-        reportForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(reportForm);
-            const reason = formData.get('reason');
-            const message = formData.get('message');
-            
+if (reportForm) {
+    reportForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Get the form data
+        const formData = new FormData(reportForm);
+        
+        // Get product ID from the URL path - matches /product/123/
+        const productId = window.location.pathname.split('/')[2]; 
+        
+        // Debug logs
+        console.log("Submitting report for product ID:", productId);
+        console.log("Form data reason:", formData.get('reason'));
+        console.log("Form data message:", formData.get('message'));
+        
+        // Show loading state
+        const submitButton = reportForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        // Send report to server - using the URL pattern that matches your Django URLs
+        fetch(`/product/${productId}/report/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response data:", data);
             reportModal.style.display = 'none';
             reportForm.reset();
-            showNotification('Thank you for your report!');
+            
+            if (data.success) {
+                showNotification(data.message || 'Thank you for your report!');
+            } else {
+                showNotification(data.message || 'Failed to submit report.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while submitting your report. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Restore button state
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
         });
-    }
+    });
+}
     
     // --- COMMENT FORM AJAX FUNCTIONALITY ---
     const commentForm = document.getElementById('comment-form');

@@ -220,7 +220,7 @@
 
     <main class="Subproducts-grid">
         {% for product in products %}
-<!-- Updated Product Card Template -->
+
 <div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
     <div class="product-image">
         {% if product.image %}
@@ -229,20 +229,13 @@
             <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}" loading="lazy" />
         {% endif %}
         
-        <!-- Discount badge -->
-        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+        <!-- Discount badge -->        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
         
-        <!-- Nearby badge -->
-        {% if user_has_location and product.distance_to <= 5 %}
+
+        {% if user_has_location and product.distance_to <= 20 %}
             <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
         {% endif %}
         
-        <!-- Hot deal badge -->
-        {% comment %} {% if product.is_hot_deal %}
-            <div class="hot-deal-badge"><i class="fas fa-fire"></i> Hot Deal</div>
-        {% endif %} {% endcomment %}
-        
-        <!-- Status badges -->
         {% if product.is_expired %}
             <div class="expired-badge">Expired</div>
         {% endif %}
