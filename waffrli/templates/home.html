@@ -165,7 +165,6 @@
         <div class="action-btn save-btn" data-product-id="{{ product.id }}">
           <i class="{% if request.user.is_authenticated and product in request.user.customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
         </div>
-          {% endif %}
 
       </div>
     </div>
