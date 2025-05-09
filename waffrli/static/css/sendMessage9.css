@@ -219,15 +219,16 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  margin: 6px;
 }
 
 .btn-primary {
-  background: #00332ebd;
+  background: #b63232d5;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #002723;
+  background: #b6323296;
   transform: translateY(-1px);
 }
 
