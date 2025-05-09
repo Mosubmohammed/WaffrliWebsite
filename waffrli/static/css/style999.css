@@ -528,22 +528,25 @@ header {
 }
 
 .welcome-banner {
-  background: linear-gradient(135deg, #D10024, #ff4757);
+   background: linear-gradient(135deg, #d32600de, #fb3a11);
+  background-size: cover;
+  background-blend-mode: overlay;
+  background-position: center;
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: 120px;
   overflow: hidden;
   position: relative;
 }
 
 .welcome-content {
-  color: white;
+ color: white;
   z-index: 2;
   flex: 1;
   padding-left: 2rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .welcome-content h2 {
@@ -558,13 +561,9 @@ header {
 }
 
 .welcome-image {
-  position: absolute;
-  right: 2rem;
-  height: 140px;
-  display: flex;
-  align-items: center;
+  display: none;
 }
-
+/* 
 .welcome-image img {
   height: 100%;
   object-fit: contain;
@@ -574,7 +573,7 @@ header {
 
 .welcome-banner:hover .welcome-image img {
   transform: rotate(-5deg) scale(1.05);
-}
+} */
 
 @media (max-width: 768px) {
   .welcome-banner {

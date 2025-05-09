@@ -1308,7 +1308,7 @@ color: black;
 
 /* Overall section styling */
 .community-section {
-  background-color: var(--primary-dark);
+  background-color:#1212121c ; 
   color: var(--text-light);
   border-radius: 8px;
   padding: 20px;
@@ -1316,7 +1316,7 @@ color: black;
   margin: 20px 0;
 }
 
-.section-title {
+.section-title{
   color: var(--primary-red);
   font-size: 1.8rem;
   margin-bottom: 20px;
@@ -1325,12 +1325,13 @@ color: black;
 }
 
 /* Comment styling */
-.comment {
-  background-color: var(--secondary-dark);
+.comment  , .no-comments{
+  background-color: #cfcfcf ; 
   border-radius: 6px;
   padding: 15px;
   margin-bottom: 20px;
   border-left: 3px solid var(--primary-red);
+  color : black ; 
 }
 
 .comment-header {
@@ -1352,7 +1353,7 @@ color: black;
 }
 
 .user-details h3 {
-  color: var(--text-light);
+  color: var(--text-dark);
   font-size: 1rem;
   margin: 0;
 }
@@ -1388,7 +1389,7 @@ color: black;
 }
 
 .comment-content {
-  color: var(--text-light);
+  color: var(--text-dark);
   line-height: 1.5;
 }
 
@@ -1404,15 +1405,15 @@ color: black;
 }
 
 textarea#comment-input {
-  width: 62rem;
-  background-color: var(--secondary-dark);
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: var(--text-light);
-  padding: 12px;
-  font-size: 0.95rem;
-  resize: none;
-  transition: border-color 0.3s ease;
+     width: 62rem;
+    background-color: #ffffff;
+    border: 1px solid #c69e9e;
+    border-radius: 4px;
+    color: #000000;
+    padding: 12px;
+    font-size: 0.95rem;
+    resize: none;
+    transition: border-color 0.3s ease;
 }
 
 textarea#comment-input:focus {
@@ -1452,6 +1453,10 @@ textarea#comment-input::placeholder {
 .btn.btn-primary i {
   font-size: 0.9rem;
 }
+
+
+
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

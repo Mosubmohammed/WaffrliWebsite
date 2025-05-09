@@ -46,4 +46,5 @@ urlpatterns = [
     path('deal/<int:deal_id>/archive/', archive_deal, name='archive_deal'),
 
     path('product/<int:product_id>/report/', report_deal, name='report_deal'),
+    
 ]
