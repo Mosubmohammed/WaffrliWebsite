@@ -1,38 +1,60 @@
+import re
 from .models import WishlistItem, Notification
 from django.db.models import Q
 
 def improved_keyword_matching(deal_title, wishlist_keyword):
     """
-    Improved algorithm for matching deal titles with wishlist keywords
+    Advanced algorithm for matching deal titles with wishlist keywords
     
     Args:
         deal_title: String, the title of the deal
         wishlist_keyword: String, the keyword from wishlist
         
     Returns:
-        bool: True if there's a match, False otherwise
+        float: Match score between 0 and 1, higher means better match
     """
+    if not deal_title or not wishlist_keyword:
+        return 0.0
+        
     # Clean and normalize text
     deal_title = deal_title.lower().strip()
     wishlist_keyword = wishlist_keyword.lower().strip()
     
-    # Direct contains check (both ways)
-    if wishlist_keyword in deal_title or deal_title in wishlist_keyword:
-        return True
+    # Direct contains check
+    if wishlist_keyword in deal_title:
+        return 1.0
     
-    # Split into words for more flexible matching
-    deal_words = set(deal_title.split())
-    keyword_words = set(wishlist_keyword.split())
+    # Tokenize into words
+    deal_words = set(re.findall(r'\b\w+\b', deal_title))
+    keyword_words = set(re.findall(r'\b\w+\b', wishlist_keyword))
     
+    if not keyword_words:  # Empty set check
+        return 0.0
+        
     # Word overlap check
     common_words = deal_words.intersection(keyword_words)
     
-    # If wishlist keyword is just 1-2 words, require direct match
-    if len(keyword_words) <= 2:
-        return len(common_words) == len(keyword_words)
+    # Calculate match percentage
+    match_ratio = len(common_words) / len(keyword_words) if keyword_words else 0.0
     
-    # For longer keywords, be more flexible
-    return len(common_words) >= 2  # At least 2 words match
+    # For single word keywords, be more strict
+    if len(keyword_words) == 1:
+        # Get the single word without using pop() which modifies the set
+        single_keyword = next(iter(keyword_words), "")
+        
+        # Check for partial word match (e.g. "phone" in "smartphone")
+        for word in deal_words:
+            if single_keyword in word:
+                return 0.8
+        return 0.0  # No match found
+    
+    # For multi-word keywords, use a sliding threshold based on length
+    if len(keyword_words) == 2:
+        return 1.0 if match_ratio >= 0.95 else 0.0
+    elif len(keyword_words) <= 4:
+        return match_ratio if match_ratio >= 0.7 else 0.0  
+    else:
+        return match_ratio if match_ratio >= 0.5 else 0.0
     
 def check_deal_against_wishlist(deal):
     """
@@ -46,14 +68,14 @@ def check_deal_against_wishlist(deal):
     """
     # Don't match wishlist items from the same user who posted the deal
     all_wishlist_items = WishlistItem.objects.exclude(user=deal.user)
-
+    
     match_count = 0
     for item in all_wishlist_items:
         # Check if there's a keyword match using improved algorithm
-        keyword_match = improved_keyword_matching(deal.Name, item.keyword)
+        match_score = improved_keyword_matching(deal.Name, item.keyword)
         
-        # If keywords match, also check price range and category
-        if keyword_match:
+        # Consider a match if score is above threshold (0.7 is a good starting point)
+        if match_score >= 0.7:
             # Price match
             try:
                 price_match = (
@@ -82,10 +104,10 @@ def check_deal_against_wishlist(deal):
             except (TypeError, ValueError, AttributeError):
                 # Skip this item if there's any error in comparison
                 continue
-
+    
     return match_count
 
-# utils.py
+
 def get_discount_percentage(price, sale_price):
     """Calculate discount percentage between original price and sale price."""
     if not sale_price or not price or price <= 0:

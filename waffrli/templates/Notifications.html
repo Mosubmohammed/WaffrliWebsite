@@ -73,43 +73,52 @@
     'input[name="csrfmiddlewaretoken"]'
   ).value;
 
-  // Display notifications based on current tab
-  function showTab(tab) {
-    currentTab = tab;
+// Display notifications based on current tab
+function showTab(tab) {
+  currentTab = tab;
+  
+  // Make sure emptyState exists
+  const emptyState = document.getElementById("empty-notifications");
+  
+  // Update active tab button
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.classList.remove("active");
+    if (button.textContent.toLowerCase() === tab) {
+      button.classList.add("active");
+    }
+  });
 
-    // Update active tab button
-    document.querySelectorAll(".tab-button").forEach((button) => {
-      button.classList.remove("active");
-    });
-    event.target.classList.add("active");
+  // Filter notifications based on current tab
+  const allNotifications = document.querySelectorAll(".notification-item");
 
-    // Filter notifications based on current tab
-    const allNotifications = document.querySelectorAll(".notification-item");
+  allNotifications.forEach((notification) => {
+    const isRead = notification.getAttribute("data-read") === "true";
 
-    allNotifications.forEach((notification) => {
-      const isRead = notification.getAttribute("data-read") === "true";
+    if (tab === "all") {
+      notification.style.display = "flex";
+    } else if (tab === "unread" && !isRead) {
+      notification.style.display = "flex";
+    } else if (tab === "read" && isRead) {
+      notification.style.display = "flex";
+    } else {
+      notification.style.display = "none";
+    }
+  });
 
-      if (tab === "all") {
-        notification.style.display = "flex";
-      } else if (tab === "unread" && !isRead) {
-        notification.style.display = "flex";
-      } else if (tab === "read" && isRead) {
-        notification.style.display = "flex";
-      } else {
-        notification.style.display = "none";
-      }
-    });
-
-    // Check if we have any visible notifications
-    const visibleNotifications = document.querySelectorAll(
-      '.notification-item[style="display: flex;"]'
-    );
+  // Check if we have any visible notifications
+  const visibleNotifications = document.querySelectorAll(
+    '.notification-item[style="display: flex;"]'
+  );
+  
+  // Only attempt to modify emptyState if it exists
+  if (emptyState) {
     if (visibleNotifications.length === 0) {
       emptyState.style.display = "flex";
     } else {
       emptyState.style.display = "none";
     }
   }
+}
 
   // Open notification and mark as read
   function openNotification(id, url) {

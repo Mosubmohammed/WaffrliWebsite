@@ -54,10 +54,10 @@
         </a>
         </div>
     </div>
-    {% if messages %}
+    {% if inbox_messages %}
     <table class="sent-items-table">
       <tbody>
-        {% for message in messages %}
+        {% for message in inbox_messages %}
           <tr data-message-id="{{ message.id }}">
               <td class="action-cell">
                   <button class="delete-btn" onclick="deleteMessage({{ message.id }})">
@@ -147,24 +147,28 @@
 
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.querySelector('form');
-  form.addEventListener('submit', function(e) {
+  
+  // Only add the event listener if a form exists on the page
+  if (form) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
       
       // Simple validation
       if (!document.getElementById('subject').value || !document.querySelector('.editor').value) {
-          return; // Don't submit if empty
+        return; // Don't submit if empty
       }
       
       const notification = document.getElementById('notification');
       notification.classList.add('show');
       
       setTimeout(() => {
-          notification.classList.remove('show');
-          setTimeout(() => {
-              form.submit();
-          }, 300);
+        notification.classList.remove('show');
+        setTimeout(() => {
+          form.submit();
+        }, 300);
       }, 3000);
-  });
+    });
+  }
 });
 </script>
 {% endblock %}
