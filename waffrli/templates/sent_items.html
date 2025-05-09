@@ -54,10 +54,10 @@
         </a>
       </div>
     </div>
-    {% if messages %}
+    {% if user_messages %}
     <table class="sent-items-table">
       <tbody>
-        {% for message in messages %}
+        {% for message in user_messages %}
           <tr>
             <td class="action-cell">
               <button class="delete-btn" onclick="deleteMessage({{ message.id }})">

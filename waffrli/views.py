@@ -987,24 +987,13 @@ def update_wishlist_item(request, item_id):
 def delete_wishlist_item(request, item_id):
 
     try:
-        # Get the wishlist item
         wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
         
-        # Store the keyword and category for the notification
         keyword = wishlist_item.keyword
         category_name = wishlist_item.category  # This is already a string
         
         # Delete the wishlist item
         wishlist_item.delete()
-        
-        # Create a notification for the deleted wishlist item
-        notification = Notification(
-            user=request.user,
-            title="Wishlist Alert Removed",
-            message=f"You've removed the wishlist alert for \"{keyword}\" in the {category_name} category.",
-            notification_type='info'
-        )
-        notification.save()
         
         return JsonResponse({'status': 'success'})
     except WishlistItem.DoesNotExist:
@@ -1234,7 +1223,7 @@ def inbox(request):
         'total_messages': Message.objects.filter(recipient=request.user).count() + Message.objects.filter(sender=request.user).count(),
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
-        'messages': inbox_messages,
+        'inbox_messages': inbox_messages,  
         'active_tab': 'inbox'
     }
     
@@ -1255,7 +1244,7 @@ def send_message(request, user_id=None):
             return redirect('inbox')
     
     if request.method == 'POST':
-        # Get form data
+
         recipient_username = request.POST.get('recipient')
         subject = request.POST.get('subject')
         body = request.POST.get('body')
@@ -1271,7 +1260,6 @@ def send_message(request, user_id=None):
                 'sent_count': Message.objects.filter(sender=request.user).count(),
             })
         
-        # Find recipient user (even if we already got it from URL, to validate the form input)
         try:
             recipient = User.objects.get(username=recipient_username)
         except User.DoesNotExist:
@@ -1403,9 +1391,9 @@ def sent_items(request):
         'total_messages': Message.objects.filter(recipient=request.user).count() + Message.objects.filter(sender=request.user).count(),
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
-        'messages': sent_messages,
+        'user_messages': sent_messages,  
         'active_tab': 'sent',
-        'now': timezone.now(),  # Add current time for display logic
+        'now': timezone.now(),  
     }
     
     return render(request, 'sent_items.html', context)
@@ -1443,7 +1431,7 @@ def delete_messages(request):
 
 @staff_member_required
 def admin_reply_message(request, message_id):
-    """Allow admins to quickly reply to messages from the admin interface"""
+
     original_message = get_object_or_404(Message, id=message_id)
     
     if request.method == 'POST':
