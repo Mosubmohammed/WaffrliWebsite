@@ -664,9 +664,27 @@
     const products = productGrid.querySelectorAll('.product-card');
     const prevBtn = document.querySelector('.prev-grid-btn');
     const nextBtn = document.querySelector('.next-grid-btn');
-    const productsPerPage = 6;
+    let productsPerPage = 6;
     let currentPage = 0;
-    const totalPages = Math.ceil(products.length / productsPerPage);
+    let totalPages = Math.ceil(products.length / productsPerPage);
+
+    // Responsive products per page
+    function updateProductsPerPage() {
+      if (window.innerWidth <= 576) {
+        productsPerPage = 2;
+      } else if (window.innerWidth <= 768) {
+        productsPerPage = 3;
+      } else if (window.innerWidth <= 992) {
+        productsPerPage = 4;
+      } else if (window.innerWidth <= 1400) {
+        productsPerPage = 6;
+      } else {
+        productsPerPage = 8; 
+      }
+      totalPages = Math.ceil(products.length / productsPerPage);
+      currentPage = Math.min(currentPage, totalPages - 1);
+      showProducts(currentPage);
+    }
   
     function showProducts(page) {
       const start = page * productsPerPage;
@@ -695,9 +713,12 @@
         showProducts(currentPage);
       }
     });
+
+    // Update on window resize
+    window.addEventListener('resize', updateProductsPerPage);
   
     // Initialize first page
-    showProducts(0);
+    updateProductsPerPage();
   
     // Hot deals
     const container = document.querySelector('.mini-products-container');
