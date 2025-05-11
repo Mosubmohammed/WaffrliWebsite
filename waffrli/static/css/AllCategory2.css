@@ -27,7 +27,7 @@
   left: 0;
   width: 60px;
   height: 3px;
-  background-color: #e74c3c;
+  background-color: #384959;
 }
 
 .all-Category-tv-slider {
@@ -65,7 +65,7 @@
 .all-Category-shop-link {
   display: inline-block;
   padding: 0.8rem 1.5rem;
-  background-color: #e74c3c;
+  background-color: #384959;
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -74,7 +74,7 @@
 }
 
 .all-Category-shop-link:hover {
-  background-color: #c0392b;
+  background-color: #BDDDFC;
 }
 
 /* Featured Categories Section */
@@ -97,7 +97,7 @@
   left: 0;
   width: 60px;
   height: 3px;
-  background-color: #e74c3c;
+  background-color: #384959;
 }
 
 .all-Category-category-grid {
@@ -124,19 +124,19 @@
 .all-Category-category-item:hover {
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(219, 33, 13, 0.2);
-  color: #b42211;
+  color: #BDDDFC;
 }
 
 .all-Category-category-item i {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #e74c3c;
+  color: white;
 }
 
 .all-Category-category-item i:hover {
   font-size: 3rem;
   margin-bottom: 0rem;
-  color: #ffffff;
+  color: #BDDDFC;
 }
 
 .all-Category-category-item span {
@@ -203,10 +203,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e74c3c;
+  background: #384959;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c0392b;
+  background: #BDDDFC;
 }

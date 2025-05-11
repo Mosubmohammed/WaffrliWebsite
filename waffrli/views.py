@@ -25,13 +25,74 @@ from authentication.models import SupabaseUser
 
 
 def home(request):
+    user_lat = None
+    user_lng = None
+    
+    if request.user.is_authenticated and hasattr(request.user, 'customer'):
+        customer = request.user.customer
+        user_lat = customer.latitude
+        user_lng = customer.longitude
+    
+    # Fallback to session or request parameters
+    if not user_lat or not user_lng:
+        if 'user_latitude' in request.session and 'user_longitude' in request.session:
+            user_lat = request.session.get('user_latitude')
+            user_lng = request.session.get('user_longitude')
+        elif request.GET.get('lat') and request.GET.get('lng'):
+            try:
+                user_lat = float(request.GET.get('lat'))
+                user_lng = float(request.GET.get('lng'))
+            except ValueError:
+                pass
+    
+    # If still no location, use default (Amman)
+    if not user_lat or not user_lng:
+        user_lat = 31.9566  # Amman latitude
+        user_lng = 35.9457  # Amman longitude
+    
+    # Get all active products
     products = Product.objects.filter(is_archived=False).order_by('-create_at')
-
+    
+    # Add distance attribute to each product
     current_time = timezone.now()
     for product in products:
+        # Set expiration status
         product.is_expired = product.expires_at <= current_time if product.expires_at else False
+        
+        # Calculate distance only for physical stores with location data
+        if product.store_type == 'physical' and product.latitude and product.longitude:
+            # Add the calculated distance as an attribute
+            product.distance_to = product.distance_to(user_lat, user_lng)
+        else:
+            # For online stores or stores without location, set distance_to to None
+            product.distance_to = None
     
-
+    # Filter products to show only those with distance (physical stores)
+    nearby_products = [p for p in products if p.distance_to is not None]
+    
+    # Sort nearby products by distance
+    nearby_products.sort(key=lambda x: x.distance_to)
+    
+    # Limit to nearby products within 50km (optional)
+    MAX_DISTANCE = 50
+    nearby_products_filtered = [p for p in nearby_products if p.distance_to <= MAX_DISTANCE]
+    
+    # If no nearby products within range, show closest 5 products
+    if not nearby_products_filtered and nearby_products:
+        nearby_products_filtered = nearby_products[:5]
+    
+    # Get popular products using the same logic as your popular endpoint
+    popular_products = Product.objects.filter(
+        is_archived=False  # Exclude archived deals
+    ).annotate(
+        like_count=Count('likes'),
+        popularity_score=ExpressionWrapper(
+            (F('like_count') * 3) + F('views'),
+            output_field=FloatField()
+        )
+    ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]  # Get top 12 popular products
+    
+    # Get specific category products (your existing logic)
     try:
         phones_category = Category.objects.get(name__icontains='Phones')
     except Category.DoesNotExist:
@@ -69,7 +130,7 @@ def home(request):
             is_archived=False
         ).order_by('-create_at')[:4]
     
-    # If any category doesn't have enough products, get products with similar keywords in name
+    # Fill up categories with keyword searches if needed
     if len(phone_products) < 4:
         additional_phones = Product.objects.filter(
             Name__icontains='phone',
@@ -92,14 +153,17 @@ def home(request):
         bag_products = list(bag_products) + list(additional_bags)
     
     context = {
-        'products': products,
+        'products': nearby_products_filtered,  # Only show nearby products in the "NearBy You" section
+        'all_products': products,  # All products for other sections
+        'popular_products': popular_products,  # Add popular products to context
         'phone_products': phone_products,
         'computer_products': computer_products,
-        'bag_products': bag_products
+        'bag_products': bag_products,
+        'user_lat': user_lat,
+        'user_lng': user_lng,
     }
     
     return render(request, 'home.html', context)
-
 
 
 def product_list(request, page_type=None, category=None):
@@ -899,8 +963,10 @@ def user_profile(request, identifier):
 
 
 
-@login_required
 def wishlist(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to view your wishlist.")
+        return redirect('login')
 
     wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-created_at')
 
@@ -956,7 +1022,7 @@ def update_wishlist_item(request, item_id):
     try:
         # Get the wishlist item
         wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
-        
+    
         # Parse the JSON data from the request
         data = json.loads(request.body)
         
@@ -1596,15 +1662,13 @@ def edit_deal(request, product_id):
             # Handle image upload
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
-            
-            # Save the updated product
+
             product.save()
             
             messages.success(request, "Your deal has been updated successfully!")
             return redirect('product', pk=product_id)
             
         except Exception as e:
-            print(f"Error updating deal: {str(e)}")
             messages.error(request, "An error occurred while updating the deal. Please try again.")
     
     # For GET requests, calculate the discount percentage for display
@@ -1639,15 +1703,16 @@ def delete_deal(request, product_id):
         return redirect('home') 
         
     except Exception as e:
-        print(f"Error deleting deal: {str(e)}")
         messages.error(request, "An error occurred while deleting the deal. Please try again.")
         return redirect('product', pk=product_id)
     
     
 
-@login_required
 def notifications_view(request):
-
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to view notifications.")
+        return redirect('login')
+    
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     
     # Count unread notifications
@@ -1659,6 +1724,8 @@ def notifications_view(request):
     }
     
     return render(request, 'notifications.html', context)
+
+
 @login_required
 def mark_notification_unread(request, notification_id):
     try:
@@ -2060,8 +2127,6 @@ def report_deal(request, product_id):
             'message': 'Thank you for your report. Our team will review it soon.'
         })
     except Exception as e:
-        # Log the error (replace with your logging method)
-        print(f"Error creating report: {str(e)}")
         return JsonResponse({
             'success': False,
             'message': 'An error occurred while saving your report. Please try again.'
