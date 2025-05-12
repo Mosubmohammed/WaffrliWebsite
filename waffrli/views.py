@@ -532,8 +532,10 @@ def product(request, pk):
     try:
         product = get_object_or_404(Product, id=pk)
         
+        # Increment view count
         product.increment_views()
 
+        # Get related products
         related_products = Product.objects.filter(
             category=product.category
         ).exclude(
@@ -542,12 +544,13 @@ def product(request, pk):
             '-create_at' 
         )[:6]  
         
-
+        # Calculate discount percentages
         if product.Price and product.sale_price:
             product.discount_percentage = product.get_discount_percentage()
         else:
             product.discount_percentage = 0
         
+        # Process related products
         for related_product in related_products:
             if related_product.Price and related_product.sale_price:
                 related_product.discount_percentage = related_product.get_discount_percentage()
@@ -555,26 +558,27 @@ def product(request, pk):
                 related_product.discount_percentage = 0
             
             related_product.is_popular = related_product.views > 100 or related_product.likes.count() > 10
-
             related_product.time_ago = related_product.create_at
         
-
+        # Check if user is following the product poster
         is_following = False
         if request.user.is_authenticated and request.user != product.user:
             is_following = Follow.objects.filter(follower=request.user, following=product.user).exists()
-            
         
-
+        # Get poster's profile stats
         deal_count = Product.objects.filter(user=product.user).count()
-        
-
         comment_count = Comment.objects.filter(customer__user=product.user).count()
-        
-
         total_likes_received = Product.objects.filter(user=product.user).aggregate(Sum('likes'))['likes__sum'] or 0
         reputation_points = total_likes_received * 5
         
-
+        # Check community voting status for current user
+        has_good_voted = False
+        has_bad_voted = False
+        if request.user.is_authenticated:
+            has_good_voted = request.user in product.good_votes.all()
+            has_bad_voted = request.user in product.bad_votes.all()
+        
+        # Process comments on POST
         if request.method == 'POST':
             comment_text = request.POST.get('comment')
             
@@ -595,7 +599,6 @@ def product(request, pk):
                 messages.warning(request, 'Please write a comment before posting.')
             else:
                 try:
-
                     customer = Customer.objects.get(user=request.user)
                     
                     comment = Comment.objects.create(
@@ -632,10 +635,10 @@ def product(request, pk):
                         }, status=400)
                     messages.error(request, 'Your user profile is missing. Please contact support.')
         
-
+        # Get all comments for the product
         comments = Comment.objects.filter(product=product).order_by('-timestamp')
         
-
+        # Prepare context for template
         context = {
             'product': product,
             'comments': comments,
@@ -646,6 +649,9 @@ def product(request, pk):
             'reputation_points': reputation_points,
             'total_likes_received': total_likes_received,
             'user': request.user,
+            'community_score': product.community_score,
+            'has_good_voted': has_good_voted,
+            'has_bad_voted': has_bad_voted,
         }
         
         return render(request, 'product.html', context)
@@ -654,6 +660,73 @@ def product(request, pk):
         messages.error(request, 'That product does not exist.')
         return redirect('home')
 
+
+@login_required
+def community_vote(request, product_id):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+    
+    try:
+        product = get_object_or_404(Product, id=product_id)
+        user = request.user
+        
+        # Parse the request body
+        data = json.loads(request.body)
+        vote_type = data.get('vote')
+        
+        # Check current voting status
+        user_has_good_vote = user in product.good_votes.all()
+        user_has_bad_vote = user in product.bad_votes.all()
+        
+        # Store original score for error handling
+        original_score = product.community_score
+        
+        # Process the vote based on type
+        if vote_type == 'up':
+            # User is voting up
+            if not user_has_good_vote:
+                product.good_votes.add(user)
+            if user_has_bad_vote:
+                product.bad_votes.remove(user)
+        elif vote_type == 'down':
+            # User is voting down
+            if not user_has_bad_vote:
+                product.bad_votes.add(user)
+            if user_has_good_vote:
+                product.good_votes.remove(user)
+        else:
+            # User is removing their vote
+            if user_has_good_vote:
+                product.good_votes.remove(user)
+            if user_has_bad_vote:
+                product.bad_votes.remove(user)
+        
+        # Update the community score
+        score = product.update_community_score()
+        
+        return JsonResponse({
+            'success': True,
+            'score': score,
+            'original_score': original_score,
+            'has_good_voted': user in product.good_votes.all(),
+            'has_bad_voted': user in product.bad_votes.all()
+        })
+    
+    except Product.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Product not found'
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 def search(request):
@@ -893,7 +966,7 @@ def like_product(request, product_id):
     # If not authenticated and it's an AJAX request, return error
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({
-            'error': 'Authentication required'
+            'error': 'You must be logged in to like a product.'
         }, status=401)
     
     # Otherwise redirect to login page
@@ -1210,7 +1283,7 @@ def toggle_save_product(request, product_id):
     if not request.user.is_authenticated:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
-                'error': 'Authentication required',
+                'error': 'You must be logged in to save products.',
                 'redirect_url': reverse('login')
             }, status=401)
         

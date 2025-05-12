@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/popularDeals98.css' %}">
+<link rel="stylesheet" href="{% static 'css/popularDeals99.css' %}">
 
 <!-- Popular Deals Section -->
 <div class="deals-section">
@@ -172,7 +172,7 @@
             {% if products %}
                 {% for product in products %}
 
-<div class="product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+<div class="product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}   onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
     <div class="product-image">
         {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
@@ -210,7 +210,7 @@
             <div class="deal-meta">
                 <div class="brand-category">
                     <span style="color: black;" class="brand">{{ product.brand }}</span>
-                    <span style="color: rgb(214, 16, 16);" class="separator">•</span>
+                    <span class="separator">•</span>
                     <span style="color: black;" class="category">{{ product.category }}</span>
                 </div>
                

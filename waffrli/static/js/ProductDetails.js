@@ -1,53 +1,4 @@
-
-  function archiveDeal(dealId) {
-    if (!dealId) {
-      alert("Invalid deal ID.");
-      return;
-    }
-
-    fetch(`/deal/${dealId}/archive/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-        'Content-Type': 'application/json'
-      },
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Failed to archive deal.");
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert(data.message || "Deal archived successfully.");
-      // Optionally remove the product card or reload the page
-      location.reload();
-    })
-    .catch(error => {
-      alert("An error occurred while archiving the deal.");
-      console.error(error);
-    });
-  }
-
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-
-
-
+// Like button functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Find all like buttons on the page
     const likeButtons = document.querySelectorAll('.like-btn');
@@ -76,16 +27,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Toggle the icon immediately for better UX
             if (isCurrentlyLiked) {
-                // Change to outline heart
                 heartIcon.classList.remove('fas');
                 heartIcon.classList.add('far');
             } else {
-                // Change to filled heart
                 heartIcon.classList.remove('far'); 
                 heartIcon.classList.add('fas');
             }
             
-            // Send the AJAX request
+            // Send the AJAX request to the existing like endpoint
             fetch(`/like/${productId}/`, {
                 method: 'POST',
                 headers: {
@@ -139,242 +88,161 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-    
-    // Helper function to get CSRF token from cookies
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    // Function to show notification message
-    function showNotification(message, type = 'success') {
-        // Create popup container if it doesn't exist
-        let container = document.querySelector('.popup-messages-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'popup-messages-container';
-            document.body.appendChild(container);
-        }
-        
-        // Create popup message
-        const popup = document.createElement('div');
-        popup.className = `popup-message alert-${type === 'success' ? 'secondary' : 'danger'} fade show`;
-        popup.setAttribute('role', 'alert');
-        
-        popup.innerHTML = `
-            <div class="popup-content">
-                <span class="popup-text">${message}</span>
-                <button class="popup-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        // Add close button functionality
-        const closeBtn = popup.querySelector('.popup-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                popup.classList.add('fade-out');
-                popup.addEventListener('animationend', function() {
-                    popup.remove();
-                });
-            });
-        }
-        
-        // Add to container
-        container.appendChild(popup);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            popup.classList.add('fade-out');
-            popup.addEventListener('animationend', function() {
-                popup.remove();
-            });
-        }, 5000);
-    }
 });
 
-
-
-// Community Voting - Completely Standalone Implementation
+// Community Voting - Completely Rewritten
 document.addEventListener('DOMContentLoaded', function() {
-    // Find community voting elements
-    const scoreElement = document.querySelector('.score');
+    // Remove any event listeners that might be causing the duplicate problem
     const goodDealBtn = document.querySelector('.good-deal');
     const badDealBtn = document.querySelector('.bad-deal');
-
-    // Only proceed if all elements exist
-    if (scoreElement && goodDealBtn && badDealBtn) {
-        // Get the product ID for server updates
-        const productId = document.querySelector('.voting-section')?.getAttribute('data-product-id');
-        
-        // Initialize voting state
-        let voteScore = parseInt(scoreElement.textContent.replace('+', '')) || 0;
-        let hasVoted = goodDealBtn.classList.contains('voted') ? 'up' : 
-                       badDealBtn.classList.contains('voted') ? 'down' : null;
-
-        // Handle "Good Deal" button click
-        goodDealBtn.addEventListener('click', () => {
-            if (hasVoted === 'up') {
-                // Remove up vote
-                voteScore--;
-                hasVoted = null;
-                goodDealBtn.classList.remove('voted');
-            } else {
-                if (hasVoted === 'down') {
-                    // Change from down to up vote
-                    voteScore += 2;
-                    badDealBtn.classList.remove('voted');
-                } else {
-                    // Add up vote
-                    voteScore++;
-                }
-                hasVoted = 'up';
-                goodDealBtn.classList.add('voted');
-            }
-            
-            // Update the score display
-            updateScoreDisplay();
-            
-            // Notify server about the vote if product ID is available
-            if (productId) {
-                updateServerVote();
-            }
-        });
-
-        // Handle "Bad Deal" button click
-        badDealBtn.addEventListener('click', () => {
-            if (hasVoted === 'down') {
-                // Remove down vote
-                voteScore++;
-                hasVoted = null;
-                badDealBtn.classList.remove('voted');
-            } else {
-                if (hasVoted === 'up') {
-                    // Change from up to down vote
-                    voteScore -= 2;
-                    goodDealBtn.classList.remove('voted');
-                } else {
-                    // Add down vote
-                    voteScore--;
-                }
-                hasVoted = 'down';
-                badDealBtn.classList.add('voted');
-            }
-            
-            // Update the score display
-            updateScoreDisplay();
-            
-            // Notify server about the vote if product ID is available
-            if (productId) {
-                updateServerVote();
-            }
-        });
-        
-        // Function to update score display
-        function updateScoreDisplay() {
-            scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
-        }
-        
-        // Function to update server about vote
-        function updateServerVote() {
-            fetch(`/community-vote/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    vote: hasVoted,
-                    score: voteScore
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to update vote on server');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Optionally update score from server if it differs
-                if (data.score !== undefined && data.score !== voteScore) {
-                    voteScore = data.score;
-                    updateScoreDisplay();
-                }
-                
-                // Show notification
-                if (hasVoted === 'up') {
-                    showNotification('You voted this as a good deal!');
-                } else if (hasVoted === 'down') {
-                    showNotification('You voted this as a bad deal!');
-                } else {
-                    showNotification('You removed your vote.');
-                }
-            })
-            .catch(error => {
-                console.error('Error updating vote:', error);
-                showNotification('Error updating your vote. Please try again.', 'error');
-            });
-        }
+    
+    if (!goodDealBtn || !badDealBtn) {
+        console.error('Vote buttons not found');
+        return;
     }
     
+    // Create new clean elements to replace the existing ones
+    const newGoodDealBtn = goodDealBtn.cloneNode(true);
+    const newBadDealBtn = badDealBtn.cloneNode(true);
     
-    // Function to show notification message
-    function showNotification(message, type = 'success') {
-        // Create popup container if it doesn't exist
-        let container = document.querySelector('.popup-messages-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'popup-messages-container';
-            document.body.appendChild(container);
+    // Replace the old buttons with the cloned ones to remove any event listeners
+    goodDealBtn.parentNode.replaceChild(newGoodDealBtn, goodDealBtn);
+    badDealBtn.parentNode.replaceChild(newBadDealBtn, badDealBtn);
+    
+    // Get the voting section and score element
+    const votingSection = document.querySelector('.voting-section');
+    const scoreElement = document.querySelector('.score');
+    
+    if (!votingSection || !scoreElement) {
+        console.error('Voting section or score element not found');
+        return;
+    }
+    
+    // Get the product ID
+    const productId = votingSection.getAttribute('data-product-id');
+    if (!productId) {
+        console.error('No product ID found in voting section');
+        return;
+    }
+    
+    // Initialize voting state
+    let voteScore = parseInt(scoreElement.textContent.replace('+', '')) || 0;
+    let hasVoted = newGoodDealBtn.classList.contains('voted') ? 'up' : 
+                 newBadDealBtn.classList.contains('voted') ? 'down' : null;
+    
+    // Single handler for the 'Good Deal' button
+    newGoodDealBtn.addEventListener('click', function() {
+        console.log('Good deal clicked, current state:', hasVoted);
+        
+        if (hasVoted === 'up') {
+            // Remove up vote
+            voteScore--;
+            hasVoted = null;
+            newGoodDealBtn.classList.remove('voted');
+        } else {
+            if (hasVoted === 'down') {
+                // Change from down to up vote
+                voteScore += 2;
+                newBadDealBtn.classList.remove('voted');
+            } else {
+                // Add up vote
+                voteScore++;
+            }
+            hasVoted = 'up';
+            newGoodDealBtn.classList.add('voted');
         }
         
-        // Create popup message
-        const popup = document.createElement('div');
-        popup.className = `popup-message alert-${type === 'success' ? 'secondary' : 'danger'} fade show`;
-        popup.setAttribute('role', 'alert');
+        // Update score display
+        scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
         
-        popup.innerHTML = `
-            <div class="popup-content">
-                <span class="popup-text">${message}</span>
-                <button class="popup-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
+        // Send vote to server
+        sendVoteToServer(hasVoted, voteScore, productId);
+    });
+    
+    // Single handler for the 'Bad Deal' button
+    newBadDealBtn.addEventListener('click', function() {
+        console.log('Bad deal clicked, current state:', hasVoted);
         
-        // Add close button functionality
-        const closeBtn = popup.querySelector('.popup-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                popup.classList.add('fade-out');
-                popup.addEventListener('animationend', function() {
-                    popup.remove();
-                });
-            });
+        if (hasVoted === 'down') {
+            // Remove down vote
+            voteScore++;
+            hasVoted = null;
+            newBadDealBtn.classList.remove('voted');
+        } else {
+            if (hasVoted === 'up') {
+                // Change from up to down vote
+                voteScore -= 2;
+                newGoodDealBtn.classList.remove('voted');
+            } else {
+                // Add down vote
+                voteScore--;
+            }
+            hasVoted = 'down';
+            newBadDealBtn.classList.add('voted');
         }
         
-        // Add to container
-        container.appendChild(popup);
+        // Update score display
+        scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
         
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            popup.classList.add('fade-out');
-            popup.addEventListener('animationend', function() {
-                popup.remove();
-            });
-        }, 5000);
+        // Send vote to server
+        sendVoteToServer(hasVoted, voteScore, productId);
+    });
+    
+    // Function to send vote to server
+    function sendVoteToServer(vote, score, id) {
+        console.log('Sending vote to server:', vote, score, id);
+        
+        fetch(`/community-vote/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                vote: vote,
+                score: score
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/login/?next=' + window.location.pathname;
+                    throw new Error('Please log in to vote');
+                }
+                throw new Error('Failed to update vote on server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update score from server if it differs
+            if (data.score !== undefined && data.score !== score) {
+                voteScore = data.score;
+                scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
+            }
+            
+            // Show notification
+            if (vote === 'up') {
+                showNotification('You voted this as a good deal!');
+            } else if (vote === 'down') {
+                showNotification('You voted this as a bad deal!');
+            } else {
+                showNotification('You removed your vote.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating vote:', error);
+            showNotification('Error: ' + error.message, 'error');
+            
+            // Reset UI on error
+            newGoodDealBtn.classList.remove('voted');
+            newBadDealBtn.classList.remove('voted');
+            
+            if (data && data.original_score !== undefined) {
+                scoreElement.textContent = data.original_score >= 0 ? 
+                    `+${data.original_score}` : data.original_score;
+            }
+        });
     }
 });
 
@@ -425,7 +293,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-    
     
     // --- MENU DROPDOWN FUNCTIONALITY ---
     const menuBtn = document.getElementById('menuBtn');
@@ -502,209 +369,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // --- COMMUNITY VOTING FUNCTIONALITY ---
-    const scoreElement = document.querySelector('.score');
-    const goodDealBtn = document.querySelector('.good-deal');
-    const badDealBtn = document.querySelector('.bad-deal');
+    // --- REPORT MODAL FUNCTIONALITY ---
+    const reportButton = document.getElementById('reportButton');
+    const reportModal = document.getElementById('reportModal');
+    const closeModal = document.getElementById('closeModal');
+    const reportForm = document.getElementById('reportForm');
 
-    // Only proceed if all elements exist
-    if (scoreElement && goodDealBtn && badDealBtn) {
-        // Get the product ID for server updates
-        const productId = document.querySelector('.voting-section')?.getAttribute('data-product-id');
-        
-        // Initialize voting state
-        let voteScore = parseInt(scoreElement.textContent.replace('+', '')) || 0;
-        let hasVoted = goodDealBtn.classList.contains('voted') ? 'up' : 
-                       badDealBtn.classList.contains('voted') ? 'down' : null;
+    if (reportButton && reportModal) {
+        reportButton.addEventListener('click', function() {
+            reportModal.style.display = 'flex';
+        });
+    }
 
-        // Handle "Good Deal" button click
-        goodDealBtn.addEventListener('click', () => {
-            if (hasVoted === 'up') {
-                // Remove up vote
-                voteScore--;
-                hasVoted = null;
-                goodDealBtn.classList.remove('voted');
-            } else {
-                if (hasVoted === 'down') {
-                    // Change from down to up vote
-                    voteScore += 2;
-                    badDealBtn.classList.remove('voted');
-                } else {
-                    // Add up vote
-                    voteScore++;
-                }
-                hasVoted = 'up';
-                goodDealBtn.classList.add('voted');
-            }
-            
-            // Update the score display
-            updateCommunityScoreDisplay();
-            
-            // Notify server about the vote if product ID is available
-            if (productId) {
-                updateCommunityServerVote();
+    if (closeModal && reportModal) {
+        closeModal.addEventListener('click', function() {
+            reportModal.style.display = 'none';
+        });
+    }
+
+    if (reportModal) {
+        reportModal.addEventListener('click', function(event) {
+            if (event.target === reportModal) {
+                reportModal.style.display = 'none';
             }
         });
+    }
 
-        // Handle "Bad Deal" button click
-        badDealBtn.addEventListener('click', () => {
-            if (hasVoted === 'down') {
-                // Remove down vote
-                voteScore++;
-                hasVoted = null;
-                badDealBtn.classList.remove('voted');
-            } else {
-                if (hasVoted === 'up') {
-                    // Change from up to down vote
-                    voteScore -= 2;
-                    goodDealBtn.classList.remove('voted');
-                } else {
-                    // Add down vote
-                    voteScore--;
-                }
-                hasVoted = 'down';
-                badDealBtn.classList.add('voted');
-            }
+    if (reportForm) {
+        reportForm.addEventListener('submit', function(event) {
+            event.preventDefault();
             
-            // Update the score display
-            updateCommunityScoreDisplay();
+            // Get the form data
+            const formData = new FormData(reportForm);
             
-            // Notify server about the vote if product ID is available
-            if (productId) {
-                updateCommunityServerVote();
-            }
-        });
-        
-        // Function to update score display
-        function updateCommunityScoreDisplay() {
-            scoreElement.textContent = voteScore >= 0 ? `+${voteScore}` : voteScore;
-        }
-        
-        // Function to update server about vote
-        function updateCommunityServerVote() {
-            fetch(`/community-vote/${productId}/`, {
+            // Get product ID from the URL path - matches /product/123/
+            const productId = window.location.pathname.split('/')[2]; 
+            
+            // Debug logs
+            console.log("Submitting report for product ID:", productId);
+            console.log("Form data reason:", formData.get('reason'));
+            console.log("Form data message:", formData.get('message'));
+            
+            // Show loading state
+            const submitButton = reportForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            // Send report to server - using the URL pattern that matches your Django URLs
+            fetch(`/product/${productId}/report/`, {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({
-                    vote: hasVoted,
-                    score: voteScore
-                })
+                body: formData
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to update vote on server');
-                }
+                console.log("Response status:", response.status);
                 return response.json();
             })
             .then(data => {
-                // Optionally update score from server if it differs
-                if (data.score !== undefined && data.score !== voteScore) {
-                    voteScore = data.score;
-                    updateCommunityScoreDisplay();
-                }
+                console.log("Response data:", data);
+                reportModal.style.display = 'none';
+                reportForm.reset();
                 
-                // Show notification
-                if (hasVoted === 'up') {
-                    showNotification('You voted this as a good deal!');
-                } else if (hasVoted === 'down') {
-                    showNotification('You voted this as a bad deal!');
+                if (data.success) {
+                    showNotification(data.message || 'Thank you for your report!');
                 } else {
-                    showNotification('You removed your vote.');
+                    showNotification(data.message || 'Failed to submit report.', 'error');
                 }
             })
             .catch(error => {
-                console.error('Error updating vote:', error);
-                showNotification('Error updating your vote. Please try again.', 'error');
+                console.error('Error:', error);
+                showNotification('An error occurred while submitting your report. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
             });
-        }
-    }
-    
-// --- REPORT MODAL FUNCTIONALITY ---
-const reportButton = document.getElementById('reportButton');
-const reportModal = document.getElementById('reportModal');
-const closeModal = document.getElementById('closeModal');
-const reportForm = document.getElementById('reportForm');
-
-if (reportButton && reportModal) {
-    reportButton.addEventListener('click', function() {
-        reportModal.style.display = 'flex';
-    });
-}
-
-if (closeModal && reportModal) {
-    closeModal.addEventListener('click', function() {
-        reportModal.style.display = 'none';
-    });
-}
-
-if (reportModal) {
-    reportModal.addEventListener('click', function(event) {
-        if (event.target === reportModal) {
-            reportModal.style.display = 'none';
-        }
-    });
-}
-
-if (reportForm) {
-    reportForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        // Get the form data
-        const formData = new FormData(reportForm);
-        
-        // Get product ID from the URL path - matches /product/123/
-        const productId = window.location.pathname.split('/')[2]; 
-        
-        // Debug logs
-        console.log("Submitting report for product ID:", productId);
-        console.log("Form data reason:", formData.get('reason'));
-        console.log("Form data message:", formData.get('message'));
-        
-        // Show loading state
-        const submitButton = reportForm.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.innerHTML;
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        
-        // Send report to server - using the URL pattern that matches your Django URLs
-        fetch(`/product/${productId}/report/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData
-        })
-        .then(response => {
-            console.log("Response status:", response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log("Response data:", data);
-            reportModal.style.display = 'none';
-            reportForm.reset();
-            
-            if (data.success) {
-                showNotification(data.message || 'Thank you for your report!');
-            } else {
-                showNotification(data.message || 'Failed to submit report.', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('An error occurred while submitting your report. Please try again.', 'error');
-        })
-        .finally(() => {
-            // Restore button state
-            submitButton.disabled = false;
-            submitButton.innerHTML = originalButtonText;
         });
-    });
-}
+    }
     
     // --- COMMENT FORM AJAX FUNCTIONALITY ---
     const commentForm = document.getElementById('comment-form');
@@ -789,6 +535,22 @@ if (reportForm) {
 
 // --- GLOBAL FUNCTIONS ---
 
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // Add a new comment to the DOM
 function addNewCommentToDOM(commentData) {
     // Create a new comment element
@@ -868,6 +630,36 @@ function confirmDelete(productId) {
     }
 }
 
+// Function to archive a deal
+function archiveDeal(dealId) {
+    if (!dealId) {
+      alert("Invalid deal ID.");
+      return;
+    }
+
+    fetch(`/deal/${dealId}/archive/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json'
+      },
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to archive deal.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert(data.message || "Deal archived successfully.");
+      // Optionally remove the product card or reload the page
+      location.reload();
+    })
+    .catch(error => {
+      alert("An error occurred while archiving the deal.");
+      console.error(error);
+    });
+}
 
 // Show notification message
 function showNotification(message, type = 'success') {
@@ -916,40 +708,44 @@ function showNotification(message, type = 'success') {
     }, 5000);
 }
 
+// Get CSRF token from DOM
 function getCSRFToken() {
     return document.querySelector('[name=csrfmiddlewaretoken]').value;
 }
 
-document.querySelectorAll('.follow-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const userId = this.dataset.userId;
-        const isFollowing = this.dataset.following === 'true';
-        const url = isFollowing ? `/unfollow/${userId}/` : `/follow/${userId}/`;
+// Follow/unfollow user functionality
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.follow-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const userId = this.dataset.userId;
+            const isFollowing = this.dataset.following === 'true';
+            const url = isFollowing ? `/unfollow/${userId}/` : `/follow/${userId}/`;
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            const icon = this.querySelector('i');
-            const text = this.querySelector('span');
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const icon = this.querySelector('i');
+                const text = this.querySelector('span');
 
-            if (data.status === 'followed') {
-                icon.classList.remove('fa-user-plus');
-                icon.classList.add('fa-user-minus');
-                text.textContent = 'Unfollow';
-                this.dataset.following = 'true';
-            } else if (data.status === 'unfollowed') {
-                icon.classList.remove('fa-user-minus');
-                icon.classList.add('fa-user-plus');
-                text.textContent = 'Follow';
-                this.dataset.following = 'false';
-            }
-        })
-        .catch(err => console.error('Error:', err));
+                if (data.status === 'followed') {
+                    icon.classList.remove('fa-user-plus');
+                    icon.classList.add('fa-user-minus');
+                    text.textContent = 'Unfollow';
+                    this.dataset.following = 'true';
+                } else if (data.status === 'unfollowed') {
+                    icon.classList.remove('fa-user-minus');
+                    icon.classList.add('fa-user-plus');
+                    text.textContent = 'Follow';
+                    this.dataset.following = 'false';
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
     });
 });

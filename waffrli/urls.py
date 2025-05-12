@@ -43,6 +43,7 @@ urlpatterns = [
     path('archived-deals/<int:deal_id>/delete/',delete_archived_deal, name='delete_archived_deal'),
     path('archived-deals/<int:deal_id>/publish/',publish_archived_deal, name='publish_archived_deal'),
     path('deal/<int:deal_id>/archive/', archive_deal, name='archive_deal'),
+    path('community-vote/<int:product_id>/', community_vote, name='community_vote'),
 
     path('product/<int:product_id>/report/', report_deal, name='report_deal'),
     
