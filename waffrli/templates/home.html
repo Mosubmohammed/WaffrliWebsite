@@ -127,7 +127,7 @@
 <!-- All Products -->
 <div class="All-product-grid">
   {% for product in all_products  %}
-  <div class="All-product-card {% if product.is_expired %}expired{% endif %}">
+  <div class="All-product-card"{% if product.is_expired %}expired{% endif %} onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
     {% if product.is_expired %}
     <div class="expired-overlay">
       <span class="expired-tag">EXPIRED</span>

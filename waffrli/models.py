@@ -80,6 +80,10 @@ class Product(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     formatted_address = models.CharField(max_length=255, null=True, blank=True)
     
+    good_votes = models.ManyToManyField(User, related_name="good_votes", blank=True)
+    bad_votes = models.ManyToManyField(User, related_name="bad_votes", blank=True)
+    community_score = models.IntegerField(default=0)
+    
     def increment_views(self):
         self.views += 1
         self.save(update_fields=['views']) 
@@ -134,6 +138,14 @@ class Product(models.Model):
         distance = R * c
         
         return round(distance, 2)  
+    
+    def update_community_score(self):
+        """Update the community score based on good and bad votes"""
+        good_count = self.good_votes.count()
+        bad_count = self.bad_votes.count()
+        self.community_score = good_count - bad_count
+        self.save(update_fields=['community_score'])
+        return self.community_score
         
     class Meta:
         indexes = [

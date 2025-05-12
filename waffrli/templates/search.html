@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'css/Searchh33.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Searchh334.css' %}" rel="stylesheet" />
 
 <div class="search-page-container">
   
@@ -23,7 +23,7 @@
       {% if searched %}
       {% for product in searched %}
 
-      <div class="search-product-card">
+      <div class="search-product-card" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
         <!-- Card Header - User Info -->
         <div class="card-header">
           {% if product.user.customer.image %}

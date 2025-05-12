@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<link href="{% static 'css/DealDetailsStyle999.css' %}" rel="stylesheet" />
+<link href="{% static 'css/DealDetailsStyle888.css' %}" rel="stylesheet" />
 
 
 <div class="container">
@@ -81,7 +81,7 @@
                                 <i class="fas fa-external-link-alt"></i> Get Deal at {{product.store}}
                             </a>
 
-                            <button style="color: red; font-weight: 400;" class="save-btn"
+                            <button style="font-weight: 400;" class="save-btn"
                                 data-product-id="{{ product.id }}"
                                 title="{% if product in user.customer.saved_products.all %}Unsave{% else %}Save{% endif %} this item">
                                 <i
@@ -141,18 +141,18 @@
 
                 <div class="Details-tab-content" id="community">
                     <h3 style="color: black;">Community Voting</h3>
-                    <div class="voting-section">
+                    <div class="voting-section" data-product-id="{{ product.id }}">
                         <div class="vote-score">
-                            <div class="score">+{{ product.likes.count }}</div>
+                        <div class="score">{% if product.community_score >= 0 %}+{% endif %}{{ product.community_score }}</div>
                             <div class="score-label">Deal Score</div>
                         </div>
                         <div class="vote-buttons">
-                            <button class="vote-btn good-deal {% if user in product.likes.all %}voted{% endif %}">
+                            <button class="vote-btn good-deal  {% if user in product.good_votes.all %}voted{% endif %}">
                                 👍 Good Deal
                             </button>
-                            <button class="vote-btn bad-deal">
-                                👎 Bad Deal
-                            </button>
+                        <button class="vote-btn bad-deal {% if user in product.bad_votes.all %}voted{% endif %}">
+                        👎 Bad Deal
+                    </button>
                         </div>
                     </div>
                 </div>
@@ -339,6 +339,8 @@
                         <div class="login-to-comment">
                             <p>Please <a href="{% url 'login' %}">login</a> to leave a comment.</p>
                         </div>
+
+
                         {% endif %}
                     </div>
                 </div>

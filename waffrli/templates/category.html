@@ -221,7 +221,7 @@
     <main class="Subproducts-grid">
         {% for product in products %}
 
-<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}>
+<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}   onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
     <div class="product-image">
         {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />

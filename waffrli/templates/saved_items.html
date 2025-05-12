@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% load static %} {% block content %}
 <link href="{% static 'css/settings9.css' %}" rel="stylesheet" />
-<link href="{% static 'css/savedListt2.css' %}" rel="stylesheet" />
+<link href="{% static 'css/savedListt225.css' %}" rel="stylesheet" />
 
 
 <nav class="user-navbar">
@@ -45,7 +45,7 @@
       
       {% if saved_products %}
           {% for product in saved_products %}
-          <div class="saved-item" data-product-id="{{ product.id }}">
+          <div class="saved-item" data-product-id="{{ product.id }}"   onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
               <img src="{{ product.image.url }}" alt="{{ product.Name }}" class="item-image">
               <div class="item-details">
                   <h3>{{ product.store }}: {{ product.Name }}: {{ product.Description }} ${{ product.sale_price }}</h3>

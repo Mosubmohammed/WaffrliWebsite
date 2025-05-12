@@ -22,8 +22,9 @@
               <a href="{% url 'user_profile' request.user.id %}"><i class="fas fa-user"></i> My Profile</a>
               <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Settings</a>
               <a href="{% url 'inbox' %}"><i class="fa-solid fa-inbox"></i> Inbox</a>
-              <a href="{% url 'logout' %}" style="color:red"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+
               <a class="nav-link" href="{% url 'archived_deals' %}"><i class="fas fa-archive"></i> Archived Deals</a>
+              <a href="{% url 'logout' %}" style="color:red"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
                     
 
                 
