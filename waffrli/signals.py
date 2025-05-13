@@ -78,47 +78,6 @@ def create_report_status_notification(sender, instance, **kwargs):
                 url=f'/product/{instance.product.id}/'
             )
 
-# @receiver(pre_save, sender=Product)
-# def notify_owner_when_deal_removed(sender, instance, **kwargs):
-
-#     if instance.pk is None:
-#         return
-    
-#     try:
-#         original_product = Product.objects.get(pk=instance.pk)
-#     except Product.DoesNotExist:
-#         return
-    
-#     # Check if the product has been removed (is_archived changed from False to True)
-#     if not original_product.is_archived and instance.is_archived:
-#         # Product has been archived/removed
-        
-#         # Get the owner user
-#         owner = instance.user
-#         if not owner:
-#             return
-        
-
-#         title = f"Your Deal Has Been Removed: {instance.Name}"
-#         message = f"Your deal '{instance.Name}' has been removed by an administrator."
-
-#         recent_reports = ReportedDeal.objects.filter(product=instance, status='approved').order_by('-updated_at')
-        
-#         if recent_reports.exists() and recent_reports.first().admin_notes:
-#             clean_reason = strip_tags(recent_reports.first().admin_notes)
-#             message += f"\n\nReason: {clean_reason}"
-        
-#         # Create the notification
-#         Notification.objects.create(
-#             user=owner,
-#             title=title,
-#             message=message,
-#             notification_type='alert',
-#             related_object_type='product',
-#             related_object_id=instance.pk,
-#             url='/my-deals/' 
-#         )
-        
 
 @receiver(pre_delete, sender=Product)
 def notify_owner_when_deal_deleted(sender, instance, **kwargs):
