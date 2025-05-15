@@ -4,23 +4,14 @@
 {% block title %}Compose Message{% endblock %}
 
 {% block content %}
-<link href="{% static 'css/sendMessage9.css' %}" rel="stylesheet" />
+<link href="{% static 'css/sendMessage90.css' %}" rel="stylesheet" />
 
 <div class="SettingContainer">
     <div class="container">
         <div class="header">
             <h1>Compose Message</h1>
         </div>
-        {% if user.is_authenticated and not user.is_staff %}
-<div class="admin-option">
-    <label class="checkbox-container">
-        <input type="checkbox" name="for_admin" id="for_admin">
-        <span class="checkmark"></span>
-        Send to Administrator
-    </label>
-    <span class="admin-help">Check this box to send your message directly to site administrators.</span>
-</div>
-{% endif %}
+
         
         <form method="post" action="">
             {% csrf_token %}

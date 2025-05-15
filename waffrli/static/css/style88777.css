@@ -238,10 +238,14 @@ span {
 }
 
 .fas {
-  font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  color: white;
+  color: #384959;
 }
+.fas:hover {
+
+  color: #BDDDFC;
+}
+
 
 .icon-button {
   display: flex;
@@ -558,33 +562,60 @@ header {
   }
 }
 
-/* welcoming part  */
-.welcome-section {
-  padding: 1rem;
-  margin: 1rem auto;
-  max-width: 1000px;
-}
 
-.welcome-banner {
-   background: #384959;
-  background-size: cover;
-  background-blend-mode: overlay;
-  background-position: center;
-  border-radius: 12px;
-  padding: 1.5rem;
+ .welcome-banner {
+  margin: 1rem auto;
+  position: relative;
   display: flex;
   align-items: center;
-  height: 120px;
+  background-color: #384959;
+  border-radius: 10px;
   overflow: hidden;
-  position: relative;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.banner-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.6;
+  z-index: 1;
 }
 
 .welcome-content {
- color: white;
-  z-index: 2;
-  flex: 1;
+  position: relative;
+  display: flex;
   padding-left: 2rem;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  align-items: center;
+  color: white;
+  z-index: 2;
+  width: 100%;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-icon {
+  margin-right: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-icon i {
+  font-size: 28px;
+  color: white;
+}
+
+.welcome-text {
+  flex: 1;
 }
 
 .welcome-content h2 {
@@ -598,9 +629,28 @@ header {
   opacity: 0.9;
 }
 
-.welcome-image {
-  display: none;
+/* Add a subtle animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
+
+.welcome-icon {
+  animation: pulse 3s infinite ease-in-out;
+}
+
+/* Add a slight gradient overlay */
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
 
 /* Responsive welcome banner */
 @media (min-width: 1400px) {
@@ -1058,8 +1108,8 @@ h2 .fa-star {
 
 .like-btn:hover,
 .comment-btn:hover {
-  background-color: #f0f0f0;
-  color: var(--primary);
+  /* background-color: #f0f0f0; */
+  color:#BDDDFC;
 }
 
 .add-to-cart:hover {
@@ -2499,7 +2549,7 @@ h2 .fa-star {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-left: 4px solid #dc3545;
+  border-left: 4px solid #BDDDFC;
   animation: slide-in-right 0.3s ease-out forwards;
   overflow: hidden;
 }
@@ -2511,7 +2561,7 @@ h2 .fa-star {
 }
 
 .js-error-icon {
-  color: #dc3545;
+  color: #BDDDFC;
   font-size: 20px;
   margin-right: 15px;
   flex-shrink: 0;
@@ -2521,7 +2571,7 @@ h2 .fa-star {
   flex: 1;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: #BDDDFC;
   word-break: break-word;
   white-space: pre-wrap;
   max-height: 200px;
@@ -2531,7 +2581,7 @@ h2 .fa-star {
 .js-error-close {
   background: none;
   border: none;
-  color: #6c757d;
+  color: #262626;
   cursor: pointer;
   font-size: 14px;
   margin-left: 10px;
@@ -2583,7 +2633,6 @@ h2 .fa-star {
   background-color: #262626;
   color: #ffffff;
   padding: 40px 0;
-  font-family: Arial, sans-serif;
 }
 
 .footer-container {
