@@ -1410,13 +1410,6 @@ def send_message(request, user_id=None):
                 'inbox_count': Message.objects.filter(recipient=request.user).count(),
                 'sent_count': Message.objects.filter(sender=request.user).count(),
             })  
-            
-            
-        if request.POST.get('for_admin'):
-            # Find an admin user
-            admin_user = User.objects.filter(is_superuser=True).first()
-            if admin_user:
-                recipient = admin_user
         
         # Create and save message
         new_message = Message(
@@ -1424,7 +1417,6 @@ def send_message(request, user_id=None):
             recipient=recipient,
             subject=subject,
             content=body,
-            for_admin=True if request.POST.get('for_admin') else False
         )
         new_message.save()
         
@@ -1439,7 +1431,7 @@ def send_message(request, user_id=None):
     })
 
 
-from django.db.models import Q
+
 
 @login_required
 def view_message(request, message_id):

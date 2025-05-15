@@ -5,21 +5,25 @@
   <div class="Category-container">
 
 
-    <div class="welcome-section fade-in">
   <div class="welcome-banner">
+    <div class="banner-background"></div>
     <div class="welcome-content">
-      <h2>Welcome to Waffrli</h2>
-      <p>Discover Amazing Deals & Save Big Today!</p>
+      <div class="welcome-icon">
+        <i class="fas fa-gift"></i>
+      </div>
+      <div class="welcome-text">
+        <h2>Welcome to Waffrli</h2>
+        <p>Discover Amazing Deals & Save Big Today!</p>
+      </div>
     </div>
   </div>
-</div>
 
     <!-- Nearby Products -->
     <div class="section-heading slide-up">
       <h2><i class="fas fa-map-marker-alt"></i> NearBy You</h2>
       <div class="slider-controls">
-        <button class="prev-grid-btn"><i class="fas fa-chevron-left"></i></button>
-        <button class="next-grid-btn"><i class="fas fa-chevron-right"></i></button>
+        <button class="prev-grid-btn"><i class="fas fa-chevron-left" style="color: white"></i></button>
+        <button class="next-grid-btn"><i class="fas fa-chevron-right" style="color: white"></i></button>
       </div>
     </div>
 
@@ -117,17 +121,17 @@
     <div class="separator-container">
       <div class="separator-line"></div>
       <div class="separator-text">
-        <div class="slider-controls">
+
           <h2>Waffrli Deals</h2>
-        </div>
+
       </div>
       <div class="separator-line"></div>
     </div>
 
-<!-- All Products -->
 <div class="All-product-grid">
-  {% for product in all_products  %}
-  <div class="All-product-card"{% if product.is_expired %}expired{% endif %} onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+  {% for product in all_products %}
+  <div class="All-product-card {% if product.is_expired %}expired{% endif %}" 
+       {% if not product.is_expired %}onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;"{% endif %}>
     {% if product.is_expired %}
     <div class="expired-overlay">
       <span class="expired-tag">EXPIRED</span>
@@ -137,10 +141,9 @@
       <div class="user-info">
         {% if product.user.customer.image %}
         <img src="{{ product.user.customer.image.url }}" alt="User Avatar" class="profile-pic">
-      {% else %}
+        {% else %}
         <img src="{% static 'images/default-profile.png' %}" alt="Default User" class="profile-pic">
-      {% endif %}
-      
+        {% endif %}
         <div class="user-details">
           <span class="username">Found by <strong>@{{ product.user.username }}</strong></span>
           <span class="deal-time">{{ product.create_at|date:"d-m" }}</span>
@@ -156,12 +159,9 @@
       <img src="{% static 'images/no-image.png' %}" alt="No image available">
       {% endif %}
       <div class="quick-actions">
-       
-      
         <div class="action-btn save-btn" data-product-id="{{ product.id }}">
           <i class="{% if request.user.is_authenticated and product in request.user.customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
         </div>
-
       </div>
     </div>
     
@@ -177,25 +177,24 @@
     
     <!-- Card Footer with Buttons -->
     <div class="card-footer">
- 
       <button class="like-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
         <i class="{% if user in product.likes.all %}fas fa-heart{% else %}far fa-heart{% endif %}"></i>
         <h3 class="rating-count">{{ product.likes.count }}</h3>
       </button>
-    
       
       <!-- Fixed comment button with data-product-id attribute -->
       <button class="comment-btn" data-product-id="{{ product.id }}" {% if product.is_expired %}disabled{% endif %}>
         <i class="far fa-comment"></i>
         <h3 class="rating-count">{{ product.comments.count }}</h3>
       </button>
-     
-   
+      
+      {% if not product.is_expired %}
       <a href="{% url 'product' product.id %}">
-        <button class="add-to-cart {% if product.is_expired %}expired-btn{% endif %}" {% if product.is_expired %}disabled{% endif %}>
-          {% if product.is_expired %}Expired{% else %}Show the deal {% endif %}
-        </button>
+        <button class="add-to-cart">Show the deal</button>
       </a>
+      {% else %}
+      <button class="add-to-cart expired-btn" disabled>Expired</button>
+      {% endif %}
     </div>
   </div>
   {% endfor %}
@@ -206,8 +205,8 @@
       <div class="section-heading slide-up">
         <h2><i class="fas fa-fire"></i> Hot Deals</h2>
         <div class="slider-controls">
-          <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-          <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+          <span class="prev-btn"><i class="fas fa-chevron-left" style="color: white"></i></span>
+          <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
         </div>
       </div>
 
@@ -313,8 +312,8 @@
         <h2><i class="fas fa-star"></i> Popular Deals</h2>
         <div class="popularity-badge">
           <div class="slider-controls">
-            <span  class="popular-prev-btn"><i class="fas fa-chevron-left"></i></span>
-            <span  class="popular-next-btn"><i class="fas fa-chevron-right"></i></span>
+            <span  class="popular-prev-btn"><i class="fas fa-chevron-left" style="color: white"></i></span>
+            <span  class="popular-next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
           </div>
         </div>
       </div>
@@ -379,8 +378,8 @@
         <div class="column-header">
           <h3>Phones</h3>
           <div class="nav-controls">
-            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+            <span class="prev-btn"><i class="fas fa-chevron-left" style="color: white"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
           </div>
         </div>
 
@@ -429,8 +428,8 @@
         <div class="column-header">
           <h3>Computers</h3>
           <div class="nav-controls">
-            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+            <span class="prev-btn"><i class="fas fa-chevron-left" style="color: white"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
           </div>
         </div>
 
@@ -479,8 +478,8 @@
         <div class="column-header">
           <h3>Bags & Luggage</h3>
           <div class="nav-controls">
-            <span class="prev-btn"><i class="fas fa-chevron-left"></i></span>
-            <span class="next-btn"><i class="fas fa-chevron-right"></i></span>
+            <span class="prev-btn"><i class="fas fa-chevron-left" style="color:white"></i></span>
+            <span class="next-btn"><i class="fas fa-chevron-right" style="color:white"></i></span>
           </div>
         </div>
 

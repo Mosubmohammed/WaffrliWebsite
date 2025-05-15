@@ -99,7 +99,7 @@
 
 <!-- JavaScript for message actions -->
 <script>
-  function deleteMessage(messageId, folder='inbox') {
+  function deleteMessage(messageId, folder='sent') {
     if (confirm("Are you sure you want to delete this message?")) {
         // Create form with CSRF token
         const form = document.createElement('form');
