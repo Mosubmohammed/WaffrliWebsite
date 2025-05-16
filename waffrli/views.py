@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 from django.urls import reverse
+import httpx
 from waffrli.filters import ProductFilter
 from .models import *
 from django.contrib.auth.decorators import login_required
@@ -1162,72 +1163,111 @@ def unfollow(request, user_id):
 
 
 @login_required
-def settings(request):
+def settings_view(request):
     try:
         customer = request.user.customer
         allow_username_edit = False
         
         if request.method == 'POST':
+
             if 'request_username' in request.POST:
                 new_username = request.POST.get('new_username')
                 if new_username:
                     if User.objects.filter(username=new_username).exists():
-                        messages.error(request, "Username already exists. Please choose another one.")
+                        messages.error(request, "This username is already taken. Please choose a different one.")
                         return redirect('settings')
                     
                     request.user.username = new_username
                     request.user.save()
-                    messages.success(request, 'Username updated successfully!')
+                    messages.success(request, f'Your username has been updated to @{new_username}!')
                     return redirect('settings')
             
+
             if 'update_profile' in request.POST:
                 email = request.POST.get('email')
                 
-                if email and email != request.user.email:
-                    if User.objects.filter(email=email).exclude(id=request.user.id).exists():
-                        messages.error(request, "Email already in use by another account.")
-                        return redirect('settings')
+
+                if not email or email == request.user.email:
+                    return redirect('settings')
+
+                if User.objects.filter(email=email).exclude(id=request.user.id).exists():
+                    messages.error(request, "This email address is already registered with another account.")
+                    return redirect('settings')
+                
+                old_email = request.user.email
+                
+                try:
+  
+                    request.user.email = email
+                    request.user.save()
                     
-                    old_email = request.user.email
+                    customer.email = email
+                    customer.save()
                     
+      
                     try:
-                        request.user.email = email
-                        request.user.save()
+                        from django.conf import settings as django_settings
+                        supabase_user = SupabaseUser.objects.get(user=request.user)
                         
-                        customer.email = email
+                        # Check if we have a valid Supabase ID
+                        if not hasattr(supabase_user, 'supabase_id') or not supabase_user.supabase_id:
+                            messages.success(request, f"Your email has been updated to {email}.")
+                            messages.info(request, "Note: Your login credentials may still use your previous email. Please contact support if you experience any issues.")
+                            return redirect('settings')
+                        
+                        # Check if we have the required settings
+                        if not hasattr(django_settings, 'SUPABASE_URL') or not hasattr(django_settings, 'SUPABASE_SERVICE_KEY'):
+                            missing_settings = []
+                            if not hasattr(django_settings, 'SUPABASE_URL'):
+                                missing_settings.append('SUPABASE_URL')
+                            if not hasattr(django_settings, 'SUPABASE_SERVICE_KEY'):
+                                missing_settings.append('SUPABASE_SERVICE_KEY')
+                            
+                            messages.success(request, f"Your email has been updated to {email}.")
+                            messages.info(request, "Note: Your login credentials may still use your previous email. Please contact support if you experience any issues.")
+                            return redirect('settings')
+
+
+                        
+                        url = f"{django_settings.SUPABASE_URL}/auth/v1/admin/users/{supabase_user.supabase_id}"
+                        headers = {
+                            "apikey": django_settings.SUPABASE_SERVICE_KEY,
+                            "Authorization": f"Bearer {django_settings.SUPABASE_SERVICE_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        data = {"email": email}
+                        
+                        response = httpx.put(url, json=data, headers=headers)
+                        
+                        if response.status_code == 200:
+                            messages.success(request, f"Your email has been successfully updated to {email}!")
+                        else:
+                            messages.success(request, f"Your email has been updated to {email}.")
+                            messages.warning(request, "However, we couldn't update your login email. You may need to continue using your previous email to sign in.")
+                            
+                    except SupabaseUser.DoesNotExist:
+                        messages.success(request, f"Your email has been updated to {email}.")
+                        messages.info(request, "Note: Your login credentials may still use your previous email. Please contact support if you experience any issues.")
+                    except Exception as supabase_error:
+                        messages.success(request, f"Your email has been updated to {email}.")
+                        messages.warning(request, "However, we couldn't update your login email. You may need to continue using your previous email to sign in.")
+                    
+                except Exception as e:
+                    # Rollback changes if there's an error
+                    request.user.email = old_email
+                    request.user.save()
+                    if hasattr(customer, 'email'):
+                        customer.email = old_email
                         customer.save()
-                        
-                        try:
-                            supabase_user = SupabaseUser.objects.get(user=request.user)
-                            
-                            supabase_response = settings.SUPABASE.auth.update_user(
-                                attributes={
-                                    "email": email,
-                                }
-                            )
-                            
-                            if supabase_response.user.email_confirmed_at is None:
-                                messages.info(request, 'Email update initiated. Please check your inbox to confirm your new email.')
-                            else:
-                                messages.success(request, 'Email updated successfully!')
-                            
-                        except SupabaseUser.DoesNotExist:
-                            messages.warning(request, "Email updated in our system but not in authentication system. Please contact support.")
-                        
-                    except Exception as e:
-                        request.user.email = old_email
-                        request.user.save()
-                        if hasattr(customer, 'email'):
-                            customer.email = old_email
-                            customer.save()
-                        messages.error(request, f"Failed to update email: {str(e)}")
+                    messages.error(request, f"We couldn't update your email address. Please try again later or contact support for assistance.")
                 
                 return redirect('settings')
         
+        # Render the settings page for GET requests
         return render(request, 'settings.html', {'allow_username_edit': allow_username_edit})
     
     except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
+        messages.error(request, "Something went wrong while accessing your settings. Please try again later.")
         return redirect('home')
 
     

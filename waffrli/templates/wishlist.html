@@ -1,6 +1,6 @@
 {% extends "base.html" %} 
 {% load static %} {% block content %}
-<link href="{% static 'css/wishlist1.css' %}" rel="stylesheet" />
+<link href="{% static 'css/wishlist12.css' %}" rel="stylesheet" />
 <div class="wishlist-container">
   <h1>Your Wishlist</h1>
   <p class="instructions">
@@ -27,16 +27,31 @@
     <button onclick="addWishlistItem()">+ Add Alert</button>
   </div>
 
-  <div class="section-header">Your Wishlist:</div>
+  <div class="wishlist-controls">
+    <div class="section-header">Your Wishlist:</div>
+    <div class="sort-controls">
+      <label for="sortOrder">Sort by:</label>
+      <select id="sortOrder" onchange="sortWishlistItems(this.value)">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="alphabetical">Alphabetical (A-Z)</option>
+      </select>
+    </div>
+  </div>
+
   <div id="wishlist" class="wishlist-list">
     {% if wishlist_items %}
       {% for item in wishlist_items %}
-        <div class="wishlist-item" data-id="{{ item.id }}">
+        <div class="wishlist-item" 
+             data-id="{{ item.id }}" 
+             data-created="{{ item.created_at|date:'Y-m-d H:i:s' }}" 
+             data-keyword="{{ item.keyword }}">
           <div class="wishlist-item-info">
             <div><strong>{{ item.keyword }}</strong></div>
             <div class="wishlist-item-details">
               Price range: ${{ item.min_price }} - ${{ item.max_price }}<br>
-              Category: {{ item.category.name }}
+              Category: {{ item.category }}
+              <div class="item-date">Added: {{ item.created_at|date:"M d, Y" }}</div>
             </div>
           </div>
           <div class="wishlist-item-actions">
@@ -78,7 +93,6 @@
 </div>
 
 <script>
-
     // Set authentication status
     window.userIsAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
     
@@ -94,10 +108,51 @@
     const editModal = document.getElementById("editModal");
     const emptyWishlist = document.getElementById("empty-wishlist");
     let currentEditingItem = null;
+    let currentSortOrder = "newest"; // Default sort order
     
     // Get CSRF token for AJAX requests
     function getCsrfToken() {
         return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    }
+    
+    // Initialize sorting when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sort the wishlist items on page load
+        sortWishlistItems("newest");
+        
+        // Store the sort preference
+        if (localStorage.getItem('wishlistSortOrder')) {
+            currentSortOrder = localStorage.getItem('wishlistSortOrder');
+            document.getElementById('sortOrder').value = currentSortOrder;
+            sortWishlistItems(currentSortOrder);
+        }
+    });
+    
+    // Function to sort wishlist items
+    function sortWishlistItems(sortOrder) {
+        const items = Array.from(document.querySelectorAll('.wishlist-item'));
+        if (items.length <= 1) return; // No need to sort if there's only one item
+        
+        // Save the sort preference
+        currentSortOrder = sortOrder;
+        localStorage.setItem('wishlistSortOrder', sortOrder);
+        
+        items.sort((a, b) => {
+            if (sortOrder === "newest") {
+                // Sort by created date, newest first
+                return new Date(b.dataset.created) - new Date(a.dataset.created);
+            } else if (sortOrder === "oldest") {
+                // Sort by created date, oldest first
+                return new Date(a.dataset.created) - new Date(b.dataset.created);
+            } else if (sortOrder === "alphabetical") {
+                // Sort alphabetically by keyword
+                return a.dataset.keyword.localeCompare(b.dataset.keyword);
+            }
+        });
+        
+        // Clear and re-append items in the new order
+        const parent = wishlistContainer;
+        items.forEach(item => parent.appendChild(item));
     }
     
     function addWishlistItem() {
@@ -110,6 +165,9 @@
             alert("Please fill out all fields.");
             return;
         }
+        
+        // Get the category name from the select element
+        const categoryName = document.getElementById("category").options[document.getElementById("category").selectedIndex].text;
         
         // Prepare the data
         const data = {
@@ -135,18 +193,32 @@
                 const item = document.createElement("div");
                 item.classList.add("wishlist-item");
                 item.dataset.id = responseData.id;
+                item.dataset.created = responseData.created_at;
+                item.dataset.keyword = keyword;
+                
+                // If server returns category_name use it, otherwise use the one we got from select
+                const displayCategoryName = responseData.category_name || categoryName;
+                
+                // Format the date for display
+                const createdDate = new Date(responseData.created_at);
+                const formattedDate = createdDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
                 
                 item.innerHTML = `
                   <div class="wishlist-item-info">
                     <div><strong>${keyword}</strong></div>
                     <div class="wishlist-item-details">
                       Price range: $${minPrice} - $${maxPrice}<br>
-                      Category: ${responseData.category_name}
+                      Category: ${displayCategoryName}
+                      <div class="item-date">Added: ${formattedDate}</div>
                     </div>
                   </div>
                   <div class="wishlist-item-actions">
-                  <button class="edit-btn" onclick="editWishlistItem(this)"><i class="fas fa-edit"></i>Edit</button>
-                  <button class="remove-btn" onclick="removeWishlistItem(this)"> <i class="fas fa-trash-alt"></i> Remove</button>
+                    <button class="edit-btn" onclick="editWishlistItem(this)"><i class="fas fa-edit"></i>Edit</button>
+                    <button class="remove-btn" onclick="removeWishlistItem(this)"><i class="fas fa-trash-alt"></i> Remove</button>
                   </div>
                 `;
                 
@@ -160,6 +232,9 @@
                 
                 // Clear inputs
                 clearInputs();
+                
+                // Resort items based on current sort order
+                sortWishlistItems(currentSortOrder);
                 
                 // Update notification count after a short delay
                 setTimeout(updateNotificationCounter, 500);
@@ -190,21 +265,26 @@
         const categoryMatch = details.match(/Category: ([^<]+)/);
         const categoryName = categoryMatch ? categoryMatch[1].trim() : "";
         
-        // Find category id from name (this requires converting category name to ID)
-        // For simplicity, let the user select the category again
-        const categorySelect = document.getElementById("editCategory");
-        
         // Fill the edit form
         document.getElementById("editKeyword").value = keyword;
         document.getElementById("editMinPrice").value = minPrice;
         document.getElementById("editMaxPrice").value = maxPrice;
         
         // Try to find and select the matching category
+        const categorySelect = document.getElementById("editCategory");
+        let categoryFound = false;
+        
         for (let i = 0; i < categorySelect.options.length; i++) {
             if (categorySelect.options[i].text === categoryName) {
                 categorySelect.selectedIndex = i;
+                categoryFound = true;
                 break;
             }
+        }
+        
+        // If category not found in the dropdown, show a message
+        if (!categoryFound && categoryName) {
+            console.warn(`Category "${categoryName}" not found in dropdown`);
         }
     
         // Show the modal
@@ -215,12 +295,16 @@
         const keyword = document.getElementById("editKeyword").value.trim();
         const minPrice = document.getElementById("editMinPrice").value.trim();
         const maxPrice = document.getElementById("editMaxPrice").value.trim();
-        const category = document.getElementById("editCategory").value;
+        const categorySelect = document.getElementById("editCategory");
+        const category = categorySelect.value;
         
         if (!keyword || !minPrice || !maxPrice || !category) {
             alert("Please fill out all fields.");
             return;
         }
+        
+        // Get the category name from the select element
+        const categoryName = categorySelect.options[categorySelect.selectedIndex].text;
         
         // Prepare the data
         const data = {
@@ -244,15 +328,32 @@
             if (responseData.status === 'success') {
                 // Update the DOM element
                 const itemElement = document.querySelector(`.wishlist-item[data-id="${currentEditingItem}"]`);
+                
+                // Update the dataset for sorting
+                itemElement.dataset.keyword = keyword;
+                
+                // If server returns category_name use it, otherwise use the one we got from select
+                const displayCategoryName = responseData.category_name || categoryName;
+                
+                // Preserve the existing date display
+                const dateElement = itemElement.querySelector('.item-date');
+                const dateHtml = dateElement ? dateElement.outerHTML : '';
+                
                 itemElement.querySelector(".wishlist-item-info").innerHTML = `
                   <div><strong>${keyword}</strong></div>
                   <div class="wishlist-item-details">
                     Price range: $${minPrice} - $${maxPrice}<br>
-                    Category: ${responseData.category_name}
+                    Category: ${displayCategoryName}
+                    ${dateHtml}
                   </div>
                 `;
                 
                 closeEditModal();
+                
+                // Resort items based on current sort order if sorting by keyword
+                if (currentSortOrder === "alphabetical") {
+                    sortWishlistItems(currentSortOrder);
+                }
             } else {
                 alert('Error updating wishlist item: ' + responseData.message);
             }
@@ -311,33 +412,33 @@
         document.getElementById("category").value = "";
     }
     
-// Update notification counter
-function updateNotificationCounter() {
-  // Check if user is logged in (we'll add a flag in the template)
-  if (window.userIsAuthenticated) {
-      fetch('{% url "get_notification_count" %}')
-          .then(response => response.json())
-          .then(data => {
-              const counter = document.querySelector('.cart-badge');
-              if (counter) {
-                  counter.textContent = data.count;
-                  
-                  if (data.count > 0) {
-                      counter.style.display = 'block';
-                  } else {
-                      counter.style.display = 'none';
+    // Update notification counter
+    function updateNotificationCounter() {
+      // Check if user is logged in
+      if (window.userIsAuthenticated) {
+          fetch('{% url "get_notification_count" %}')
+              .then(response => response.json())
+              .then(data => {
+                  const counter = document.querySelector('.cart-badge');
+                  if (counter) {
+                      counter.textContent = data.count;
+                      
+                      if (data.count > 0) {
+                          counter.style.display = 'block';
+                      } else {
+                          counter.style.display = 'none';
+                      }
                   }
-              }
-          })
-          .catch(error => console.error('Error fetching notification count:', error));
-  } else {
-      // Hide the counter for non-logged in users
-      const counter = document.querySelector('.cart-badge');
-      if (counter) {
-          counter.style.display = 'none';
+              })
+              .catch(error => console.error('Error fetching notification count:', error));
+      } else {
+          // Hide the counter for non-logged in users
+          const counter = document.querySelector('.cart-badge');
+          if (counter) {
+              counter.style.display = 'none';
+          }
       }
-  }
-}
+    }
     
     // Close modal when clicking outside
     window.onclick = function(event) {

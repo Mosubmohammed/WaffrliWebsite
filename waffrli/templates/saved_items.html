@@ -45,10 +45,11 @@
       
       {% if saved_products %}
           {% for product in saved_products %}
-          <div class="saved-item" data-product-id="{{ product.id }}"   onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+          <div class="saved-item" data-product-id="{{ product.id }}" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
               <img src="{{ product.image.url }}" alt="{{ product.Name }}" class="item-image">
               <div class="item-details">
-                  <h3>{{ product.store }}: {{ product.Name }}: {{ product.Description }} ${{ product.sale_price }}</h3>
+                
+                  <h3>{{ product.store }}: {{ product.Name }}: {{ product.Description|truncatewords:20 }} ${{ product.sale_price }}</h3>
                   <div class="post-info">
                       <span class="post-date">Added {{ product.create_at|timesince }} ago</span>
                       <span class="post-author">Posted {{ product.create_at|date:"n/j/Y" }} at {{ product.create_at|date:"g:i A" }} by {{ product.user.username }}</span>
@@ -59,7 +60,7 @@
                   </div>
               </div>
               <div class="item-actions">
-                  <button class="delete-btn" data-product-id="{{ product.id }}">Delete</button>
+                  <button class="delete-btn" data-product-id="{{ product.id }}" onclick="event.stopPropagation();">Delete</button>
               </div>
           </div>
           {% endfor %}
@@ -84,6 +85,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation(); // Stop event from bubbling up to parent elements
                 
                 const productId = this.getAttribute('data-product-id');
                 const savedItem = this.closest('.saved-item');
@@ -101,7 +103,6 @@
                 }
     
                 // Send AJAX request to toggle save status
-                // Use the URL that worked with your save button
                 fetch(`/toggle-save/${productId}/`, {
                     method: 'POST',
                     headers: {

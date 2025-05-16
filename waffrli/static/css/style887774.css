@@ -2533,7 +2533,42 @@ h2 .fa-star {
 }
 
 /* Static/css/error-handler.css */
+/* Success message styling (green) */
+.js-success-popup .js-error-content {
+  background-color: #28a745;
+  border-left: 4px solid #1e7e34;
+}
 
+.js-success-popup .js-error-icon i {
+  color: #fff;
+}
+
+/* Info message styling (blue) */
+.js-info-popup .js-error-content {
+  background-color: #17a2b8;
+  border-left: 4px solid #138496;
+}
+
+.js-info-popup .js-error-icon i {
+  color: #fff;
+}
+
+/* Make sure text is visible for all message types */
+.js-success-popup .js-error-message,
+.js-info-popup .js-error-message {
+  color: #fff;
+}
+
+/* Make sure close button is visible */
+.js-success-popup .js-error-close,
+.js-info-popup .js-error-close {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.js-success-popup .js-error-close:hover,
+.js-info-popup .js-error-close:hover {
+  color: #fff;
+}
 .js-error-container {
   position: fixed;
   top: 20px;
