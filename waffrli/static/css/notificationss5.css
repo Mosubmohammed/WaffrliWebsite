@@ -87,7 +87,33 @@
 
 .notification-content {
   flex: 1;
+  cursor: default; /* Default cursor for non-clickable notifications */
+  padding: 5px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.notification-content.clickable {
   cursor: pointer;
+  position: relative;
+}
+
+.notification-content.clickable:hover {
+  background-color: rgba(52, 152, 219, 0.08); /* Lighter blue hover state */
+}
+
+.notification-content.clickable::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 10px;
+  border-right: 2px solid #3498db;
+  border-bottom: 2px solid #3498db;
+  transform: translateY(-50%) rotate(-45deg);
+  opacity: 0.5;
 }
 
 .notification-header {
@@ -112,6 +138,14 @@
   margin: 0;
   color: #7f8c8d;
   font-size: 14px;
+}
+
+.clickable-hint {
+  display: block;
+  color: #3498db;
+  font-style: italic;
+  margin-top: 8px;
+  font-size: 12px;
 }
 
 .notification-actions {

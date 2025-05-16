@@ -96,7 +96,7 @@
 
 .customer-header-bg {
   height: 6rem;
-  background: linear-gradient(to right, #000000, #690303);
+  background: linear-gradient(to right, #000000, #384959);
 }
 
 .customer-profile-info {
@@ -132,7 +132,7 @@
   margin-top: 0.5rem;
   display: flex;
   gap: 1rem;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .customer-follow-icon {

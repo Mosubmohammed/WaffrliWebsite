@@ -205,95 +205,165 @@
 </aside>
 
 
-    <main class="Subproducts-grid">
+<main class="Subproducts-grid">
+    {% if products %}
         {% for product in products %}
+            <div class="product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %} onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
+                    {% else %}
+                        <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}" loading="lazy" />
+                    {% endif %}
+                    
+                    {% if product.get_discount_percentage %}
+                        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
+                    {% endif %}
+                    
+                    {% if user_has_location and product.distance_to <= 20 %}
+                        <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
+                    {% endif %}
+                    
+                    {% if product.is_expired %}
+                        <div class="expired-badge">Expired</div>
+                    {% endif %}
 
-<div class="Subproduct-card product-card" {% if product.likes.count %}data-likes="{{ product.likes.count }}"{% endif %}   onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
-    <div class="product-image">
-        {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.Name }}" loading="lazy" />
-        {% else %}
-            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.Name }}" loading="lazy" />
-        {% endif %}
-        
-        <!-- Discount badge -->        <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
-        
-
-        {% if user_has_location and product.distance_to <= 20 %}
-            <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
-        {% endif %}
-        
-        {% if product.is_expired %}
-            <div class="expired-badge">Expired</div>
-        {% endif %}
-        
-
-    </div>
-    
-    <div class="product-details">
-        <h3 class="product-title">{{ product.Name }}</h3>
-        
-        <div class="price-rating">
-            <span class="current-price">${{ product.sale_price }}</span>
-            <span class="original-price">${{ product.Price }}</span>
-
-        </div>
-        <div class="deal-description">{{ product.Description|truncatewords:20 }}</div>
-        <div class="store-info">
-            <div class="deal-meta">
-                <div class="brand-category">
-                    <span style="color: black;" class="brand">{{ product.brand }}</span>
-                    <span style="color: rgb(214, 16, 16);" class="separator">•</span>
-                    <span style="color: black;" class="category">{{ product.category }}</span>
-                </div>
-               
+                            <!-- Quick actions for saving products -->
+        <div class="quick-actions">
+            {% if request.user.is_authenticated %}
+            <div class="action-btn save-btn" data-product-id="{{ product.id }}">
+                {% with customer=request.user.customer %}
+                <i class="{% if product in customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
+                {% endwith %}
             </div>
-        
-        </div>
-        
-        
-        <div class="location">
-            <i class="fas fa-map-marker-alt"></i> {{ product.city }}
-            
-            <!-- Distance Information -->
-            {% if user_has_location and product.latitude and product.longitude %}
-                <div class="distance-info">
-                    <i class="fas fa-route"></i>
-                    <span style="color: black;">{{ product.distance_to|floatformat:1 }}km</span>
-                </div>
+            {% else %}
+            <div class="action-btn" onclick="event.stopPropagation(); showLoginMessage('bookmark');">
+                <i class="fa-regular fa-bookmark"></i>
+            </div>
             {% endif %}
         </div>
-        
-        <div class="product-footer">
-            {% if product.id %}
-    
-                <a href="{% url 'product' product.id %}">            
-                    <button class="view-deal-btn">
-                        <span class="bag-icon">🛍️</span>
-                        View Deal
-                    </button>
-                </a>
+                </div>
                 
-                {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                        {% csrf_token %}
-                        <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                            <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                            <span style="color: black;" class="like-count">{{ product.likes.count }}</span>
-                        </button>
-                    </form>
-                {% endif %}
+                <div class="product-details">
+                    <h3 class="product-title">{{ product.Name }}</h3>
+                    
+                    <div class="price-container">
+                        <span class="current-price">{{ product.sale_price }} JD</span>
+                        <span class="original-price">{{ product.Price }} JD</span>
+                    </div>
+                    
+                    <div class="deal-description">{{ product.Description|truncatewords:10 }}</div>
+                    
+                    <div class="store-info">
+                        <div class="deal-meta">
+                            <div class="brand-category">
+                                <span style="color: black;" class="brand">{{ product.brand }}</span>
+                                <span class="separator">•</span>
+                                <span style="color: black;" class="category">{{ product.category }}</span>
+                            </div>
+                        </div>
+                        <!-- <div class="store-type-badge {{ product.store_type }}">
+                            {{ product.store_type|title }}
+                        </div> -->
+                    </div>
+                    
+                    <div class="location">
+                        <i class="fas fa-map-marker-alt"></i> {{ product.city }}
+                        
+                        <!-- Distance Information -->
+                        {% if user_has_location and product.latitude and product.longitude %}
+                            <div class="distance-info">
+                                <i class="fas fa-route"></i>
+                                <span style="color: black; font-size: 9px;">{{ product.distance_to|floatformat:1 }} km </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-footer">
+                        {% if product.id %}
+                            <!-- Like button -->
+                            {% if request.user.is_authenticated %}
+                                <button type="button" class="like-btn" data-product-id="{{ product.id }}" 
+                                        {% if product.is_expired %}disabled{% endif %} 
+                                        onclick="event.stopPropagation();">
+                                    <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                                    <span class="like-count">{{ product.likes.count }}</span>
+                                </button>
+                            {% else %}
+                                <button type="button" class="like-btn" onclick="event.stopPropagation(); showLoginMessage('like');">
+                                    <i class="far fa-heart"></i>
+                                    <span class="like-count">{{ product.likes.count }}</span>
+                                </button>
+                            {% endif %}
+                            
+                            <!-- Comment button -->
+                            {% if request.user.is_authenticated %}
+                                <button type="button" class="comment-btn" data-product-id="{{ product.id }}" 
+                                        {% if product.is_expired %}disabled{% endif %}
+                                        onclick="event.stopPropagation();">
+                                    <i class="far fa-comment"></i>
+                                    <span class="comment-count">{{ product.comments.count }}</span>
+                                </button>
+                            {% else %}
+                                <button type="button" class="comment-btn" onclick="event.stopPropagation(); showLoginMessage('comment');">
+                                    <i class="far fa-comment"></i>
+                                    <span class="comment-count">{{ product.comments.count }}</span>
+                                </button>
+                            {% endif %}
+                            
+                            <a href="{% url 'product' product.id %}">            
+                                <button class="view-deal-btn">
+                                    <span class="bag-icon">🛍️</span>
+                                    View Deal
+                                </button>
+                            </a>
+                        {% else %}
+                            <button class="view-deal-btn disabled">
+                                <span class="bag-icon">🛍️</span>
+                                Product Unavailable
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        {% else %}
-            <button class="view-deal-btn disabled">
-                <span class="bag-icon">🛍️</span>
-                Product Unavailable
-            </button>
-        {% endif %}
-    </div>
-</div>
         {% endfor %}
-    </main>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                <ul>
+                    {% if page_obj.has_previous %}
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" class="first-page">«</a>
+                        </li>
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" class="prev-page">‹</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li><span class="current-page">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li><a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" class="next-page">›</a>
+                        </li>
+                        <li>
+                            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="last-page">»</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="no-results">No products found matching your filters. Try adjusting your filter criteria or check back later for amazing discounts!</p>
+    {% endif %}
+</main>
 </div>
 
 <div class="quote-section">
@@ -438,6 +508,127 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000); // Remove after form submission or timeout
         });
     }
+
+            // Comment button functionality - redirect to product detail with comment section
+    document.querySelectorAll(".comment-btn").forEach((button) => {
+        if (button.hasAttribute('data-product-id')) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (button.hasAttribute('disabled')) {
+                    return; // Don't process if button is disabled
+                }
+                
+                const productId = this.getAttribute("data-product-id");
+                window.location.href = `/product/${productId}/#comment-section`;
+            });
+        }
+    });
+
+        // Save button functionality for authenticated users
+    document.querySelectorAll(".save-btn").forEach((button) => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (button.hasAttribute('disabled')) {
+                return; // Don't process if button is disabled
+            }
+            
+            // Get the product ID from the data attribute
+            const productId = this.getAttribute("data-product-id");
+            const saveIcon = this.querySelector("i");
+            
+            // Get the CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Make AJAX request to the save endpoint
+            fetch(`/toggle-save/${productId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                // Update the bookmark icon
+                if (data.is_saved) {
+                    saveIcon.classList.remove("fa-regular");
+                    saveIcon.classList.add("fa-solid");
+                } else {
+                    saveIcon.classList.remove("fa-solid");
+                    saveIcon.classList.add("fa-regular");
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling save:', error);
+            });
+        });
+    });
+
+        // Like button functionality for authenticated users
+    document.querySelectorAll(".like-btn").forEach((button) => {
+        if (button.hasAttribute('data-product-id')) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (button.hasAttribute('disabled')) {
+                    return; // Don't process if button is disabled
+                }
+                
+                // Get the product ID from the data attribute
+                const productId = this.getAttribute("data-product-id");
+                const likeIcon = this.querySelector("i");
+                
+                // Get the correct count element
+                const likeCount = this.querySelector(".like-count"); 
+                
+                // Get the CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Make AJAX request to the like endpoint
+                fetch(`/like/${productId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    // Update the heart icon
+                    if (data.liked) {
+                        likeIcon.classList.remove("far");
+                        likeIcon.classList.add("fas");
+                    } else {
+                        likeIcon.classList.remove("fas");
+                        likeIcon.classList.add("far");
+                    }
+                    
+                    // Update the like count
+                    if (likeCount) {
+                        likeCount.textContent = data.likes_count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling like:', error);
+                });
+            });
+        }
+    });
 });
 </script>
 {% endblock %}

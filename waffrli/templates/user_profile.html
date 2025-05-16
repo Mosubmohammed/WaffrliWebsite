@@ -187,7 +187,7 @@
 </div>
 
 <!-- Report Modal -->
-<div id="reportModal" class="customer-modal">
+{% comment %} <div id="reportModal" class="customer-modal">
     <div class="customer-modal-content">
         <div class="customer-modal-header">
             <h2>Report Profile</h2>
@@ -214,10 +214,10 @@
             </div>
         </form>
     </div>
-</div>
+</div> {% endcomment %}
 
 <script>
-    // Modal functionality
+    {% comment %} // Modal functionality
     const modal = document.getElementById('reportModal');
     const reportBtn = document.getElementById('reportBtn');
     const closeBtn = document.querySelector('.customer-close-btn');
@@ -279,7 +279,7 @@
         // Here you would typically send the data to your backend
         
         closeModal();
-    });
+    }); {% endcomment %}
 
     // Add hover animation to stat cards
     document.querySelectorAll('.customer-stat-card').forEach(card => {

@@ -243,7 +243,20 @@
             <div class="expired-badge">Expired</div>
         {% endif %}
         
-
+        <!-- Quick actions for saving products -->
+        <div class="quick-actions">
+            {% if request.user.is_authenticated %}
+            <div class="action-btn save-btn" data-product-id="{{ product.id }}">
+                {% with customer=request.user.customer %}
+                <i class="{% if product in customer.saved_products.all %}fa-solid{% else %}fa-regular{% endif %} fa-bookmark"></i>
+                {% endwith %}
+            </div>
+            {% else %}
+            <div class="action-btn" onclick="event.stopPropagation(); showLoginMessage('bookmark');">
+                <i class="fa-regular fa-bookmark"></i>
+            </div>
+            {% endif %}
+        </div>
     </div>
     
     <div class="product-details">
@@ -285,6 +298,37 @@
         
         <div class="product-footer">
         {% if product.id %}
+            <div class="product-actions">
+                <!-- Like button -->
+                {% if request.user.is_authenticated %}
+                <button type="button" class="like-btn" data-product-id="{{ product.id }}" 
+                        {% if product.is_expired %}disabled{% endif %} 
+                        onclick="event.stopPropagation();">
+                    <i class="{% if request.user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                    <span class="like-count">{{ product.likes.count }}</span>
+                </button>
+                {% else %}
+                <button type="button" class="like-btn" onclick="event.stopPropagation(); showLoginMessage('like');">
+                    <i class="far fa-heart"></i>
+                    <span class="like-count">{{ product.likes.count }}</span>
+                </button>
+                {% endif %}
+                
+                <!-- Comment button -->
+                {% if request.user.is_authenticated %}
+                <button type="button" class="comment-btn" data-product-id="{{ product.id }}" 
+                        {% if product.is_expired %}disabled{% endif %}
+                        onclick="event.stopPropagation();">
+                    <i class="far fa-comment"></i>
+                    <span class="comment-count">{{ product.comments.count }}</span>
+                </button>
+                {% else %}
+                <button type="button" class="comment-btn" onclick="event.stopPropagation(); showLoginMessage('comment');">
+                    <i class="far fa-comment"></i>
+                    <span class="comment-count">{{ product.comments.count }}</span>
+                </button>
+                {% endif %}
+            </div>
 
             <a href="{% url 'product' product.id %}">            
                 <button class="view-deal-btn">
@@ -292,16 +336,6 @@
                     View Deal
                 </button>
             </a>
-            
-            {% if user.is_authenticated %}
-                <form method="POST" action="{% url 'like_product' product.id %}" class="like-form">
-                    {% csrf_token %}
-                    <button type="submit" class="like-btn" data-product-id="{{ product.id }}">
-                        <i class="{% if user in product.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                        <span class="like-count">{{ product.likes.count }}</span>
-                    </button>
-                </form>
-            {% endif %}
         </div>
         {% else %}
             <button class="view-deal-btn disabled">
@@ -311,7 +345,7 @@
         {% endif %}
        
     </div>
-</div>
+ </div>
             {% endfor %}
             
             <!-- Pagination -->
@@ -379,6 +413,22 @@
         <div class="sales-badge">Today Only</div>
     </div>
 </div>
+
+<!-- Login Message Modal -->
+<div id="loginMessageModal" class="login-message-modal">
+    <div class="login-message-content">
+        <span class="close-modal">&times;</span>
+        <h3>Login Required</h3>
+        <p id="loginMessageText">Please log in to interact with deals.</p>
+        <div class="login-buttons">
+            <a href="{% url 'login' %}" class="login-btn">Login</a>
+            <a href="{% url 'register' %}" class="register-btn">Register</a>
+        </div>
+    </div>
+</div>
+
+<!-- Include CSRF token for AJAX requests -->
+{% csrf_token %}
 
 <script>
 // Updated JavaScript for the filter functionality
@@ -516,6 +566,162 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000); // Remove after form submission or timeout
         });
     }
+    
+    // Login message modal functionality
+    const modal = document.getElementById('loginMessageModal');
+    const closeModal = document.querySelector('.close-modal');
+    const loginMessageText = document.getElementById('loginMessageText');
+    
+    // Show login message
+    window.showLoginMessage = function(action) {
+        let message = 'Please log in to interact with deals.';
+        
+        if (action === 'like') {
+            message = 'Please log in to like this deal.';
+        } else if (action === 'comment') {
+            message = 'Please log in to comment on this deal.';
+        } else if (action === 'bookmark') {
+            message = 'Please log in to save this deal.';
+        }
+        
+        loginMessageText.textContent = message;
+        modal.style.display = 'flex';
+    }
+    
+    // Close modal when clicking the X
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+    
+    // Like button functionality for authenticated users
+    document.querySelectorAll(".like-btn").forEach((button) => {
+        if (button.hasAttribute('data-product-id')) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (button.hasAttribute('disabled')) {
+                    return; // Don't process if button is disabled
+                }
+                
+                // Get the product ID from the data attribute
+                const productId = this.getAttribute("data-product-id");
+                const likeIcon = this.querySelector("i");
+                
+                // Get the correct count element
+                const likeCount = this.querySelector(".like-count"); 
+                
+                // Get the CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Make AJAX request to the like endpoint
+                fetch(`/like/${productId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    // Update the heart icon
+                    if (data.liked) {
+                        likeIcon.classList.remove("far");
+                        likeIcon.classList.add("fas");
+                    } else {
+                        likeIcon.classList.remove("fas");
+                        likeIcon.classList.add("far");
+                    }
+                    
+                    // Update the like count
+                    if (likeCount) {
+                        likeCount.textContent = data.likes_count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling like:', error);
+                });
+            });
+        }
+    });
+    
+    // Save button functionality for authenticated users
+    document.querySelectorAll(".save-btn").forEach((button) => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (button.hasAttribute('disabled')) {
+                return; // Don't process if button is disabled
+            }
+            
+            // Get the product ID from the data attribute
+            const productId = this.getAttribute("data-product-id");
+            const saveIcon = this.querySelector("i");
+            
+            // Get the CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Make AJAX request to the save endpoint
+            fetch(`/toggle-save/${productId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                // Update the bookmark icon
+                if (data.is_saved) {
+                    saveIcon.classList.remove("fa-regular");
+                    saveIcon.classList.add("fa-solid");
+                } else {
+                    saveIcon.classList.remove("fa-solid");
+                    saveIcon.classList.add("fa-regular");
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling save:', error);
+            });
+        });
+    });
+    
+    // Comment button functionality - redirect to product detail with comment section
+    document.querySelectorAll(".comment-btn").forEach((button) => {
+        if (button.hasAttribute('data-product-id')) {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (button.hasAttribute('disabled')) {
+                    return; // Don't process if button is disabled
+                }
+                
+                const productId = this.getAttribute("data-product-id");
+                window.location.href = `/product/${productId}/#comment-section`;
+            });
+        }
+    });
 });
 </script>
 {% endblock %}

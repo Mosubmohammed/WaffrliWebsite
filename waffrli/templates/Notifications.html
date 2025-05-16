@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% load static %}
  {% block content %}
-<link href="{% static 'css/notificationss.css' %}" rel="stylesheet" />
+<link href="{% static 'css/notificationss5.css' %}" rel="stylesheet" />
 <div class="notifications-container">
   <h1>Your Notifications</h1>
   <p class="instructions">
@@ -24,10 +24,11 @@
           class="notification-item {% if not notification.is_read %}unread{% endif %}"
           data-id="{{ notification.id }}"
           data-read="{{ notification.is_read|yesno:'true,false' }}"
+          data-type="{{ notification.notification_type }}"
         >
           <div
-            class="notification-content"
-            onclick="openNotification({{ notification.id }}, '{{ notification.url }}')"
+            class="notification-content {% if notification.notification_type == 'wishlist_match' %}clickable{% endif %}"
+            {% if notification.notification_type == 'wishlist_match' %}onclick="openNotification({{ notification.id }}, '{{ notification.url }}')"{% endif %}
           >
             <div class="notification-header">
               <h3>{{ notification.title }}</h3>
@@ -36,6 +37,9 @@
               >
             </div>
             <p>{{ notification.message }}</p>
+            {% if notification.notification_type == 'wishlist_match' and notification.url and notification.url != 'None' %}
+              <small class="clickable-hint">Click to view the matched product</small>
+            {% endif %}
           </div>
           <div class="notification-actions">
             <button
@@ -122,8 +126,19 @@ function showTab(tab) {
 
   // Open notification and mark as read
   function openNotification(id, url) {
+    // Only process if the notification is a wishlist match
+    const notification = document.querySelector(
+      `.notification-item[data-id="${id}"]`
+    );
+    
+    if (notification.getAttribute("data-type") !== "wishlist_match") {
+      console.log("This notification type is not clickable");
+      return;
+    }
+    
     markAsRead(id);
-    // Navigate to the URL
+    
+    // Navigate to the URL if it exists and isn't "None"
     if (url && url !== "None") {
       window.location.href = url;
     }
@@ -137,7 +152,7 @@ function showTab(tab) {
     const isCurrentlyRead = notification.getAttribute("data-read") === "true";
 
     if (isCurrentlyRead) {
-      markAsRead(id);
+      markAsUnread(id);
     } else {
       markAsRead(id);
     }
@@ -175,7 +190,7 @@ function showTab(tab) {
             const visibleNotifications = document.querySelectorAll(
               '.notification-item[style="display: flex;"]'
             );
-            if (visibleNotifications.length === 0) {
+            if (visibleNotifications.length === 0 && emptyState) {
               emptyState.style.display = "flex";
             }
           }
@@ -185,6 +200,7 @@ function showTab(tab) {
         console.error("Error marking notification as read:", error)
       );
   }
+  
   function markAsUnread(id) {
     const notification = document.querySelector(`.notification-item[data-id="${id}"]`);
     
@@ -207,7 +223,7 @@ function showTab(tab) {
             const visibleNotifications = document.querySelectorAll(
               '.notification-item[style="display: flex;"]'
             );
-            if (visibleNotifications.length === 0) {
+            if (visibleNotifications.length === 0 && emptyState) {
               emptyState.style.display = "flex";
             }
           }
@@ -248,7 +264,9 @@ function showTab(tab) {
               .forEach((notification) => {
                 notification.style.display = "none";
               });
-            emptyState.style.display = "flex";
+            if (emptyState) {
+              emptyState.style.display = "flex";
+            }
           }
         }
       })
@@ -283,7 +301,7 @@ function showTab(tab) {
             const visibleNotifications = document.querySelectorAll(
               '.notification-item[style="display: flex;"]'
             );
-            if (visibleNotifications.length === 0) {
+            if (visibleNotifications.length === 0 && emptyState) {
               emptyState.style.display = "flex";
             }
           }
@@ -298,4 +316,5 @@ function showTab(tab) {
     showTab("all");
   });
 </script>
+
 {% endblock %}
