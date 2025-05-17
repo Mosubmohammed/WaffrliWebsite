@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -10,29 +11,77 @@ from django.conf import settings
 
 def register(request):
     if request.method == 'POST':
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
+        # Get form data
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         gender = request.POST.get('gender')
         image = request.FILES.get('image')
-
+        
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
         formatted_address = request.POST.get('formatted_address')
         
-
+        # Validate required fields
+        if not all([first_name, last_name, email, phone, password, confirm_password, gender]):
+            messages.error(request, "All fields marked with * are required")
+            return render(request, 'register.html')
+        
+        # Validate name length
+        if len(first_name) < 2 or len(last_name) < 2:
+            messages.error(request, "Names must be at least 2 characters long")
+            return render(request, 'register.html')
+        
+        # Validate email format
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_regex, email):
+            messages.error(request, "Please enter a valid email address")
+            return render(request, 'register.html')
+        
+        # Validate phone number
+        phone_digits = re.sub(r'\D', '', phone)
+        if len(phone_digits) != 10:
+            messages.error(request, "Phone number must be 10 digits")
+            return render(request, 'register.html')
+        
+        # Validate password match
         if password != confirm_password:
             messages.error(request, "Passwords don't match")
             return render(request, 'register.html')
         
+        # Validate password strength
+        password_errors = []
+        if len(password) < 8:
+            password_errors.append("Password must be at least 8 characters long")
+        if not re.search(r'[A-Z]', password):
+            password_errors.append("Password must contain at least one uppercase letter")
+        if not re.search(r'[a-z]', password):
+            password_errors.append("Password must contain at least one lowercase letter")
+        if not re.search(r'[0-9]', password):
+            password_errors.append("Password must contain at least one number")
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>\/?]', password):
+            password_errors.append("Password must contain at least one special character")
+        
+        if password_errors:
+            for error in password_errors:
+                messages.error(request, error)
+            return render(request, 'register.html')
+        
+        # Validate location
+        if not latitude or not longitude:
+            messages.error(request, "Please select your location on the map")
+            return render(request, 'register.html')
+        
+        # Check if email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists")
             return render(request, 'register.html')
         
         try:
+            # Create Supabase user
             supabase_response = settings.SUPABASE.auth.sign_up({
                 "email": email,
                 "password": password,
@@ -51,6 +100,7 @@ def register(request):
             
             supabase_user_id = supabase_response.user.id
             
+            # Generate unique username
             username = first_name
             if User.objects.filter(username=username).exists():
                 counter = 1
@@ -68,7 +118,6 @@ def register(request):
                 is_active=True
             )
             
-
             SupabaseUser.objects.create(
                 user=django_user,
                 supabase_id=supabase_user_id,
@@ -76,7 +125,7 @@ def register(request):
             )
             
 
-            customer = Customer.objects.create(
+            Customer.objects.create(
                 user=django_user,
                 first_name=first_name,
                 last_name=last_name,
@@ -91,7 +140,6 @@ def register(request):
             )
             
             messages.success(request, "Registration successful! Please check your email to verify your account before logging in.")
-
             return redirect('login')
             
         except Exception as e:

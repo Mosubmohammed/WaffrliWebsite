@@ -28,7 +28,36 @@
 .notification.hide {
   opacity: 0;
 }
+.password-strength-meter {
+    height: 4px;
+    width: 100%;
+    background-color: #ddd;
+    margin-top: 6px;
+    border-radius: 2px;
+    overflow: hidden;
+}
 
+.strength-meter-bar {
+    height: 100%;
+    width: 0; /* Start at 0 width */
+    transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+
+.strength-weak {
+    width: 33%;
+    background-color: #e74c3c;
+}
+
+.strength-medium {
+    width: 66%;
+    background-color: #f39c12;
+}
+
+.strength-strong {
+    width: 100%;
+    background-color: #2ecc71;
+}
 .Register-container {
   width: 100%;
   max-width: 1200px;
@@ -395,7 +424,7 @@
 }
 
 .required-mark {
-  color:#384959;
+  color:red;
   font-size: 14px;
   margin-left: 5px;
 }
