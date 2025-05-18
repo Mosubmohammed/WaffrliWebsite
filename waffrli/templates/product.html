@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<link href="{% static 'css/DealDetailsStyle888.css' %}" rel="stylesheet" />
+<link href="{% static 'css/DealDetailsStyle8888.css' %}" rel="stylesheet" />
 
 
 <div class="container">
@@ -181,7 +181,7 @@
 
                             <div class="Section-action-buttons">
                                 {% if user.is_authenticated and user != product.user %}
-                                <button type="button" class="Section-btn comm-btn follow-btn" 
+                                <button  type="button" class="Section-btn comm-btn follow-btn" 
                                 data-user-id="{{ product.user.id }}" 
                                 data-following="{{ is_following|yesno:'true,false' }}">
                             <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %}"></i>
@@ -193,7 +193,7 @@
                                 <a href="{% url 'send_message' product.user.id %}" class="Section-btn comm-btn">
                                     <i class="fas fa-paper-plane"></i> Message
                                 </a>
-                                <button class="Section-btn report-btn" id="reportButton">
+                                <button style="background-color: red;" class="Section-btn report-btn" id="reportButton">
                                     <i class="fas fa-flag"></i> Report
                                 </button>
                                 {% endif %}

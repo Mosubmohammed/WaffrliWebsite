@@ -330,7 +330,7 @@ input[type="range"]::-webkit-slider-thumb {
   position: absolute;
   top: 9px;
   left: 155px;
-  background: #384959;
+  background: #ff0000;
   color: white;
   padding: 2px 5px;
   border-radius: 4px;
@@ -403,7 +403,7 @@ input[type="range"]::-webkit-slider-thumb {
 .current-price {
   font-size: 18px;
   font-weight: 700;
-  color: #384959;
+  color: #ff0000;
   margin-right: 8px;
 }
 
@@ -524,10 +524,14 @@ input[type="range"]::-webkit-slider-thumb {
 .like-btn:hover {
   background-color: #BDDDFC;
 }
-
 .fa-heart {
   font-size: 18px;
-  color: #f10404;
+  color: #384959;
+}
+.fa-map-marker-alt
+ {
+  margin-right: 10px;
+  color: #384959;
 }
 
 .like-count {
@@ -792,6 +796,7 @@ span {
 
 .daily-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 16px #BDDDFC;
 }
 
 .daily-image {

@@ -1,6 +1,6 @@
 :root {
   --primary-blue: #2563eb;
-  --primary-red: #dc2626;
+ 
   --primary-green: #059669;
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -261,7 +261,7 @@ body {
 .current-price {
   font-size: 24px;
   font-weight: 700;
-  color: #1d1d1f;
+  color: #ff0000;
   margin-right: 10px;
 }
 
@@ -272,7 +272,7 @@ body {
 }
 
 .discount {
-  background-color: #384959;
+  background-color: #ff0000;
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -962,6 +962,7 @@ color: black;
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
+
 }
 
 /* User Info */
@@ -1024,12 +1025,16 @@ color: black;
   display: flex;
   gap: 10px;
   margin-top: 15px;
+  color: #000;
+}
+.Section-action-buttons span {
+  color: #000;
 }
 
 .Section-btn {
   padding: 8px 16px;
   border: 2px solid #000000;
-  background-color: transparent;
+  background-color:#BDDDFC ;
   color: #000000;
   border-radius: 4px;
   cursor: pointer;
@@ -1039,8 +1044,9 @@ color: black;
   gap: 6px;
 }
 
-.Section-btn:hover {
-  background-color: #e31b23;
+.Section-btn:hover ,
+.Section-btn span:hover {
+  background-color: #97bfe7;
   border-color: #000000;
   color: white;
 }
@@ -1097,11 +1103,11 @@ color: black;
 .report-modal-box {
   background-color: white;
   border-radius: 8px;
-  border-top: 4px solid #e31b23;
+  border-top: 4px solid #384959;
 }
 
 .report-modal-header {
-  border-bottom: 2px solid #e31b23;
+  border-bottom: 2px solid #BDDDFC;
   padding: 15px;
 }
 
