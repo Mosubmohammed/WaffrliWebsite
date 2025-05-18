@@ -452,7 +452,7 @@ input[type="range"]::-webkit-slider-thumb {
   position: absolute;
   top: 9px;
   left: 125px;
-  background: #384959;
+  background: #ff0000;
   color: white;
   padding: 2px 5px;
   border-radius: 4px;
@@ -525,7 +525,7 @@ input[type="range"]::-webkit-slider-thumb {
 .current-price {
   font-size: 18px;
   font-weight: 700;
-  color: #384959;
+  color: #ff0000;
   margin-right: 8px;
 }
 
@@ -642,7 +642,11 @@ input[type="range"]::-webkit-slider-thumb {
   transition: background-color 0.3s ease;
 }
 
-
+.fa-map-marker-alt
+ {
+  margin-right: 10px;
+  color: #384959;
+}
 
 .fa-heart {
   font-size: 18px;

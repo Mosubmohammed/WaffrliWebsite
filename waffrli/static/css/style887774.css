@@ -1,5 +1,5 @@
 :root {
-  --primary: #e31b23;
+  --primary: #BDDDFC;
   --secondary: #333;
   --light: #f8f9fa;
   --dark: #000000;
@@ -322,6 +322,7 @@ span {
 }
 
 
+
 .icon-button {
   display: flex;
   align-items: center;
@@ -380,7 +381,7 @@ span {
   background-color: #fff;
   min-width: 200px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  z-index: 3;
   border-radius: 4px;
   top: 100%;
   right: 0;
@@ -776,8 +777,16 @@ header {
   font-weight: 700;
 }
 
-.fa-map-marker-alt,
+
+
+
 .fa-fire {
+  margin-right: 10px;
+  color: #f71010;
+}
+
+.fa-map-marker-alt
+ {
   margin-right: 10px;
   color: #384959;
 }
@@ -878,7 +887,7 @@ h2 .fa-star {
 
 .All-product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 16px #BDDDFC;
 }
 
 /* Product Grid - Responsive */
@@ -950,7 +959,13 @@ h2 .fa-star {
     grid-template-columns: repeat(1, 1fr);
   }
 }
+@media (min-width: 1500px) {
+  .product-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
 
+}
 /* Larger screens - display 8 nearby deals per row */
 @media (min-width: 1600px) {
   .product-grid {
@@ -974,7 +989,7 @@ h2 .fa-star {
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 16px #BDDDFC;
 }
 
 .card-header {
@@ -1017,7 +1032,7 @@ h2 .fa-star {
 }
 
 .product-badge {
-  background: #384959;
+  background: #ff0000;
   color: white;
   padding: 3px 5px;
   border-radius: 3px;
@@ -1631,7 +1646,7 @@ h2 .fa-star {
   position: absolute;
   top: -10px;
   left: 13.5rem;
-  background-color: #384959;
+  background-color: #ff0000;
   color: white;
   width: 50px;
   height: 37px;
@@ -2263,7 +2278,7 @@ h2 .fa-star {
 .current-price {
   font-size: 16px;
   font-weight: 700;
-  color: #384959;
+  color: #ff0000;
 }
 
 .old-price {

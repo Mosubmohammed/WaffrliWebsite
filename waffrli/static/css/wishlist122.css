@@ -57,8 +57,8 @@
 .input-group input:focus,
 .input-group select:focus {
   outline: none;
-  border-color: #e74c3c;
-  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+  border-color: #BDDDFC;
+  box-shadow: 0 0 0 1px #BDDDFC;
 }
 
 .input-group button {

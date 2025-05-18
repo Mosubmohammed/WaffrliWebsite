@@ -229,7 +229,7 @@ body {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: #384959;
+  background: #ff0000;
   color: white;
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
@@ -435,8 +435,6 @@ body {
   gap: 0.25rem;
 }
 
-
-
 .rating {
   color: #fbbf24;
   display: flex;
@@ -564,7 +562,7 @@ body {
 }
 
 .product-card:hover {
-  box-shadow: 0 5px 15px rgba(231, 8, 8, 0.2);
+ box-shadow: 0 8px 16px #BDDDFC;
   transform: translateY(-3px);
 }
 
@@ -590,7 +588,7 @@ body {
   position: absolute;
   top: 9px;
   left: 155px;
-  background: #384959;
+  background: #ff0000;
   color: white;
   padding: 2px 5px;
   border-radius: 4px;
@@ -663,7 +661,7 @@ body {
 .current-price {
   font-size: 18px;
   font-weight: 700;
-  color: #384959;
+  color: #ff0000;
   margin-right: 8px;
 }
 
@@ -779,10 +777,14 @@ body {
 .like-btn:hover {
   background-color: rgba(255, 0, 0, 0.1);
 }
-
+.fa-map-marker-alt
+ {
+  margin-right: 10px;
+  color: #384959;
+}
 .fa-heart {
   font-size: 18px;
-  color: #f10404;
+  color: #384959;
 }
 
 .like-count {
@@ -1111,7 +1113,7 @@ input[type="range"]::-webkit-slider-thumb {
 .Subproduct-card:hover,
 .product-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
+box-shadow: 0 8px 16px #BDDDFC;
 }
 
 .product-card:hover .product-image img {

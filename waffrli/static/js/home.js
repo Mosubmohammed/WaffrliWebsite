@@ -131,37 +131,37 @@
     let currentPage = 0;
     let totalPages = Math.ceil(products.length / productsPerPage);
 
-    // Responsive products per page
-    function updateProductsPerPage() {
-      if (window.innerWidth <= 576) {
-        productsPerPage = 2;
-      } else if (window.innerWidth <= 768) {
-        productsPerPage = 3;
-      } else if (window.innerWidth <= 992) {
-        productsPerPage = 4;
-      } else if (window.innerWidth <= 1400) {
-        productsPerPage = 6;
-      } else {
-        productsPerPage = 8; 
-      }
-      totalPages = Math.ceil(products.length / productsPerPage);
-      currentPage = Math.min(currentPage, totalPages - 1);
-      showProducts(currentPage);
-    }
+    // // Responsive products per page
+    // function updateProductsPerPage() {
+    //   if (window.innerWidth <= 576) {
+    //     productsPerPage = 2;
+    //   } else if (window.innerWidth <= 768) {
+    //     productsPerPage = 3;
+    //   } else if (window.innerWidth <= 992) {
+    //     productsPerPage = 4;
+    //   } else if (window.innerWidth <= 1501) {
+    //     productsPerPage = 6;
+    //   } else {
+    //     productsPerPage = 8; 
+    //   }
+    //   totalPages = Math.ceil(products.length / productsPerPage);
+    //   currentPage = Math.min(currentPage, totalPages - 1);
+    //   showProducts(currentPage);
+    // }
   
-    function showProducts(page) {
-      const start = page * productsPerPage;
-      const end = start + productsPerPage;
+    // function showProducts(page) {
+    //   const start = page * productsPerPage;
+    //   const end = start + productsPerPage;
   
-      products.forEach((product, index) => {
-        if (index >= start && index < end) {
-          product.style.display = 'block';
-          product.style.animation = 'fadeIn 0.5s ease-in-out';
-        } else {
-          product.style.display = 'none';
-        }
-      });
-    }
+    //   products.forEach((product, index) => {
+    //     if (index >= start && index < end) {
+    //       product.style.display = 'block';
+    //       product.style.animation = 'fadeIn 0.5s ease-in-out';
+    //     } else {
+    //       product.style.display = 'none';
+    //     }
+    //   });
+    // }
   
     prevBtn.addEventListener('click', () => {
       if (currentPage > 0) {
