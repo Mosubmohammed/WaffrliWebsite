@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link href="{% static 'css/Register_Stylee60.css' %}" rel="stylesheet" />
+<link href="{% static 'css/Register_Stylee606.css' %}" rel="stylesheet" />
 
 <div class="Register-container">
     <div id="registerForm" class="signup-container">
@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="tel" name="phone" id="phone" pattern="[0-9]{10}" required />
+                    <input type="number" name="phone" id="phone" pattern="[0-9]{10}" required />
                     <label for="phone">Phone Number <span class="required-mark">*</span></label>
                     <span class="error-message" id="phoneError"></span>
                 </div>
@@ -60,6 +60,9 @@
                 <div class="form-group">
                     <input type="password" name="password" id="password" required />
                     <label for="password">Password <span class="required-mark">*</span></label>
+                    <div class="password-strength-meter">
+                        <div class="strength-meter-bar" id="strength-meter"></div>
+                    </div>
                     <span class="error-message" id="passwordError"></span>
                 </div>
 
@@ -68,6 +71,7 @@
                     <label for="confirm_password">Confirm Password <span class="required-mark">*</span></label>
                     <span class="error-message" id="confirmPasswordError"></span>
                 </div>
+                
 
                 <div class="Grnder-form-group">
                     <label class="gender-label">Gender</label>
@@ -113,99 +117,100 @@
 <div id="notification-container"></div>
 
 <script>
-    // this function to check if location is in Jordan
-    function isLocationInJordan(addressComponents) {
-        if (!addressComponents || !Array.isArray(addressComponents)) {
-            return false;
-        }
-        
-        // Look for Jordan as the country
-        const countryComponent = addressComponents.find(
-            component => component.types.includes("country")
-        );
-        
-        if (!countryComponent) {
-            return false;
-        }
-        
-        // Check if the country is Jordan (both short and long names)
-        return countryComponent.short_name === "JO" || 
-               countryComponent.long_name.toLowerCase().includes("jordan");
+// Function definitions for map-related functionality
+function isLocationInJordan(addressComponents) {
+    if (!addressComponents || !Array.isArray(addressComponents)) {
+        return false;
     }
     
-    // Define the initMap function first
-    function initMap() {
-        // Default location (center of Jordan)
-        const defaultLocation = { lat: 31.9539, lng: 35.9106 };
+    // Look for Jordan as the country
+    const countryComponent = addressComponents.find(
+        component => component.types.includes("country")
+    );
     
-        // Initialize map
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: defaultLocation,
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
+    if (!countryComponent) {
+        return false;
+    }
+    
+    // Check if the country is Jordan (both short and long names)
+    return countryComponent.short_name === "JO" || 
+           countryComponent.long_name.toLowerCase().includes("jordan");
+}
+
+// Define the initMap function for Google Maps
+function initMap() {
+    // Default location (center of Jordan)
+    const defaultLocation = { lat: 31.9539, lng: 35.9106 };
+
+    // Initialize map
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 13,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+    });
+
+    // Initialize geocoder for address lookup
+    geocoder = new google.maps.Geocoder();
+
+    // Create marker - using AdvancedMarkerElement to avoid deprecation warning
+    try {
+        // Try to use the new AdvancedMarkerElement if available
+        marker = new google.maps.marker.AdvancedMarkerElement({
+            position: defaultLocation,
+            map: map,
+            draggable: true,
         });
-    
-        // Initialize geocoder for address lookup
-        geocoder = new google.maps.Geocoder();
-    
-        // Create marker - using AdvancedMarkerElement to avoid deprecation warning
-        try {
-            // Try to use the new AdvancedMarkerElement if available
-            marker = new google.maps.marker.AdvancedMarkerElement({
-                position: defaultLocation,
-                map: map,
-                draggable: true,
-            });
-    
-            // Add click event to the map
-            map.addListener("click", (event) => {
-                marker.position = event.latLng;
-                updateLocationFields(event.latLng);
-            });
-    
-            // Update fields when marker is dragged
-            marker.addListener("dragend", () => {
-                updateLocationFields(marker.position);
-                map.panTo(marker.position);
-            });
-        } catch (e) {
-            // Fall back to the old Marker if AdvancedMarkerElement is not available
-            marker = new google.maps.Marker({
-                position: defaultLocation,
-                map: map,
-                draggable: true,
-                animation: google.maps.Animation.DROP,
-            });
-    
-            // Update fields when marker is dragged
-            marker.addListener("dragend", () => {
-                const position = marker.getPosition();
-                updateLocationFields(position);
-                map.panTo(position);
-            });
-    
-            // Add click event to the map
-            map.addListener("click", (event) => {
-                marker.setPosition(event.latLng);
-                updateLocationFields(event.latLng);
-            });
-        }
-    
-        // Set up address autocomplete
-        const addressInput = document.getElementById("address");
+
+        // Add click event to the map
+        map.addListener("click", (event) => {
+            marker.position = event.latLng;
+            updateLocationFields(event.latLng);
+        });
+
+        // Update fields when marker is dragged
+        marker.addListener("dragend", () => {
+            updateLocationFields(marker.position);
+            map.panTo(marker.position);
+        });
+    } catch (e) {
+        // Fall back to the old Marker if AdvancedMarkerElement is not available
+        marker = new google.maps.Marker({
+            position: defaultLocation,
+            map: map,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+        });
+
+        // Update fields when marker is dragged
+        marker.addListener("dragend", () => {
+            const position = marker.getPosition();
+            updateLocationFields(position);
+            map.panTo(position);
+        });
+
+        // Add click event to the map
+        map.addListener("click", (event) => {
+            marker.setPosition(event.latLng);
+            updateLocationFields(event.latLng);
+        });
+    }
+
+    // Set up address autocomplete
+    const addressInput = document.getElementById("address");
+    if (addressInput) {
         autocomplete = new google.maps.places.Autocomplete(addressInput);
         autocomplete.setFields([
             "geometry",
             "formatted_address",
             "address_components",
         ]);
-    
+
         // When a place is selected, update map and fields
         autocomplete.addListener("place_changed", () => {
             const place = autocomplete.getPlace();
-    
+
             if (!place.geometry) {
                 console.error("No geometry found for this place");
                 return;
@@ -213,111 +218,447 @@
             
             // Check if location is in Jordan
             if (!isLocationInJordan(place.address_components)) {
-                alert("Sorry, our service is only available in Jordan at this time.");
+                showNotification("Sorry, our service is only available in Jordan at this time.", "error");
                 // Clear the address field
                 document.getElementById("address").value = "";
                 document.getElementById("formatted_address").value = "";
                 return;
             }
-    
+
             // Update map view
             map.setCenter(place.geometry.location);
-    
+
             // Update marker position based on which marker type we're using
             if (marker.setPosition) {
                 marker.setPosition(place.geometry.location);
             } else {
                 marker.position = place.geometry.location;
             }
-    
+
             map.setZoom(15);
-    
+
             // Update fields
             updateLocationFields(place.geometry.location);
             document.getElementById("formatted_address").value =
                 place.formatted_address;
         });
     }
+}
+
+function updateLocationFields(location) {
+    // Update hidden form fields
+    const latitudeInput = document.getElementById("latitude");
+    const longitudeInput = document.getElementById("longitude");
+    const formattedAddressInput = document.getElementById("formatted_address");
+    const addressInput = document.getElementById("address");
     
-    function updateLocationFields(location) {
-        // Update hidden form fields
-        document.getElementById("latitude").value = location.lat();
-        document.getElementById("longitude").value = location.lng();
-    
-        // Get address from coordinates
-        geocoder.geocode(
-            { location: { lat: location.lat(), lng: location.lng() } },
-            (results, status) => {
-                if (status === "OK" && results[0]) {
-                    // Check if location is in Jordan
-                    if (!isLocationInJordan(results[0].address_components)) {
-                        alert("Sorry, our service is only available in Jordan at this time.");
-                        // Clear the form fields
-                        document.getElementById("address").value = "";
-                        document.getElementById("formatted_address").value = "";
-                        return;
-                    }
-                    
-                    const address = results[0].formatted_address;
-                    document.getElementById("formatted_address").value = address;
-    
-                    // Don't update the address input if the user is currently typing
-                    const addressInput = document.getElementById("address");
-                    if (!addressInput.matches(":focus")) {
-                        addressInput.value = address;
-                    }
+    if (latitudeInput && longitudeInput) {
+        latitudeInput.value = location.lat();
+        longitudeInput.value = location.lng();
+    }
+
+    // Get address from coordinates
+    geocoder.geocode(
+        { location: { lat: location.lat(), lng: location.lng() } },
+        (results, status) => {
+            if (status === "OK" && results[0]) {
+                // Check if location is in Jordan
+                if (!isLocationInJordan(results[0].address_components)) {
+                    showNotification("Sorry, our service is only available in Jordan at this time.", "error");
+                    // Clear the form fields
+                    if (addressInput) addressInput.value = "";
+                    if (formattedAddressInput) formattedAddressInput.value = "";
+                    return;
+                }
+                
+                const address = results[0].formatted_address;
+                if (formattedAddressInput) formattedAddressInput.value = address;
+
+                // Don't update the address input if the user is currently typing
+                if (addressInput && !addressInput.matches(":focus")) {
+                    addressInput.value = address;
                 }
             }
-        );
+        }
+    );
+}
+
+// Function to show notification
+function showNotification(message, type = 'success') {
+    const container = document.getElementById('notification-container');
+    if (!container) {
+        console.error('Notification container not found');
+        alert(message); // Fallback to alert if container not found
+        return;
     }
     
-    // Initialize variables
-    let map;
-    let marker;
-    let geocoder;
-    let autocomplete;
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Add notification to container
+    container.appendChild(notification);
+    
+    // Set timeout to remove notification
+    setTimeout(function() {
+        notification.classList.add('hide');
+        setTimeout(function() {
+            if (container.contains(notification)) {
+                container.removeChild(notification);
+            }
+        }, 500);
+    }, 5000);
+}
 
-    // Simplified profile image preview functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const profileInput = document.getElementById('profileInput');
-        const profilePreview = document.getElementById('profilePreview');
+// Initialize variables for map
+let map;
+let marker;
+let geocoder;
+let autocomplete;
+
+// Main document ready handler
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all form elements
+    const registerForm = document.getElementById('register');
+    const firstNameInput = document.getElementById('first_name');
+    const lastNameInput = document.getElementById('last_name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const profileInput = document.getElementById('profileInput');
+    const profilePreview = document.getElementById('profilePreview');
+    const strengthMeter = document.getElementById('strength-meter');
+    
+    // Only proceed if we've found the form
+    if (!registerForm) {
+        console.error('Registration form not found');
+        return;
+    }
+    
+    // Get all error message elements
+    const firstNameError = document.getElementById('firstNameError');
+    const lastNameError = document.getElementById('lastNameError');
+    const emailError = document.getElementById('emailError');
+    const phoneError = document.getElementById('phoneError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+    
+    // Function to show error message
+    function showError(inputElement, errorElement, message) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        inputElement.style.borderColor = '#384959';
+    }
+    
+    // Function to clear error message
+    function clearError(inputElement, errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+        inputElement.style.borderColor = '#d1d5db';
+    }
+    
+    // Password validation function
+    function validatePassword(password) {
+        const errors = [];
         
-        if (profileInput && profilePreview) {
-            const uploadIcon = profilePreview.querySelector('.upload-icon');
+        if (password.length < 8) {
+            errors.push("Password must be at least 8 characters long");
+        }
+        
+        if (!/[A-Z]/.test(password)) {
+            errors.push("Password must contain at least one uppercase letter");
+        }
+        
+        if (!/[a-z]/.test(password)) {
+            errors.push("Password must contain at least one lowercase letter");
+        }
+        
+        if (!/[0-9]/.test(password)) {
+            errors.push("Password must contain at least one number");
+        }
+        
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            errors.push("Password must contain at least one special character");
+        }
+        
+        return errors;
+    }
+    
+    // Email validation function
+    function validateEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+    
+    // Initialize validation styles for error messages
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+        el.style.color = '#384959';
+        el.style.fontSize = '12px';
+        el.style.marginTop = '5px';
+    });
+    
+    // Real-time validation for first name - only accept letters
+    if (firstNameInput && firstNameError) {
+        firstNameInput.addEventListener('input', function() {
+            // Remove any non-letter characters
+            this.value = this.value.replace(/[^A-Za-z\s]/g, '');
             
-            profilePreview.addEventListener('click', function() {
-                profileInput.click();
-            });
-            
-            profileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        profilePreview.style.backgroundImage = `url(${e.target.result})`;
-                        if (uploadIcon) {
-                            uploadIcon.style.display = 'none';
-                        }
-                    };
-                    
-                    reader.readAsDataURL(this.files[0]);
-                    // No need to copy to another input since this is already the form input with name="image"
+            if (this.value.trim() === '') {
+                showError(this, firstNameError, 'First name is required');
+            } else if (this.value.length < 2) {
+                showError(this, firstNameError, 'First name must be at least 2 characters');
+            } else {
+                clearError(this, firstNameError);
+            }
+        });
+    }
+    
+        // Real-time validation for last name - only accept letters
+        if (lastNameInput && lastNameError) {
+            lastNameInput.addEventListener('input', function() {
+                // Remove any non-letter characters
+                this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+                
+                if (this.value.trim() === '') {
+                    showError(this, lastNameError, 'Last name is required');
+                } else if (this.value.length < 2) {
+                    showError(this, lastNameError, 'Last name must be at least 2 characters');
+                } else {
+                    clearError(this, lastNameError);
                 }
             });
         }
+    
+    // Real-time validation for email
+    if (emailInput && emailError) {
+        emailInput.addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                showError(this, emailError, 'Email address is required');
+            } else if (!validateEmail(this.value)) {
+                showError(this, emailError, 'Please enter a valid email address');
+            } else {
+                clearError(this, emailError);
+            }
+        });
+    }
+    
+    // Real-time validation for phone
+    if (phoneInput && phoneError) {
+        phoneInput.addEventListener('input', function() {
+            // Remove non-digit characters for validation
+            const digits = this.value.replace(/\D/g, '');
+            
+            if (this.value.trim() === '') {
+                showError(this, phoneError, 'Phone number is required');
+            } else if (digits.length !== 10) {
+                showError(this, phoneError, 'Phone number must be 10 digits');
+            } else {
+                clearError(this, phoneError);
+            }
+        });
+    }
+    
+        // Modify the password strength meter code section:
+        if (passwordInput && passwordError) {
+            passwordInput.addEventListener('input', function() {
+                const passwordErrors = validatePassword(this.value);
+                
+                if (passwordErrors.length > 0) {
+                    showError(this, passwordError, passwordErrors.join('. '));
+                } else {
+                    clearError(this, passwordError);
+                }
+                
+                // Update password strength meter if it exists
+                if (strengthMeter) {
+                    const password = this.value;
+                    let strength = 0;
+                    
+                    // Calculate password strength
+                    if (password.length >= 8) strength += 1;
+                    if (/[A-Z]/.test(password)) strength += 1;
+                    if (/[a-z]/.test(password)) strength += 1;
+                    if (/[0-9]/.test(password)) strength += 1;
+                    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength += 1;
+                    
+                    // Reset all classes first
+                    strengthMeter.className = 'strength-meter-bar';
+                    strengthMeter.style.width = '0';
+                    
+                    // Then update based on strength
+                    if (password.length === 0) {
+                        strengthMeter.style.width = '0';
+                    } else if (strength <= 2) {
+                        strengthMeter.classList.add('strength-weak');
+                        strengthMeter.style.width = '33%';
+                        strengthMeter.style.backgroundColor = '#e74c3c'; // Red
+                    } else if (strength <= 4) {
+                        strengthMeter.classList.add('strength-medium');
+                        strengthMeter.style.width = '66%';
+                        strengthMeter.style.backgroundColor = '#f39c12'; // Orange
+                    } else {
+                        strengthMeter.classList.add('strength-strong');
+                        strengthMeter.style.width = '100%';
+                        strengthMeter.style.backgroundColor = '#2ecc71'; // Green
+                    }
+                }
+                
+                // Check confirm password match if it has a value
+                if (confirmPasswordInput && confirmPasswordInput.value) {
+                    if (this.value !== confirmPasswordInput.value) {
+                        showError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match');
+                    } else {
+                        clearError(confirmPasswordInput, confirmPasswordError);
+                    }
+                }
+            });
+        }
+    
+    // Real-time validation for confirm password
+    if (confirmPasswordInput && confirmPasswordError && passwordInput) {
+        confirmPasswordInput.addEventListener('input', function() {
+            if (this.value !== passwordInput.value) {
+                showError(this, confirmPasswordError, 'Passwords do not match');
+            } else {
+                clearError(this, confirmPasswordError);
+            }
+        });
+    }
+    
+    // Profile image preview functionality
+    if (profileInput && profilePreview) {
+        const uploadIcon = profilePreview.querySelector('.upload-icon');
+        
+        profilePreview.addEventListener('click', function() {
+            profileInput.click();
+        });
+        
+        profileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    profilePreview.style.backgroundImage = `url(${e.target.result})`;
+                    profilePreview.style.backgroundSize = 'cover';
+                    profilePreview.style.backgroundPosition = 'center';
+                    if (uploadIcon) {
+                        uploadIcon.style.display = 'none';
+                    }
+                };
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Form submission validation
+    registerForm.addEventListener('submit', function(event) {
+        let hasErrors = false;
+        
+        // Validate first name
+        if (firstNameInput && firstNameError) {
+            if (firstNameInput.value.trim() === '') {
+                showError(firstNameInput, firstNameError, 'First name is required');
+                hasErrors = true;
+            } else if (firstNameInput.value.length < 2) {
+                showError(firstNameInput, firstNameError, 'First name must be at least 2 characters');
+                hasErrors = true;
+            }
+        }
+        
+        // Validate last name
+        if (lastNameInput && lastNameError) {
+            if (lastNameInput.value.trim() === '') {
+                showError(lastNameInput, lastNameError, 'Last name is required');
+                hasErrors = true;
+            } else if (lastNameInput.value.length < 2) {
+                showError(lastNameInput, lastNameError, 'Last name must be at least 2 characters');
+                hasErrors = true;
+            }
+        }
+        
+        // Validate email
+        if (emailInput && emailError) {
+            if (emailInput.value.trim() === '') {
+                showError(emailInput, emailError, 'Email address is required');
+                hasErrors = true;
+            } else if (!validateEmail(emailInput.value)) {
+                showError(emailInput, emailError, 'Please enter a valid email address');
+                hasErrors = true;
+            }
+        }
+        
+        // Validate phone
+        if (phoneInput && phoneError) {
+            const phoneDigits = phoneInput.value.replace(/\D/g, '');
+            if (phoneInput.value.trim() === '') {
+                showError(phoneInput, phoneError, 'Phone number is required');
+                hasErrors = true;
+            } else if (phoneDigits.length !== 10) {
+                showError(phoneInput, phoneError, 'Phone number must be 10 digits');
+                hasErrors = true;
+            }
+        }
+        
+        // Validate password
+        if (passwordInput && passwordError) {
+            const passwordErrors = validatePassword(passwordInput.value);
+            if (passwordErrors.length > 0) {
+                showError(passwordInput, passwordError, passwordErrors.join('. '));
+                hasErrors = true;
+            }
+        }
+        
+        // Validate confirm password
+        if (confirmPasswordInput && confirmPasswordError && passwordInput) {
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                showError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match');
+                hasErrors = true;
+            }
+        }
+        
+        // Validate gender
+        const genderSelected = document.querySelector('input[name="gender"]:checked');
+        if (!genderSelected) {
+            showNotification('Please select your gender', 'error');
+            hasErrors = true;
+        }
+        
+        // Check location fields
+        const latitude = document.getElementById('latitude')?.value;
+        const longitude = document.getElementById('longitude')?.value;
+        
+        if (!latitude || !longitude) {
+            showNotification('Please select your location on the map', 'error');
+            hasErrors = true;
+        }
+        
+        // Prevent form submission if there are errors
+        if (hasErrors) {
+            event.preventDefault();
+            showNotification('Please fill in all required fields correctly', 'error');
+        }
     });
-</script>
+});
 
-<!-- Load Google Maps API with proper pattern -->
-<script>
-    // Load Google Maps API
-    (function loadGoogleMapsScript() {
+// Load Google Maps API
+(function loadGoogleMapsScript() {
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
         const script = document.createElement("script");
         script.src =
             "https://maps.googleapis.com/maps/api/js?key=AIzaSyDtfNpTlfiR1P3oEqtVWhtVWN8RSeu4xaY&libraries=places&callback=initMap";
         script.async = true;
         script.defer = true;
         document.head.appendChild(script);
-    })();
+    } else {
+        // Google Maps API already loaded, just initialize the map
+        if (typeof initMap === 'function') {
+            initMap();
+        }
+    }
+})();
 </script>
 {% endblock %}

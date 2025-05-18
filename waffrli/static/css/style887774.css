@@ -26,7 +26,82 @@ body {
   background-color: #f5f5f5;
   color: var(--dark);
 }
+/* Pagination Styles */
+.deals-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  gap: 15px;
+}
+.inbox-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
 
+.message-counter {
+    position: absolute;
+    top: -8px;
+    right: 10px; /* Adjust this value as needed */
+    background-color: #e74c3c;
+    color: white;
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.pagination-btn {
+  background-color: #384959;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+  text-decoration: none; /* Remove underline from links */
+}
+
+.pagination-btn:hover {
+  background-color: #BDDDFC;
+}
+
+.pagination-btn[disabled] {
+  background-color: #e0e0e0;
+  color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #555;
+}
+
+.current-page, .total-pages, .total-items, .showing-items {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+/* Fade-in animation for new pages */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.All-product-card {
+  animation: fadeIn 0.3s ease-out;
+}
 .popup-messages-container {
   position: fixed;
   top: 20px;

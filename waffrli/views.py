@@ -22,6 +22,7 @@ from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrap
 from django.contrib import messages as django_messages
 from django.contrib.admin.views.decorators import staff_member_required
 from authentication.models import SupabaseUser
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 
@@ -29,6 +30,7 @@ def home(request):
     user_lat = None
     user_lng = None
     
+    # Your existing location detection code
     if request.user.is_authenticated and hasattr(request.user, 'customer'):
         customer = request.user.customer
         user_lat = customer.latitude
@@ -51,12 +53,28 @@ def home(request):
         user_lat = 31.9566  # Amman latitude
         user_lng = 35.9457  # Amman longitude
     
-    # Get all active products
-    products = Product.objects.filter(is_archived=False).order_by('-create_at')
-    
-    # Add distance attribute to each product
+    # Get current time to check for expired deals
     current_time = timezone.now()
-    for product in products:
+    
+    # Get all active products and sort by expiration status
+    # First get non-expired products
+    active_products = Product.objects.filter(
+        is_archived=False,
+        expires_at__gt=current_time  # Products that have not expired yet
+    ).order_by('-create_at')
+    
+    # Then get expired products
+    expired_products = Product.objects.filter(
+        is_archived=False,
+        expires_at__lte=current_time  # Products that have expired
+    ).order_by('-create_at')
+    
+    # Combine the two querysets (active first, then expired)
+    # We need to convert to list because we'll be adding attributes
+    products_list = list(active_products) + list(expired_products)
+    
+    # Add distance attribute to each product for nearby section
+    for product in products_list:
         # Set expiration status
         product.is_expired = product.expires_at <= current_time if product.expires_at else False
         
@@ -69,7 +87,7 @@ def home(request):
             product.distance_to = None
     
     # Filter products to show only those with distance (physical stores)
-    nearby_products = [p for p in products if p.distance_to is not None]
+    nearby_products = [p for p in products_list if p.distance_to is not None]
     
     # Sort nearby products by distance
     nearby_products.sort(key=lambda x: x.distance_to)
@@ -82,18 +100,35 @@ def home(request):
     if not nearby_products_filtered and nearby_products:
         nearby_products_filtered = nearby_products[:5]
     
-    # Get popular products using the same logic as your popular endpoint
+    # PAGINATION FOR WAFFRLI DEALS (all_products)
+    # Get the requested page number from the URL
+    page = request.GET.get('page', 1)
+    
+    # Create a paginator object with 50 items per page
+    paginator = Paginator(products_list, 50)
+    
+    try:
+        # Get the requested page
+        all_products = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        all_products = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        all_products = paginator.page(paginator.num_pages)
+    
+    # Your existing popular products code
     popular_products = Product.objects.filter(
-        is_archived=False  # Exclude archived deals
+        is_archived=False
     ).annotate(
         like_count=Count('likes'),
         popularity_score=ExpressionWrapper(
             (F('like_count') * 3) + F('views'),
             output_field=FloatField()
         )
-    ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]  # Get top 12 popular products
-    
-    # Get specific category products (your existing logic)
+    ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]
+
+    # Your existing category products code
     try:
         phones_category = Category.objects.get(name__icontains='Phones')
     except Category.DoesNotExist:
@@ -131,7 +166,7 @@ def home(request):
             is_archived=False
         ).order_by('-create_at')[:4]
     
-    # Fill up categories with keyword searches if needed
+    # Your existing code to fill categories with keyword searches
     if len(phone_products) < 4:
         additional_phones = Product.objects.filter(
             Name__icontains='phone',
@@ -154,14 +189,16 @@ def home(request):
         bag_products = list(bag_products) + list(additional_bags)
     
     context = {
-        'products': nearby_products_filtered,  # Only show nearby products in the "NearBy You" section
-        'all_products': products,  # All products for other sections
-        'popular_products': popular_products,  # Add popular products to context
+        'products': nearby_products_filtered, 
+        'all_products': all_products, 
+        'popular_products': popular_products,
         'phone_products': phone_products,
         'computer_products': computer_products,
         'bag_products': bag_products,
         'user_lat': user_lat,
         'user_lng': user_lng,
+        'paginator': paginator,  
+        'current_page': page,   
     }
     
     return render(request, 'home.html', context)
@@ -1397,11 +1434,15 @@ def saved_items(request):
 def inbox(request):
     inbox_messages = Message.objects.filter(recipient=request.user).order_by('-date_sent')
     
+    # Count unread messages
+    unread_count = Message.objects.filter(recipient=request.user, is_read=False).count()
+    
     context = {
         'user': request.user,
         'total_messages': Message.objects.filter(recipient=request.user).count() + Message.objects.filter(sender=request.user).count(),
         'inbox_count': Message.objects.filter(recipient=request.user).count(),
         'sent_count': Message.objects.filter(sender=request.user).count(),
+        'unread_count': unread_count,  # Add this line
         'inbox_messages': inbox_messages,  
         'active_tab': 'inbox'
     }

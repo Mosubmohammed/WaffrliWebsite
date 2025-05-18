@@ -199,6 +199,34 @@
   </div>
   {% endfor %}
 </div>
+<!-- Pagination Controls -->
+<div class="deals-pagination">
+  {% if all_products.has_previous %}
+    <a href="?page={{ all_products.previous_page_number }}" class="pagination-btn prev-page-btn">
+      <i class="fas fa-chevron-left" style="color:white"></i> Previous
+    </a>
+  {% else %}
+    <button class="pagination-btn prev-page-btn" disabled>
+      <i class="fas fa-chevron-left" ></i> Previous
+    </button>
+  {% endif %}
+  
+  <div class="pagination-info">
+    Page <span class="current-page">{{ all_products.number }}</span> of 
+    <span class="total-pages">{{ all_products.paginator.num_pages }}</span>
+
+  </div>
+  
+  {% if all_products.has_next %}
+    <a href="?page={{ all_products.next_page_number }}" class="pagination-btn next-page-btn">
+      Next <i class="fas fa-chevron-right" style="color:white"></i>
+    </a>
+  {% else %}
+    <button class="pagination-btn next-page-btn" disabled>
+      Next <i class="fas fa-chevron-right"></i>
+    </button>
+  {% endif %}
+</div>
 
     <!--hot Products Grid  -->
     <div class="container">
