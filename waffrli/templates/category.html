@@ -220,9 +220,9 @@
                         <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
                     {% endif %}
                     
-                    {% if user_has_location and product.distance_to <= 20 %}
-                        <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
-                    {% endif %}
+                        {% if user_has_location and product.distance <= 20 %}
+                            <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
+                        {% endif %}
                     
                     {% if product.is_expired %}
                         <div class="expired-badge">Expired</div>
@@ -271,12 +271,12 @@
                         <i class="fas fa-map-marker-alt"></i> {{ product.city }}
                         
                         <!-- Distance Information -->
-                        {% if user_has_location and product.latitude and product.longitude %}
-                            <div class="distance-info">
-                                <i class="fas fa-route"></i>
-                                <span style="color: black; font-size: 9px;">{{ product.distance_to|floatformat:1 }} km </span>
-                            </div>
-                        {% endif %}
+                    {% if user_has_location and product.latitude and product.longitude %}
+                        <div class="distance-info">
+                            <i class="fas fa-route"></i>
+                            <span style="color: black; font-size: 9px;">{{ product.distance|floatformat:1 }} km </span>
+                        </div>
+                    {% endif %}
                     </div>
                     
                     <div class="product-footer">

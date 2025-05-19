@@ -39,7 +39,8 @@ class Customer(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     formatted_address = models.CharField(max_length=255, null=True, blank=True)
     date_modified = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='uploads/product', null=True, blank=True)
+    # image = models.ImageField(upload_to='uploads/product', null=True, blank=True)
+    image = models.ImageField(upload_to='static\img\CustomerPics', null=True, blank=True)
     likes = models.ManyToManyField(User, related_name="Customer_like", blank=True)
     saved_products = models.ManyToManyField('Product', related_name="saved_by_customers", blank=True)
     
@@ -64,7 +65,8 @@ class Product(models.Model):
     brand = models.CharField(max_length=55)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
     city = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='uploads/product/', null=True, blank=True)
+    # image = models.ImageField(upload_to='uploads/product/', null=True, blank=True)
+    image = models.ImageField(upload_to='static\img\ProductPics', null=True, blank=True)
     customer_pic_id = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True, default=None)
     likes = models.ManyToManyField(User, related_name="Product_like", blank=True)
     views = models.IntegerField(default=0)
@@ -80,9 +82,7 @@ class Product(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     formatted_address = models.CharField(max_length=255, null=True, blank=True)
     
-    good_votes = models.ManyToManyField(User, related_name="good_votes", blank=True)
-    bad_votes = models.ManyToManyField(User, related_name="bad_votes", blank=True)
-    community_score = models.IntegerField(default=0)
+
     
     def increment_views(self):
         self.views += 1
@@ -120,32 +120,25 @@ class Product(models.Model):
     def distance_to(self, user_lat, user_lng):
         """Calculate distance in kilometers between this product's location and a user location"""
         if not self.latitude or not self.longitude or not user_lat or not user_lng:
-            return None
-        
+            return float('inf')
+            
         R = 6371  # Earth radius in kilometers
-        
+            
         # Convert latitude/longitude from degrees to radians
         lat1 = radians(self.latitude)
         lon1 = radians(self.longitude)
         lat2 = radians(user_lat)
         lon2 = radians(user_lng)
-        
+            
         # Haversine formula
         dlon = lon2 - lon1
         dlat = lat2 - lat1
         a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
         c = 2 * atan2(sqrt(a), sqrt(1-a))
         distance = R * c
-        
-        return round(distance, 2)  
+            
+        return round(distance, 2)
     
-    def update_community_score(self):
-        """Update the community score based on good and bad votes"""
-        good_count = self.good_votes.count()
-        bad_count = self.bad_votes.count()
-        self.community_score = good_count - bad_count
-        self.save(update_fields=['community_score'])
-        return self.community_score
         
     class Meta:
         indexes = [

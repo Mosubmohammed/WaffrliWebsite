@@ -1,24 +1,27 @@
-{% extends "base.html" %} {% load static %} {% block content %}
-
+{% extends "base.html" %} 
+{% load static %} 
+{% load cache %}
+{% block content %}
 
 <main>
+  {% cache 900 home_page_header product_count %}
   <div class="Category-container">
-
-
-  <div class="welcome-banner">
-    <div class="banner-background"></div>
-    <div class="welcome-content">
-      <div class="welcome-icon">
-        <i class="fas fa-gift"></i>
-      </div>
-      <div class="welcome-text">
-        <h2>Welcome to Waffrli</h2>
-        <p>Discover Amazing Deals & Save Big Today!</p>
+    <div class="welcome-banner">
+      <div class="banner-background"></div>
+      <div class="welcome-content">
+        <div class="welcome-icon">
+          <i class="fas fa-gift"></i>
+        </div>
+        <div class="welcome-text">
+          <h2>Welcome to Waffrli</h2>
+          <p>Discover Amazing Deals & Save Big Today!</p>
+        </div>
       </div>
     </div>
-  </div>
+  {% endcache %}
 
     <!-- Nearby Products -->
+    {% cache 900 nearby_products_section product_count %}
     <div class="section-heading slide-up">
       <h2><i class="fas fa-map-marker-alt"></i> NearBy You</h2>
       <div class="slider-controls">
@@ -26,6 +29,7 @@
         <button class="next-grid-btn"><i class="fas fa-chevron-right" style="color: white"></i></button>
       </div>
     </div>
+    {% endcache %}
 
     <div class="product-grid slide-up">
       {% for product in products %}
@@ -118,15 +122,15 @@
     <br>
     <br>
 
+    {% cache 900 separator_waffrli product_count %}
     <div class="separator-container">
       <div class="separator-line"></div>
       <div class="separator-text">
-
           <h2>Waffrli Deals</h2>
-
       </div>
       <div class="separator-line"></div>
     </div>
+    {% endcache %}
 
 <div class="All-product-grid">
   {% for product in all_products %}
@@ -199,6 +203,7 @@
   </div>
   {% endfor %}
 </div>
+
 <!-- Pagination Controls -->
 <div class="deals-pagination">
   {% if all_products.has_previous %}
@@ -214,7 +219,6 @@
   <div class="pagination-info">
     Page <span class="current-page">{{ all_products.number }}</span> of 
     <span class="total-pages">{{ all_products.paginator.num_pages }}</span>
-
   </div>
   
   {% if all_products.has_next %}
@@ -229,6 +233,7 @@
 </div>
 
     <!--hot Products Grid  -->
+    {% cache 900 hot_deals_section product_count %}
     <div class="container">
       <div class="section-heading slide-up">
         <h2><i class="fas fa-fire"></i> Hot Deals</h2>
@@ -237,6 +242,7 @@
           <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
         </div>
       </div>
+    {% endcache %}
 
       <div class="mini-products-slider">
         <div class="mini-products-container">
@@ -270,8 +276,7 @@
       </div>
     </div>
 
-
-
+    {% cache 3600 featured_deals_slider product_count %}
     <div class="featured-deals-slider">
       <button class="slider-btn prev-btn">❮</button>
       <div class="featured-deals-container">
@@ -333,8 +338,10 @@
       </div>
       <button class="slider-btn next-btn">❯</button>
     </div>
+    {% endcache %}
 
     <!--popular Products Grid -->
+    {% cache 900 popular_deals_section product_count %}
     <div class="container">
       <div class="section-heading ">
         <h2><i class="fas fa-star"></i> Popular Deals</h2>
@@ -345,6 +352,8 @@
           </div>
         </div>
       </div>
+    </div>
+    {% endcache %}
 
 <div class="popular-products-slider">
   <div class="popular-products-container">
@@ -381,9 +390,8 @@
   </div>
 </div>
 
-</div>
-
     <!-- Category Products Grid Section -->
+    {% cache 1800 category_separator product_count %}
     <div class="separator-container">
       <div class="separator-line"></div>
       <div class="separator-text">
@@ -397,12 +405,15 @@
       </div>
       <div class="separator-line"></div>
     </div>
+    {% endcache %}
+
 <!-- Category Products Section -->
 <div class="container">
   <div class="Categoy-selling-section">
     <div class="Categoy-selling-row">
       <!-- First Column - Phones -->
       <div class="Categoy-selling-column">
+        {% cache 900 phones_header product_count %}
         <div class="column-header">
           <h3>Phones</h3>
           <div class="nav-controls">
@@ -410,9 +421,10 @@
             <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
           </div>
         </div>
+        {% endcache %}
 
         {% for product in phone_products %}
-        <div class="mini-product-item"  onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+        <div class="mini-product-item" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           <div class="category-label">phones</div>
           <div class="mini-product-content">
             <div class="mini-product-image">
@@ -453,6 +465,7 @@
 
       <!-- Second Column - Computers -->
       <div class="category-selling-column">
+        {% cache 900 computers_header product_count %}
         <div class="column-header">
           <h3>Computers</h3>
           <div class="nav-controls">
@@ -460,9 +473,10 @@
             <span class="next-btn"><i class="fas fa-chevron-right" style="color: white"></i></span>
           </div>
         </div>
+        {% endcache %}
 
         {% for product in computer_products %}
-        <div class="mini-product-item"  onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+        <div class="mini-product-item" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           <div class="category-label">computers</div>
           <div class="mini-product-content">
             <div class="mini-product-image">
@@ -503,6 +517,7 @@
 
       <!-- Third Column - Bags and Luggage -->
       <div class="category-selling-column">
+        {% cache 900 bags_header product_count %}
         <div class="column-header">
           <h3>Bags & Luggage</h3>
           <div class="nav-controls">
@@ -510,9 +525,10 @@
             <span class="next-btn"><i class="fas fa-chevron-right" style="color:white"></i></span>
           </div>
         </div>
+        {% endcache %}
 
         {% for product in bag_products %}
-        <div class="mini-product-item"  onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
+        <div class="mini-product-item" onclick="window.location.href='{% url 'product' product.id %}';" style="cursor: pointer;">
           <div class="category-label">bags</div>
           <div class="mini-product-content">
             <div class="mini-product-image">
@@ -558,8 +574,6 @@
 
 <!-- Red Line -->
 <div class="red-line"></div>
-
-
 
 <script src="{% static 'js/home.js' %}"></script>
 {% endblock %}

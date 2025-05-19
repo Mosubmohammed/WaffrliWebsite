@@ -163,7 +163,6 @@ def login_view(request):
         try:
             try:
                 django_user = User.objects.get(email=email)
-                print(f"Found Django user: {django_user.username}")
             except User.DoesNotExist:
                 messages.error(request, "Invalid email or password.")
                 return render(request, 'login.html', {'email': email})
@@ -333,7 +332,6 @@ def verify_email_callback(request):
     type_param = request.GET.get('type')
     redirect_to = request.GET.get('redirect_to')
     
-    print(f"Verification callback accessed with: token={token}, type={type_param}, redirect_to={redirect_to}")
     
     if type_param == 'signup' and (token or token_hash):
 
@@ -387,10 +385,9 @@ def complete_password_reset(request):
                 'token': token,
                 'type': type_param
             }
-            
-            print(f"Attempting verification with params: {params}")
+
             supabase_response = settings.SUPABASE.auth.verify_otp(params)
-            print(f"Supabase response: {supabase_response}")
+
             
             if supabase_response:
                 try:
@@ -398,14 +395,14 @@ def complete_password_reset(request):
                     django_user = User.objects.get(email=email)
                     django_user.set_password(new_password)
                     django_user.save()
-                    print(f"Updated Django User password for {email}")
+
                     
 
                     try:
                         customer = Customer.objects.get(email=email)
                         customer.password = new_password
                         customer.save()
-                        print(f"Updated Customer model password for {email}")
+ 
                     except Customer.DoesNotExist:
 
                         Customer.objects.create(
@@ -415,7 +412,7 @@ def complete_password_reset(request):
                             first_name=django_user.first_name,
                             last_name=django_user.last_name,
                         )
-                        print(f"Created new Customer record for {email}")
+     
                     
                     if 'reset_token' in request.session: 
                         del request.session['reset_token']
@@ -435,8 +432,7 @@ def complete_password_reset(request):
                 
         except Exception as e:
             messages.error(request, f"Error during password recovery: {str(e)}")
-            import traceback
-            traceback.print_exc()
+
             
     return render(request, 'complete_password_reset.html')
 
@@ -465,7 +461,7 @@ def complete_email_verification(request):
                 'type': type_param
             }
             
-            print(f"Attempting email verification with params: {params}")
+
             supabase_response = settings.SUPABASE.auth.verify_otp(params)
             
             # If verification successful, update email verification status
@@ -529,14 +525,14 @@ def reset_password_view(request):
             # Update Django User password
             django_user.set_password(new_password)
             django_user.save()
-            print(f"Updated Django User password for {email}")
+      
             
             # Update Customer model password
             try:
                 customer = Customer.objects.get(email=email)
                 customer.password = new_password
                 customer.save()
-                print(f"Updated Customer model password for {email}")
+               
             except Customer.DoesNotExist:
                 # Create Customer if it doesn't exist
                 Customer.objects.create(
@@ -546,18 +542,16 @@ def reset_password_view(request):
                     first_name=django_user.first_name,
                     last_name=django_user.last_name,
                 )
-                print(f"Created new Customer record for {email}")
+              
             
             messages.success(request, "Your password has been updated successfully! Please log in with your new password.")
             return redirect('login')
             
         except Exception as e:
             messages.error(request, f"Error updating password: {str(e)}")
-            import traceback
-            traceback.print_exc()
+       
     
     return render(request, 'restPassword.html')
-
 
 def close_account(request):
     if request.method == 'POST':
@@ -579,10 +573,10 @@ def close_account(request):
                     try:
                         # First attempt with the Supabase client
                         settings.SUPABASE.auth.admin.delete_user(supabase_id)
-                        print(f"Successfully deleted Supabase user with ID: {supabase_id}")
+                        
                         supabase_deleted = True
                     except Exception as supabase_e:
-                        print(f"Could not delete Supabase user with client: {str(supabase_e)}")
+                        
                         
                         supabase_url = settings.SUPABASE_URL
                         supabase_service_key = settings.SUPABASE_SERVICE_KEY  # Use service role key for admin operations
@@ -595,24 +589,25 @@ def close_account(request):
                         
                         url = f"{supabase_url}/auth/v1/admin/users/{supabase_id}"
                         
-                        # Print debug info
-                        print(f"Attempting to delete user via API at: {url}")
+                       
                         
                         try:
                             response = requests.delete(url, headers=headers)
-                            print(f"Response status: {response.status_code}")
-                            print(f"Response body: {response.text}")
+                         
                             
                             if response.status_code in [200, 204]:  # Both are valid success codes
-                                print(f"Successfully deleted Supabase user with ID: {supabase_id} via API")
                                 supabase_deleted = True
                             else:
-                                print(f"Failed to delete Supabase user via API: {response.status_code}, {response.text}")
+
+                                pass
+                                
                         except Exception as api_e:
-                            print(f"API call error: {str(api_e)}")
+                            messages.error(request, f"Error deleting Supabase user: {str(api_e)}")
+                
                             
                 except SupabaseUser.DoesNotExist:
-                    print("No Supabase user record found for this user")
+                    messages.error(request, "Supabase user not found.")
+                    return redirect('settings')
                 
                 # Log the user out - import auth_logout at the top of your file
                 from django.contrib.auth import logout as auth_logout

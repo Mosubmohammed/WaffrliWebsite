@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<link href="{% static 'css/DealDetailsStyle8888.css' %}" rel="stylesheet" />
+<link href="{% static 'css/DealDetailsStyle8811.css' %}" rel="stylesheet" />
 
 
 <div class="container">
@@ -120,7 +120,6 @@
                     <ul>
                         <li><button class="Details-tab-btn Detailsactive" data-tab="details">Deal Description</button>
                         </li>
-                        <li><button class="Details-tab-btn" data-tab="community">Community Voting</button></li>
                         <li><button class="Details-tab-btn" data-tab="poster">About the Poster</button></li>
                     </ul>
                 </nav>
@@ -139,23 +138,7 @@
                     </div>
                 </div>
 
-                <div class="Details-tab-content" id="community">
-                    <h3 style="color: black;">Community Voting</h3>
-                    <div class="voting-section" data-product-id="{{ product.id }}">
-                        <div class="vote-score">
-                        <div class="score">{% if product.community_score >= 0 %}+{% endif %}{{ product.community_score }}</div>
-                            <div class="score-label">Deal Score</div>
-                        </div>
-                        <div class="vote-buttons">
-                            <button class="vote-btn good-deal  {% if user in product.good_votes.all %}voted{% endif %}">
-                                👍 Good Deal
-                            </button>
-                        <button class="vote-btn bad-deal {% if user in product.bad_votes.all %}voted{% endif %}">
-                        👎 Bad Deal
-                    </button>
-                        </div>
-                    </div>
-                </div>
+
 
                 <div class="Details-tab-content" id="poster">
                     <div class="profile-content">
@@ -421,6 +404,6 @@
 
 
 
-<script src="{% static 'js/ProductDetails.js' %}"></script>
+<script src="{% static 'js/ProductDetails1.js' %}"></script>
 
 {% endblock %}
