@@ -177,11 +177,11 @@
       }
     });
 
-    // Update on window resize
-    window.addEventListener('resize', updateProductsPerPage);
+    // // Update on window resize
+    // window.addEventListener('resize', updateProductsPerPage);
   
-    // Initialize first page
-    updateProductsPerPage();
+    // // Initialize first page
+    // updateProductsPerPage();
   
     // Hot deals
     const container = document.querySelector('.mini-products-container');

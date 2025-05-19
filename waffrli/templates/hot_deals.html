@@ -233,7 +233,8 @@
                         <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
                     {% endif %}
                     
-                    {% if user_has_location and product.distance_to <= 20 %}
+                    <!-- UPDATED: Changed from product.distance_to to product.distance -->
+                    {% if user_has_location and product.distance <= 20 %}
                         <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
                     {% endif %}
                     
@@ -283,11 +284,11 @@
                     <div class="location">
                         <i class="fas fa-map-marker-alt"></i> {{ product.city }}
                         
-                        <!-- Distance Information -->
+                        <!-- UPDATED: Changed from product.distance_to to product.distance -->
                         {% if user_has_location and product.latitude and product.longitude %}
                             <div class="distance-info">
                                 <i class="fas fa-route"></i>
-                                <span style="color: black; font-size: 9px;">{{ product.distance_to|floatformat:1 }} km </span>
+                                <span style="color: black; font-size: 9px;">{{ product.distance|floatformat:1 }} km </span>
                             </div>
                         {% endif %}
                     </div>
@@ -405,8 +406,6 @@
         <div class="sales-badge">Today Only</div>
     </div>
 </div>
-
-
 
 <!-- Include CSRF token for AJAX requests -->
 {% csrf_token %}

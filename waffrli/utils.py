@@ -1,6 +1,8 @@
 import re
-from .models import WishlistItem, Notification
+from .models import WishlistItem, Notification, Customer
 from django.db.models import Q
+from django.db.models import F, Q, Count, Case, When, FloatField, ExpressionWrapper
+
 
 def improved_keyword_matching(deal_title, wishlist_keyword):
     """
@@ -95,3 +97,61 @@ def get_unique_values(queryset, field_name):
     return sorted(set(value.strip().lower() for value in values if value), 
                   key=lambda x: x.lower())
 
+# utils.py
+def get_user_location(request):
+    result = {'has_location': False, 'lat': None, 'lng': None}
+    
+    if request.user.is_authenticated:
+        try:
+            customer = request.user.customer
+            if customer.latitude is not None and customer.longitude is not None:
+                result['has_location'] = True
+                result['lat'] = customer.latitude
+                result['lng'] = customer.longitude
+        except (AttributeError, Customer.DoesNotExist):
+            pass
+    
+    return result
+
+
+def add_distances_to_products(products, user_lat, user_lng):
+    print(f"Adding distances to {len(products)} products")
+    for product in products:
+        if product.latitude and product.longitude:
+            distance = product.distance_to(user_lat, user_lng)
+            product.distance = distance
+            print(f"Product {product.id}: distance = {distance} km")
+        else:
+            product.distance = float('inf')
+            print(f"Product {product.id}: No coordinates, setting distance to infinity")
+            
+            
+            
+def sort_by_distance(queryset, user_lat, user_lng):
+    # Convert to list to perform in-memory calculation
+    products_list = list(queryset)
+    
+    # Calculate distance for each product
+    for product in products_list:
+        if product.latitude is not None and product.longitude is not None:
+            # Store in distance attribute, not overwriting the method
+            product.distance = product.distance_to(user_lat, user_lng)
+        else:
+            product.distance = float('inf')  # Use infinity for missing coordinates
+
+    # Sort by distance
+    products_list.sort(key=lambda x: x.distance)
+    
+    # Convert back to queryset with preserved order
+    product_ids = [p.id for p in products_list]
+    
+    if product_ids:
+        preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
+        return queryset.filter(id__in=product_ids).order_by(preserved_order)
+    
+    return queryset
+
+
+def is_ajax_request(request):
+
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET

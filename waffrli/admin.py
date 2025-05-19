@@ -7,7 +7,7 @@ from .models import (
     Category, Customer, Product, Comment, 
     Follow, Message, WishlistItem, Notification, ReportedDeal
 )
-
+from django.utils.html import strip_tags
 # Category Admin
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -136,6 +136,43 @@ class ProductAdmin(admin.ModelAdmin):
     def mark_as_active(self, request, queryset):
         queryset.update(is_archived=False)
     mark_as_active.short_description = "Mark selected products as active"
+    
+    def delete_model(self, request, obj):
+        # Check if the product is already archived
+        if not obj.is_archived:
+            owner = obj.user
+            
+            if owner and owner != request.user:
+                title = f"Your Deal Has Been Deleted: {obj.Name}"
+                message = f"Your deal '{obj.Name}' has been permanently deleted by an administrator."
+                
+                try:
+                    recent_reports = ReportedDeal.objects.filter(
+                        product=obj,
+                        status='approved'
+                    ).order_by('-updated_at')
+                    
+                    if recent_reports.exists() and recent_reports.first().admin_notes:
+                        clean_reason = strip_tags(recent_reports.first().admin_notes)
+                        message += f"\n\nReason: {clean_reason}"
+                except Exception as e:
+                    print(f"Error retrieving reports for deletion notification: {str(e)}")
+                
+                try:
+                    notification = Notification.objects.create(
+                        user=owner,
+                        title=title,
+                        message=message,
+                        notification_type='alert',
+                        related_object_type='product',
+                        related_object_id=obj.pk,
+                        url='/my-deals/'
+                    )
+                except Exception as e:
+                    print(f"Error creating deletion notification: {str(e)}")
+        
+        # Proceed with deletion
+        super().delete_model(request, obj)
 
 # Comment Admin
 @admin.register(Comment)

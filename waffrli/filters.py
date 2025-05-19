@@ -2,6 +2,8 @@
 from django.db.models import Count, Q
 from django.utils import timezone
 
+from .utils import *
+
 class ProductFilter:
     """
     Filter class for Product model that processes filter parameters from request.
@@ -38,6 +40,8 @@ class ProductFilter:
         
         # Apply rating/likes filter
         queryset = self.filter_by_likes(queryset)
+        
+        queryset = self.filter_by_distance(queryset)
         
         return queryset
     
@@ -136,3 +140,30 @@ class ProductFilter:
             except (ValueError, TypeError):
                 pass
         return queryset
+    
+    def filter_by_distance(self, queryset):
+        """Filter products by maximum distance from user."""
+        max_distance = self.query_params.get('max_distance')
+        user_location = get_user_location(self.request)
+        
+        if max_distance and user_location['has_location']:
+            try:
+                max_distance_value = float(max_distance)
+                
+                # Calculate distances and filter in-memory
+                products_list = list(queryset)
+                filtered_ids = []
+                
+                for product in products_list:
+                    if product.latitude and product.longitude:
+                        distance = product.distance_to(user_location['lat'], user_location['lng'])
+                        if distance <= max_distance_value:
+                            filtered_ids.append(product.id)
+                
+                return queryset.filter(id__in=filtered_ids)
+            except (ValueError, TypeError):
+                pass
+        
+        return queryset
+    
+    

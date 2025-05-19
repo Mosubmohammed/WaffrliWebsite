@@ -23,10 +23,18 @@ from django.contrib import messages as django_messages
 from django.contrib.admin.views.decorators import staff_member_required
 from authentication.models import SupabaseUser
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-
+from django.core.cache import cache
 
 def home(request):
+    # Instead, get a cache key that changes when new products are added
+    from django.core.cache import cache
+    
+    # Get or set the product count in cache
+    product_count = cache.get('total_product_count')
+    if product_count is None:
+        product_count = Product.objects.count()
+        cache.set('total_product_count', product_count, 900)  # 15 minutes
+    
     user_lat = None
     user_lng = None
     
@@ -199,32 +207,47 @@ def home(request):
         'user_lng': user_lng,
         'paginator': paginator,  
         'current_page': page,   
+        'product_count': product_count,
     }
     
     return render(request, 'home.html', context)
 
 
 def product_list(request, page_type=None, category=None):
-
     products = get_base_queryset(request, page_type, category)
     
-
     filter_set = ProductFilter(request.GET, queryset=products, request=request)
     filtered_products = filter_set.qs
     
     user_location = get_user_location(request)
-    if request.GET.get('sort_by') == 'distance' and user_location['has_location']:
-        filtered_products = sort_by_distance(
-            filtered_products, 
-            user_location['lat'], 
-            user_location['lng']
-        )
+    
+    # Calculate distances for ALL products before any sorting or pagination
+    if user_location['has_location']:
+        # Create a list to avoid modifying the query
+        products_list = list(filtered_products)
+        
+        # Calculate distances for each product
+        for product in products_list:
+            if product.latitude and product.longitude:
+                # Store in a DIFFERENT attribute (distance) than the method (distance_to)
+                product.distance = product.distance_to(user_lat=user_location['lat'], user_lng=user_location['lng'])
+            else:
+                product.distance = float('inf')
+        
+        # If sort by distance is requested, sort the product list
+        if request.GET.get('sort_by') == 'distance':
+            products_list.sort(key=lambda x: x.distance)
+            
+            # Convert back to queryset with preserved order
+            product_ids = [p.id for p in products_list]
+            if product_ids:
+                preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
+                filtered_products = filtered_products.filter(id__in=product_ids).order_by(preserved_order)
     
     daily_deals = []
     if page_type == 'popular':
         current_time = timezone.now()
         
-
         daily_deals = Product.objects.filter(
             is_archived=False,
             sale_price__isnull=False,
@@ -239,7 +262,6 @@ def product_list(request, page_type=None, category=None):
             )
         ).order_by('-discount_percentage')[:3]
         
-
         for deal in daily_deals:
             deal.discount_percentage = round(deal.discount_percentage)
             deal.progress_percentage = min(deal.views // 5 + deal.likes.count() * 10, 90)
@@ -261,14 +283,20 @@ def product_list(request, page_type=None, category=None):
                 deal.status_text = "Popular Choice"
     
     if is_ajax_request(request):
+        # Prepare products for JSON response with distance information already calculated
         return JsonResponse({
             'products': format_products_for_json(filtered_products, request, user_location)
         })
     
     page_obj = paginate_products(request, filtered_products)
     
+    # Re-apply distances to paginated objects to ensure consistency
     if user_location['has_location']:
+        # We've already calculated distances above, but they might be lost during pagination
+        # So we recalculate them for the paginated objects
         add_distances_to_products(page_obj, user_location['lat'], user_location['lng'])
+        for product in page_obj:
+            print(f"Product {product.id}: distance = {getattr(product, 'distance', 'NOT SET')}")
     
     filter_options = get_filter_options(filtered_products)
 
@@ -361,45 +389,6 @@ def get_base_queryset(request, page_type, category):
         ).select_related('category', 'user', 'customer_pic_id')
 
 
-def get_user_location(request):
-    result = {'has_location': False, 'lat': None, 'lng': None}
-    
-    if request.user.is_authenticated:
-        try:
-            customer = request.user.customer
-            if customer.latitude is not None and customer.longitude is not None:
-                result['has_location'] = True
-                result['lat'] = customer.latitude
-                result['lng'] = customer.longitude
-        except (AttributeError, Customer.DoesNotExist):
-            pass
-    
-    return result
-
-
-def sort_by_distance(queryset, user_lat, user_lng):
-    products_list = list(queryset)
-    
-    for product in products_list:
-        if product.latitude is not None and product.longitude is not None:
-            product.distance_to = product.distance_to(user_lat, user_lng)
-        else:
-            product.distance_to = float('inf')
-
-    products_list.sort(key=lambda x: x.distance_to if isinstance(x.distance_to, (int, float)) else float('inf'))
-    
-    product_ids = [p.id for p in products_list]
-    
-    if product_ids:
-        preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(product_ids)])
-        return queryset.filter(id__in=product_ids).order_by(preserved_order)
-    
-    return queryset
-
-
-def is_ajax_request(request):
-
-    return request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'json' in request.GET
 
 
 def format_products_for_json(products, request, user_location):
@@ -418,6 +407,7 @@ def format_products_for_json(products, request, user_location):
         
         distance = None
         if user_location['has_location'] and product.latitude and product.longitude:
+            # Call the method directly for JSON format
             distance = product.distance_to(user_location['lat'], user_location['lng'])
         
         savings = product.get_savings_amount()
@@ -491,12 +481,7 @@ def paginate_products(request, products):
         except EmptyPage:
             return paginator.page(paginator.num_pages)
 
-def add_distances_to_products(products, user_lat, user_lng):
-    for product in products:
-        if product.latitude and product.longitude:
-            product.distance_to = product.distance_to(user_lat, user_lng)
-        else:
-            product.distance_to = None
+
 
 def get_filter_options(products):
 
@@ -609,12 +594,6 @@ def product(request, pk):
         total_likes_received = Product.objects.filter(user=product.user).aggregate(Sum('likes'))['likes__sum'] or 0
         reputation_points = total_likes_received * 5
         
-        # Check community voting status for current user
-        has_good_voted = False
-        has_bad_voted = False
-        if request.user.is_authenticated:
-            has_good_voted = request.user in product.good_votes.all()
-            has_bad_voted = request.user in product.bad_votes.all()
         
         # Process comments on POST
         if request.method == 'POST':
@@ -687,9 +666,7 @@ def product(request, pk):
             'reputation_points': reputation_points,
             'total_likes_received': total_likes_received,
             'user': request.user,
-            'community_score': product.community_score,
-            'has_good_voted': has_good_voted,
-            'has_bad_voted': has_bad_voted,
+
         }
         
         return render(request, 'product.html', context)
@@ -698,73 +675,6 @@ def product(request, pk):
         messages.error(request, 'That product does not exist.')
         return redirect('home')
 
-
-@login_required
-def community_vote(request, product_id):
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
-    
-    try:
-        product = get_object_or_404(Product, id=product_id)
-        user = request.user
-        
-        # Parse the request body
-        data = json.loads(request.body)
-        vote_type = data.get('vote')
-        
-        # Check current voting status
-        user_has_good_vote = user in product.good_votes.all()
-        user_has_bad_vote = user in product.bad_votes.all()
-        
-        # Store original score for error handling
-        original_score = product.community_score
-        
-        # Process the vote based on type
-        if vote_type == 'up':
-            # User is voting up
-            if not user_has_good_vote:
-                product.good_votes.add(user)
-            if user_has_bad_vote:
-                product.bad_votes.remove(user)
-        elif vote_type == 'down':
-            # User is voting down
-            if not user_has_bad_vote:
-                product.bad_votes.add(user)
-            if user_has_good_vote:
-                product.good_votes.remove(user)
-        else:
-            # User is removing their vote
-            if user_has_good_vote:
-                product.good_votes.remove(user)
-            if user_has_bad_vote:
-                product.bad_votes.remove(user)
-        
-        # Update the community score
-        score = product.update_community_score()
-        
-        return JsonResponse({
-            'success': True,
-            'score': score,
-            'original_score': original_score,
-            'has_good_voted': user in product.good_votes.all(),
-            'has_bad_voted': user in product.bad_votes.all()
-        })
-    
-    except Product.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Product not found'
-        }, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid JSON in request body'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
 
 def search(request):
@@ -953,6 +863,8 @@ def post_deal(request):
             is_archived=(action == 'archive'),
         )
         
+        cache.delete('total_product_count')
+        
         # For non-archived deals, check wishlist matches
         if action == 'post':
             check_deal_against_wishlist(deal)
@@ -971,10 +883,8 @@ def post_deal(request):
             messages.error(request, f"An error occurred while saving the deal: {error_message}")
         return redirect('post_deal')
 
-
-
-
-
+        
+        
 @login_required
 def like_product(request, product_id):
     # Get the product or return 404
