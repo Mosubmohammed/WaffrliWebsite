@@ -46,7 +46,7 @@ class Customer(models.Model):
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-    
+
     def number_of_likes(self):
         return self.likes.count()
     

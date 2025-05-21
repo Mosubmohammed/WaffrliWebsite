@@ -115,9 +115,12 @@ CACHES = {
 # }
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
-    )
+#     'default'  : {
+#      'ENGINE': "django.db.backends.sqlite3"
+# }
+     'default': dj_database_url.parse(
+         "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+     )
 }
 
 # Add your actual values here
@@ -163,7 +166,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'media/static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 

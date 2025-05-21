@@ -1,11 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from decimal import Decimal
-from django.utils import timezone
-from datetime import timedelta
 from waffrli.models import (
     Product, Comment, Follow, Message,
-    WishlistItem, Notification, Customer, Category
+    WishlistItem, Notification, Customer, Category,
+    ReportedDeal
 )
 
 
@@ -196,3 +195,116 @@ class NotificationModelTests(TestCase):
         expected = f"Test Notification - testuser"
         self.assertEqual(str(self.notification), expected)
 
+
+class CustomerModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testcustomer',
+            email='testcustomer@example.com',
+            password='password123'
+        )
+
+        self.customer = Customer.objects.create(
+            user=self.user,
+            first_name='Test',
+            last_name='Customer',
+            phone='1234567890',
+            email='testcustomer@example.com',
+            gender='M',
+            formatted_address='123 Test St, Test City',
+            latitude=37.7749,
+            longitude=-122.4194
+        )
+
+        self.category = Category.objects.create(name='Test Category')
+        self.product = Product.objects.create(
+            user=self.user,
+            Name='Test Product',
+            Dealurl='https://example.com/deal',
+            Price=Decimal('100.00'),
+            Description='Test description',
+            store='Test Store',
+            category=self.category
+        )
+
+    def test_customer_creation(self):
+        self.assertEqual(self.customer.user, self.user)
+        self.assertEqual(self.customer.first_name, 'Test')
+        self.assertEqual(self.customer.last_name, 'Customer')
+        self.assertEqual(self.customer.phone, '1234567890')
+        self.assertEqual(self.customer.email, 'testcustomer@example.com')
+        self.assertEqual(self.customer.gender, 'M')
+        self.assertEqual(self.customer.formatted_address, '123 Test St, Test City')
+        self.assertEqual(self.customer.latitude, 37.7749)
+        self.assertEqual(self.customer.longitude, -122.4194)
+
+    def test_str_representation(self):
+        expected = f"Test Customer"
+        self.assertEqual(str(self.customer), expected)
+
+    def test_number_of_likes(self):
+        self.assertEqual(self.customer.number_of_likes(), 0)
+
+        self.product.likes.add(self.user)
+        self.assertEqual(self.customer.number_of_likes(), 0)
+
+
+class ReportedDealTests(TestCase):
+    def setUp(self):
+        self.reporter_user = User.objects.create_user(
+            username = 'reporter',
+            email = 'reporter@example.com',
+            password = 'password123'
+        )
+
+        self.reporter = Customer.objects.create(
+            user = self.reporter_user ,
+            first_name='reporter',
+            email='reporter@example.com',
+            password='password123'
+        )
+
+        self.deal_owner = User.objects.create_user(
+            username='dealowner',
+            email='dealowner@example.com',
+            password='password123'
+        )
+
+        self.category = Category.objects.create(name='Test Category')
+
+        self.product = Product.objects.create(
+            user=self.deal_owner,
+            Name='Reported Product',
+            Dealurl='https://example.com/deal',
+            Price=Decimal('100.00'),
+            Description='Test description',
+            store='Test Store',
+            category=self.category
+        )
+
+        self.reported_deal = ReportedDeal.objects.create(
+            reporter=self.reporter,
+            product=self.product,
+            reason='price_incorrect',
+            details='The price is actually $150, not $100'
+        )
+
+    def test_reported_deal_creation(self):
+        self.assertEqual(self.reported_deal.reporter, self.reporter)
+        self.assertEqual(self.reported_deal.product, self.product)
+        self.assertEqual(self.reported_deal.reason, 'price_incorrect')
+        self.assertEqual(self.reported_deal.details, 'The price is actually $150, not $100')
+
+    def test_str_representation(self):
+        expected = f"Report on Reported Product by reporter  - price_incorrect"
+        self.assertEqual(str(self.reported_deal), expected)
+
+    def test_resolve_report(self):
+        self.reported_deal.is_resolved = True
+        self.reported_deal.resolution_notes = "Updated the price to $150"
+        self.reported_deal.save()
+
+        self.reported_deal.refresh_from_db()
+
+        self.assertTrue(self.reported_deal.is_resolved)
+        self.assertEqual(self.reported_deal.resolution_notes, "Updated the price to $150")

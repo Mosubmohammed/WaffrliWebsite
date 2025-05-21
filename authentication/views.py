@@ -8,7 +8,7 @@ import requests
 from .models import SupabaseUser 
 from waffrli.models import Customer
 from django.conf import settings
-
+from supabase import create_client
 def register(request):
     if request.method == 'POST':
         # Get form data
