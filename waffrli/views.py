@@ -295,8 +295,6 @@ def product_list(request, page_type=None, category=None):
         # We've already calculated distances above, but they might be lost during pagination
         # So we recalculate them for the paginated objects
         add_distances_to_products(page_obj, user_location['lat'], user_location['lng'])
-        for product in page_obj:
-            print(f"Product {product.id}: distance = {getattr(product, 'distance', 'NOT SET')}")
     
     filter_options = get_filter_options(filtered_products)
 
