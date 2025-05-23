@@ -25,9 +25,12 @@ from authentication.models import SupabaseUser
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
 
+
+
+
+
+
 def home(request):
-    # Instead, get a cache key that changes when new products are added
-    from django.core.cache import cache
     
     # Get or set the product count in cache
     product_count = cache.get('total_product_count')
