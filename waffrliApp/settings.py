@@ -16,12 +16,25 @@ from supabase import create_client
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 import dj_database_url
-
+from sentry_sdk.integrations.django import DjangoIntegration
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = 'django-insecure-a4ypldnl!$snhmrxrg524=u-2%)bfav1mkr8!vb0iji^pb018-'
+
+
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://a195ea99adf61838bfbf0f2f138f43f4@o4509372212903936.ingest.de.sentry.io/4509372219195472",
+
+    send_default_pii=True,
+    integrations = [DjangoIntegration()],
+    traces_sample_rate = 1.0,
+)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -125,6 +138,7 @@ DATABASES = {
 SUPABASE_URL = "https://oktylpzgktpunvmqfamf.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdHlscHpna3RwdW52bXFmYW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxODA4MDYsImV4cCI6MjA2MDc1NjgwNn0.v0CQDk7INWh4XdU_w5DfoSVFbAIm7hOIEJok26zjcXg"
 SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdHlscHpna3RwdW52bXFmYW1mIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTE4MDgwNiwiZXhwIjoyMDYwNzU2ODA2fQ.HcdFY5lPwiYiTUZjo8IF6EI2AJPtzR6A1cEciyTeQEI"
+
 
 SUPABASE = create_client(SUPABASE_URL, SUPABASE_KEY)
 
