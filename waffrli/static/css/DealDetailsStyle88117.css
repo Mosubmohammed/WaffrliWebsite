@@ -179,7 +179,7 @@ body {
 .menu-btn {
   background: none;
   border: none;
-  color: white;
+
   cursor: pointer;
   padding: 0.5rem;
   font-size: x-large;
@@ -213,7 +213,8 @@ body {
 }
 
 .menu-item:hover {
-  background-color: var(--primary-red);
+  background-color: var(--primary-blue);
+  color: white ; 
 }
 .dots {
   width: 4px;
@@ -222,7 +223,6 @@ body {
   border-radius: 50%;
   position: relative;
 }
-
 
 
 .dots::before,
