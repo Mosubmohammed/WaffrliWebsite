@@ -112,8 +112,13 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache_files'),  
+        'TIMEOUT': 300,  # Default timeout: 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 5000,  # Maximum number of cache entries
+            'CULL_FREQUENCY': 3,  # Delete 1/3 of entries when MAX_ENTRIES is reached
+        }
     }
 }
 
