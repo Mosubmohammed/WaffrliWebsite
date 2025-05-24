@@ -24,14 +24,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 from authentication.models import SupabaseUser
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
-
-
-
+import hashlib
 
 
 
 def home(request):
-    
     # Get or set the product count in cache
     product_count = cache.get('total_product_count')
     if product_count is None:
@@ -64,148 +61,199 @@ def home(request):
         user_lat = 31.9566  # Amman latitude
         user_lng = 35.9457  # Amman longitude
     
+    # Create location-based cache key
+    location_hash = hashlib.md5(f"{user_lat}_{user_lng}".encode()).hexdigest()[:8]
+    
     # Get current time to check for expired deals
     current_time = timezone.now()
+    current_hour = current_time.strftime('%Y%m%d%H')  # Cache key changes every hour
     
-    # Get all active products and sort by expiration status
-    # First get non-expired products
-    active_products = Product.objects.filter(
-        is_archived=False,
-        expires_at__gt=current_time  # Products that have not expired yet
-    ).order_by('-create_at')
+    # CACHE 1: Active and expired products (changes every hour)
+    products_cache_key = f'products_list_{current_hour}'
+    products_list = cache.get(products_cache_key)
     
-    # Then get expired products
-    expired_products = Product.objects.filter(
-        is_archived=False,
-        expires_at__lte=current_time  # Products that have expired
-    ).order_by('-create_at')
-    
-    # Combine the two querysets (active first, then expired)
-    # We need to convert to list because we'll be adding attributes
-    products_list = list(active_products) + list(expired_products)
-    
-    # Add distance attribute to each product for nearby section
-    for product in products_list:
-        # Set expiration status
-        product.is_expired = product.expires_at <= current_time if product.expires_at else False
+    if products_list is None:
         
-        # Calculate distance only for physical stores with location data
-        if product.store_type == 'physical' and product.latitude and product.longitude:
-            # Add the calculated distance as an attribute
-            product.distance_to = product.distance_to(user_lat, user_lng)
-        else:
-            # For online stores or stores without location, set distance_to to None
-            product.distance_to = None
+        
+        # Get all active products and sort by expiration status
+        active_products = Product.objects.filter(
+            is_archived=False,
+            expires_at__gt=current_time
+        ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')
+        
+        expired_products = Product.objects.filter(
+            is_archived=False,
+            expires_at__lte=current_time
+        ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')
+        
+        # Convert to list and combine
+        products_list = list(active_products) + list(expired_products)
+        
+        # Add expiration status to each product
+        for product in products_list:
+            product.is_expired = product.expires_at <= current_time if product.expires_at else False
+        
+        # Cache for 1 hour
+        cache.set(products_cache_key, products_list, 3600)
+       
+    else:
+       pass
     
-    # Filter products to show only those with distance (physical stores)
-    nearby_products = [p for p in products_list if p.distance_to is not None]
+    # CACHE 2: Nearby products (location-specific, cached for 30 minutes)
+    nearby_cache_key = f'nearby_products_{location_hash}_{current_hour}'
+    nearby_products_filtered = cache.get(nearby_cache_key)
     
-    # Sort nearby products by distance
-    nearby_products.sort(key=lambda x: x.distance_to)
+    if nearby_products_filtered is None:
+
+        nearby_products = []
+        for product in products_list:
+            if product.store_type == 'physical' and product.latitude and product.longitude:
+                product.distance_to = product.distance_to(user_lat, user_lng)
+                if product.distance_to is not None:
+                    nearby_products.append(product)
+        
+        # Sort by distance
+        nearby_products.sort(key=lambda x: x.distance_to)
+        
+        # Filter by maximum distance
+        MAX_DISTANCE = 50
+        nearby_products_filtered = [p for p in nearby_products if p.distance_to <= MAX_DISTANCE]
+        
+        # If no nearby products, show closest 5
+        if not nearby_products_filtered and nearby_products:
+            nearby_products_filtered = nearby_products[:5]
+        
+        # Cache for 30 minutes
+        cache.set(nearby_cache_key, nearby_products_filtered, 1800)
+       
+    else:
+        pass
+       
     
-    # Limit to nearby products within 50km (optional)
-    MAX_DISTANCE = 50
-    nearby_products_filtered = [p for p in nearby_products if p.distance_to <= MAX_DISTANCE]
-    
-    # If no nearby products within range, show closest 5 products
-    if not nearby_products_filtered and nearby_products:
-        nearby_products_filtered = nearby_products[:5]
-    
-    # PAGINATION FOR WAFFRLI DEALS (all_products)
-    # Get the requested page number from the URL
+    # PAGINATION FOR ALL PRODUCTS
     page = request.GET.get('page', 1)
-    
-    # Create a paginator object with 50 items per page
     paginator = Paginator(products_list, 50)
     
     try:
-        # Get the requested page
         all_products = paginator.page(page)
     except PageNotAnInteger:
-        # If page is not an integer, deliver first page
         all_products = paginator.page(1)
     except EmptyPage:
-        # If page is out of range, deliver last page
         all_products = paginator.page(paginator.num_pages)
     
-    # Your existing popular products code
-    popular_products = Product.objects.filter(
-        is_archived=False
-    ).annotate(
-        like_count=Count('likes'),
-        popularity_score=ExpressionWrapper(
-            (F('like_count') * 3) + F('views'),
-            output_field=FloatField()
-        )
-    ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]
-
-    # Your existing category products code
-    try:
-        phones_category = Category.objects.get(name__icontains='Phones')
-    except Category.DoesNotExist:
-        phones_category = None
+    # CACHE 3: Popular products (cached for 2 hours)
+    popular_cache_key = f'popular_products_{current_hour[:8]}'  # Changes daily
+    popular_products = cache.get(popular_cache_key)
+    
+    if popular_products is None:
         
-    try:
-        computers_category = Category.objects.get(name__icontains='computers')
-    except Category.DoesNotExist:
-        computers_category = None
+        popular_products = Product.objects.filter(
+            is_archived=False
+        ).annotate(
+            like_count=Count('likes'),
+            popularity_score=ExpressionWrapper(
+                (F('like_count') * 3) + F('views'),
+                output_field=FloatField()
+            )
+        ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]
         
-    try:
-        bags_category = Category.objects.get(name__icontains='BagsAndLuggage')
-    except Category.DoesNotExist:
-        bags_category = None
+        # Convert to list for caching
+        popular_products = list(popular_products)
+        
+        # Cache for 2 hours
+        cache.set(popular_cache_key, popular_products, 7200)
+      
+    else:
+        pass
     
-    phone_products = []
-    computer_products = []
-    bag_products = []
+    # CACHE 4: Category products (cached for 1 hour)
+    category_cache_key = f'category_products_{current_hour}'
+    category_data = cache.get(category_cache_key)
     
-    if phones_category:
-        phone_products = Product.objects.filter(
-            category=phones_category,
-            is_archived=False
-        ).order_by('-create_at')[:4]
-    
-    if computers_category:
-        computer_products = Product.objects.filter(
-            category=computers_category,
-            is_archived=False
-        ).order_by('-create_at')[:4]
-    
-    if bags_category:
-        bag_products = Product.objects.filter(
-            category=bags_category,
-            is_archived=False
-        ).order_by('-create_at')[:4]
-    
-    # Your existing code to fill categories with keyword searches
-    if len(phone_products) < 4:
-        additional_phones = Product.objects.filter(
-            Name__icontains='phone',
-            is_archived=False
-        ).exclude(id__in=[p.id for p in phone_products])[:4-len(phone_products)]
-        phone_products = list(phone_products) + list(additional_phones)
-    
-    if len(computer_products) < 4:
-        additional_computers = Product.objects.filter(
-            Name__icontains='computer',
-            is_archived=False
-        ).exclude(id__in=[p.id for p in computer_products])[:4-len(computer_products)]
-        computer_products = list(computer_products) + list(additional_computers)
-    
-    if len(bag_products) < 4:
-        additional_bags = Product.objects.filter(
-            Name__icontains='bag',
-            is_archived=False
-        ).exclude(id__in=[p.id for p in bag_products])[:4-len(bag_products)]
-        bag_products = list(bag_products) + list(additional_bags)
+    if category_data is None:
+      
+        
+        # Get categories
+        try:
+            phones_category = Category.objects.get(name__icontains='Phones')
+        except Category.DoesNotExist:
+            phones_category = None
+            
+        try:
+            computers_category = Category.objects.get(name__icontains='computers')
+        except Category.DoesNotExist:
+            computers_category = None
+            
+        try:
+            bags_category = Category.objects.get(name__icontains='BagsAndLuggage')
+        except Category.DoesNotExist:
+            bags_category = None
+        
+        phone_products = []
+        computer_products = []
+        bag_products = []
+        
+        # Get category products
+        if phones_category:
+            phone_products = list(Product.objects.filter(
+                category=phones_category,
+                is_archived=False
+            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
+        
+        if computers_category:
+            computer_products = list(Product.objects.filter(
+                category=computers_category,
+                is_archived=False
+            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
+        
+        if bags_category:
+            bag_products = list(Product.objects.filter(
+                category=bags_category,
+                is_archived=False
+            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
+        
+        # Fill with keyword searches if needed
+        if len(phone_products) < 4:
+            additional_phones = Product.objects.filter(
+                Name__icontains='phone',
+                is_archived=False
+            ).exclude(id__in=[p.id for p in phone_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(phone_products)]
+            phone_products.extend(list(additional_phones))
+        
+        if len(computer_products) < 4:
+            additional_computers = Product.objects.filter(
+                Name__icontains='computer',
+                is_archived=False
+            ).exclude(id__in=[p.id for p in computer_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(computer_products)]
+            computer_products.extend(list(additional_computers))
+        
+        if len(bag_products) < 4:
+            additional_bags = Product.objects.filter(
+                Name__icontains='bag',
+                is_archived=False
+            ).exclude(id__in=[p.id for p in bag_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(bag_products)]
+            bag_products.extend(list(additional_bags))
+        
+        # Store in cache
+        category_data = {
+            'phone_products': phone_products,
+            'computer_products': computer_products,
+            'bag_products': bag_products,
+        }
+        
+        # Cache for 1 hour
+        cache.set(category_cache_key, category_data, 3600)
+       
+    else:
+        pass
     
     context = {
         'products': nearby_products_filtered, 
         'all_products': all_products, 
         'popular_products': popular_products,
-        'phone_products': phone_products,
-        'computer_products': computer_products,
-        'bag_products': bag_products,
+        'phone_products': category_data['phone_products'],
+        'computer_products': category_data['computer_products'],
+        'bag_products': category_data['bag_products'],
         'user_lat': user_lat,
         'user_lng': user_lng,
         'paginator': paginator,  
