@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<link href="{% static 'css/DealDetailsStyle8811.css' %}" rel="stylesheet" />
+<link href="{% static 'css/DealDetailsStyle88117.css' %}" rel="stylesheet" />
 
 
 <div class="container">
@@ -26,7 +26,7 @@
                         <h1 class="deal-title">{{ product.Name }}</h1>
                         {% if user == product.user %}
                         <button class="menu-btn" id="menuBtn">
-                            <span class="dots"></span>
+                           <i  class="fa fa-bars" aria-hidden="true"></i>
                         </button>
                         <div class="menu-dropdown hidden" id="menuDropdown">
                             <button class="menu-item"> <a href="{% url 'edit_deal' product.id %}">
