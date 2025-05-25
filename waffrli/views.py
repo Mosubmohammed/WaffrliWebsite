@@ -25,9 +25,9 @@ from authentication.models import SupabaseUser
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
 import hashlib
+from django.views.decorators.cache import cache_page
 
-
-
+@cache_page(60 * 15)
 def home(request):
     # Get or set the product count in cache
     product_count = cache.get('total_product_count')
@@ -67,14 +67,13 @@ def home(request):
     # Get current time to check for expired deals
     current_time = timezone.now()
     current_hour = current_time.strftime('%Y%m%d%H')  # Cache key changes every hour
+    current_day = current_time.strftime('%Y%m%d')  # Daily cache key
     
     # CACHE 1: Active and expired products (changes every hour)
     products_cache_key = f'products_list_{current_hour}'
     products_list = cache.get(products_cache_key)
     
     if products_list is None:
-        
-        
         # Get all active products and sort by expiration status
         active_products = Product.objects.filter(
             is_archived=False,
@@ -95,16 +94,12 @@ def home(request):
         
         # Cache for 1 hour
         cache.set(products_cache_key, products_list, 3600)
-       
-    else:
-       pass
     
     # CACHE 2: Nearby products (location-specific, cached for 30 minutes)
     nearby_cache_key = f'nearby_products_{location_hash}_{current_hour}'
     nearby_products_filtered = cache.get(nearby_cache_key)
     
     if nearby_products_filtered is None:
-
         nearby_products = []
         for product in products_list:
             if product.store_type == 'physical' and product.latitude and product.longitude:
@@ -125,10 +120,6 @@ def home(request):
         
         # Cache for 30 minutes
         cache.set(nearby_cache_key, nearby_products_filtered, 1800)
-       
-    else:
-        pass
-       
     
     # PAGINATION FOR ALL PRODUCTS
     page = request.GET.get('page', 1)
@@ -142,11 +133,10 @@ def home(request):
         all_products = paginator.page(paginator.num_pages)
     
     # CACHE 3: Popular products (cached for 2 hours)
-    popular_cache_key = f'popular_products_{current_hour[:8]}'  # Changes daily
+    popular_cache_key = f'popular_products_{current_day}'  # Changes daily
     popular_products = cache.get(popular_cache_key)
     
     if popular_products is None:
-        
         popular_products = Product.objects.filter(
             is_archived=False
         ).annotate(
@@ -162,17 +152,12 @@ def home(request):
         
         # Cache for 2 hours
         cache.set(popular_cache_key, popular_products, 7200)
-      
-    else:
-        pass
     
     # CACHE 4: Category products (cached for 1 hour)
     category_cache_key = f'category_products_{current_hour}'
     category_data = cache.get(category_cache_key)
     
     if category_data is None:
-      
-        
         # Get categories
         try:
             phones_category = Category.objects.get(name__icontains='Phones')
@@ -243,9 +228,71 @@ def home(request):
         
         # Cache for 1 hour
         cache.set(category_cache_key, category_data, 3600)
-       
-    else:
-        pass
+    
+    # NEW: CACHE 5: Image data for faster template rendering
+    image_cache_key = f'home_images_{current_day}'
+    cached_images = cache.get(image_cache_key)
+    
+    if cached_images is None:
+        cached_images = {
+            'popular_images': [],
+            'phone_images': [],
+            'computer_images': [],
+            'bag_images': [],
+            'nearby_images': []
+        }
+        
+        # Cache popular product images
+        for product in popular_products:
+            if hasattr(product, 'image') and product.image:
+                cached_images['popular_images'].append({
+                    'id': product.id,
+                    'url': product.image.url,
+                    'alt': product.Name,
+                    'name': product.Name
+                })
+        
+        # Cache category images
+        for product in category_data['phone_products']:
+            if hasattr(product, 'image') and product.image:
+                cached_images['phone_images'].append({
+                    'id': product.id,
+                    'url': product.image.url,
+                    'alt': product.Name,
+                    'name': product.Name
+                })
+        
+        for product in category_data['computer_products']:
+            if hasattr(product, 'image') and product.image:
+                cached_images['computer_images'].append({
+                    'id': product.id,
+                    'url': product.image.url,
+                    'alt': product.Name,
+                    'name': product.Name
+                })
+        
+        for product in category_data['bag_products']:
+            if hasattr(product, 'image') and product.image:
+                cached_images['bag_images'].append({
+                    'id': product.id,
+                    'url': product.image.url,
+                    'alt': product.Name,
+                    'name': product.Name
+                })
+        
+        # Cache nearby product images (first 10)
+        for product in nearby_products_filtered[:10]:
+            if hasattr(product, 'image') and product.image:
+                cached_images['nearby_images'].append({
+                    'id': product.id,
+                    'url': product.image.url,
+                    'alt': product.Name,
+                    'name': product.Name,
+                    'distance': getattr(product, 'distance_to', None)
+                })
+        
+        # Cache for 24 hours (images don't change often)
+        cache.set(image_cache_key, cached_images, 86400)
     
     context = {
         'products': nearby_products_filtered, 
@@ -259,6 +306,7 @@ def home(request):
         'paginator': paginator,  
         'current_page': page,   
         'product_count': product_count,
+        'cached_images': cached_images,
     }
     
     return render(request, 'home.html', context)
