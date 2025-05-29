@@ -27,7 +27,7 @@ from django.core.cache import cache
 import hashlib
 from django.views.decorators.cache import cache_page
 
-@cache_page(60 * 15)
+
 def home(request):
     # Get or set the product count in cache
     product_count = cache.get('total_product_count')
