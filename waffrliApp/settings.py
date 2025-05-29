@@ -110,16 +110,16 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'cache'),
-        'TIMEOUT': 300,  # 5 minutes
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': os.path.join(BASE_DIR, 'cache'),
+#         'TIMEOUT': 300,  # 5 minutes
+#         'OPTIONS': {
+#             'MAX_ENTRIES': 1000,
+#         }
+#     }
+# }
 
 
 # DATABASES = {
