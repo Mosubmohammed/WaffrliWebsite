@@ -8,7 +8,8 @@ import requests
 from .models import SupabaseUser 
 from waffrli.models import Customer
 from django.conf import settings
-from supabase import create_client
+
+
 def register(request):
     if request.method == 'POST':
         # Get form data
@@ -579,7 +580,7 @@ def close_account(request):
                         
                         
                         supabase_url = settings.SUPABASE_URL
-                        supabase_service_key = settings.SUPABASE_SERVICE_KEY  # Use service role key for admin operations
+                        supabase_service_key = settings.SUPABASE_SERVICE_KEY  
 
                         headers = {
                             'Content-Type': 'application/json',

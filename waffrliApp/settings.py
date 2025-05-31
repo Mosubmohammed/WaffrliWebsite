@@ -17,6 +17,7 @@ from supabase import create_client
 BASE_DIR = Path(__file__).resolve().parent.parent
 import dj_database_url
 from sentry_sdk.integrations.django import DjangoIntegration
+from decouple import config
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -138,14 +139,12 @@ DATABASES = {
      )
 }
 
-# Add your actual values here
-SUPABASE_URL = "https://oktylpzgktpunvmqfamf.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdHlscHpna3RwdW52bXFmYW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxODA4MDYsImV4cCI6MjA2MDc1NjgwNn0.v0CQDk7INWh4XdU_w5DfoSVFbAIm7hOIEJok26zjcXg"
-SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdHlscHpna3RwdW52bXFmYW1mIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTE4MDgwNiwiZXhwIjoyMDYwNzU2ODA2fQ.HcdFY5lPwiYiTUZjo8IF6EI2AJPtzR6A1cEciyTeQEI"
 
+SUPABASE_URL = config('SUPABASE_URL')
+SUPABASE_KEY = config('SUPABASE_KEY') 
+SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY')
 
 SUPABASE = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
