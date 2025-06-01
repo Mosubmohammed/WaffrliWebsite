@@ -115,15 +115,15 @@ def get_user_location(request):
 
 
 def add_distances_to_products(products, user_lat, user_lng):
-    print(f"Adding distances to {len(products)} products")
+
     for product in products:
         if product.latitude and product.longitude:
             distance = product.distance_to(user_lat, user_lng)
             product.distance = distance
-            print(f"Product {product.id}: distance = {distance} km")
+          
         else:
             product.distance = float('inf')
-            print(f"Product {product.id}: No coordinates, setting distance to infinity")
+            
             
             
             
