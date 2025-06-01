@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 import requests
 from .models import SupabaseUser 
+from supabase import create_client
 from waffrli.models import Customer
 from django.conf import settings
 

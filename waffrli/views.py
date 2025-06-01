@@ -29,16 +29,10 @@ from django.views.decorators.cache import cache_page
 
 
 def home(request):
-    # Get or set the product count in cache
-    product_count = cache.get('total_product_count')
-    if product_count is None:
-        product_count = Product.objects.count()
-        cache.set('total_product_count', product_count, 900)  # 15 minutes
-    
     user_lat = None
     user_lng = None
     
-    # Your existing location detection code
+    # Location detection code
     if request.user.is_authenticated and hasattr(request.user, 'customer'):
         customer = request.user.customer
         user_lat = customer.latitude
@@ -61,67 +55,45 @@ def home(request):
         user_lat = 31.9566  # Amman latitude
         user_lng = 35.9457  # Amman longitude
     
-    # Create location-based cache key
-    location_hash = hashlib.md5(f"{user_lat}_{user_lng}".encode()).hexdigest()[:8]
-    
     # Get current time to check for expired deals
     current_time = timezone.now()
-    current_hour = current_time.strftime('%Y%m%d%H')  # Cache key changes every hour
-    current_day = current_time.strftime('%Y%m%d')  # Daily cache key
     
-    # CACHE 1: Active and expired products (changes every hour)
-    products_cache_key = f'products_list_{current_hour}'
-    products_list = cache.get(products_cache_key)
+    # Get all active and expired products
+    active_products = Product.objects.filter(
+        is_archived=False,
+        expires_at__gt=current_time
+    ).select_related('category', 'user__customer').order_by('-create_at')
     
-    if products_list is None:
-        # Get all active products and sort by expiration status
-        active_products = Product.objects.filter(
-            is_archived=False,
-            expires_at__gt=current_time
-        ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')
-        
-        expired_products = Product.objects.filter(
-            is_archived=False,
-            expires_at__lte=current_time
-        ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')
-        
-        # Convert to list and combine
-        products_list = list(active_products) + list(expired_products)
-        
-        # Add expiration status to each product
-        for product in products_list:
-            product.is_expired = product.expires_at <= current_time if product.expires_at else False
-        
-        # Cache for 1 hour
-        cache.set(products_cache_key, products_list, 3600)
+    expired_products = Product.objects.filter(
+        is_archived=False,
+        expires_at__lte=current_time
+    ).select_related('category', 'user__customer').order_by('-create_at')
     
-    # CACHE 2: Nearby products (location-specific, cached for 30 minutes)
-    nearby_cache_key = f'nearby_products_{location_hash}_{current_hour}'
-    nearby_products_filtered = cache.get(nearby_cache_key)
+    # Combine products list
+    products_list = list(active_products) + list(expired_products)
     
-    if nearby_products_filtered is None:
-        nearby_products = []
-        for product in products_list:
-            if product.store_type == 'physical' and product.latitude and product.longitude:
-                product.distance_to = product.distance_to(user_lat, user_lng)
-                if product.distance_to is not None:
-                    nearby_products.append(product)
-        
-        # Sort by distance
-        nearby_products.sort(key=lambda x: x.distance_to)
-        
-        # Filter by maximum distance
-        MAX_DISTANCE = 50
-        nearby_products_filtered = [p for p in nearby_products if p.distance_to <= MAX_DISTANCE]
-        
-        # If no nearby products, show closest 5
-        if not nearby_products_filtered and nearby_products:
-            nearby_products_filtered = nearby_products[:5]
-        
-        # Cache for 30 minutes
-        cache.set(nearby_cache_key, nearby_products_filtered, 1800)
+    # Add expiration status to each product
+    for product in products_list:
+        product.is_expired = product.expires_at <= current_time if product.expires_at else False
     
-    # PAGINATION FOR ALL PRODUCTS
+    # Calculate nearby products for "NearBy You" section
+    nearby_products = []
+    for product in products_list:
+        if product.store_type == 'physical' and product.latitude and product.longitude:
+            product.distance_to = product.distance_to(user_lat, user_lng)
+            if product.distance_to is not None:
+                nearby_products.append(product)
+    
+    # Sort by distance and filter
+    nearby_products.sort(key=lambda x: x.distance_to)
+    MAX_DISTANCE = 50
+    nearby_products_filtered = [p for p in nearby_products if p.distance_to <= MAX_DISTANCE]
+    
+    # If no nearby products, show closest 5
+    if not nearby_products_filtered and nearby_products:
+        nearby_products_filtered = nearby_products[:5]
+    
+    # Pagination for "Waffrli Deals" section
     page = request.GET.get('page', 1)
     paginator = Paginator(products_list, 50)
     
@@ -132,181 +104,68 @@ def home(request):
     except EmptyPage:
         all_products = paginator.page(paginator.num_pages)
     
-    # CACHE 3: Popular products (cached for 2 hours)
-    popular_cache_key = f'popular_products_{current_day}'  # Changes daily
-    popular_products = cache.get(popular_cache_key)
+    # Get popular products for "Popular Deals" section
+    popular_products = Product.objects.filter(
+        is_archived=False
+    ).annotate(
+        like_count=Count('likes'),
+        popularity_score=ExpressionWrapper(
+            (F('like_count') * 3) + F('views'),
+            output_field=FloatField()
+        )
+    ).order_by('-popularity_score').select_related('category', 'user__customer')[:12]
     
-    if popular_products is None:
-        popular_products = Product.objects.filter(
+    # Get category-specific products
+    # Phones
+    try:
+        phones_category = Category.objects.get(name__icontains='Phones')
+        phone_products = Product.objects.filter(
+            category=phones_category,
             is_archived=False
-        ).annotate(
-            like_count=Count('likes'),
-            popularity_score=ExpressionWrapper(
-                (F('like_count') * 3) + F('views'),
-                output_field=FloatField()
-            )
-        ).order_by('-popularity_score').select_related('category', 'user', 'customer_pic_id')[:12]
-        
-        # Convert to list for caching
-        popular_products = list(popular_products)
-        
-        # Cache for 2 hours
-        cache.set(popular_cache_key, popular_products, 7200)
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
+    except Category.DoesNotExist:
+        # Search by keyword if category doesn't exist
+        phone_products = Product.objects.filter(
+            Name__icontains='phone',
+            is_archived=False
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
     
-    # CACHE 4: Category products (cached for 1 hour)
-    category_cache_key = f'category_products_{current_hour}'
-    category_data = cache.get(category_cache_key)
+    # Computers
+    try:
+        computers_category = Category.objects.get(name__icontains='computers')
+        computer_products = Product.objects.filter(
+            category=computers_category,
+            is_archived=False
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
+    except Category.DoesNotExist:
+        # Search by keyword if category doesn't exist
+        computer_products = Product.objects.filter(
+            Name__icontains='computer',
+            is_archived=False
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
     
-    if category_data is None:
-        # Get categories
-        try:
-            phones_category = Category.objects.get(name__icontains='Phones')
-        except Category.DoesNotExist:
-            phones_category = None
-            
-        try:
-            computers_category = Category.objects.get(name__icontains='computers')
-        except Category.DoesNotExist:
-            computers_category = None
-            
-        try:
-            bags_category = Category.objects.get(name__icontains='BagsAndLuggage')
-        except Category.DoesNotExist:
-            bags_category = None
-        
-        phone_products = []
-        computer_products = []
-        bag_products = []
-        
-        # Get category products
-        if phones_category:
-            phone_products = list(Product.objects.filter(
-                category=phones_category,
-                is_archived=False
-            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
-        
-        if computers_category:
-            computer_products = list(Product.objects.filter(
-                category=computers_category,
-                is_archived=False
-            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
-        
-        if bags_category:
-            bag_products = list(Product.objects.filter(
-                category=bags_category,
-                is_archived=False
-            ).select_related('category', 'user', 'customer_pic_id').order_by('-create_at')[:4])
-        
-        # Fill with keyword searches if needed
-        if len(phone_products) < 4:
-            additional_phones = Product.objects.filter(
-                Name__icontains='phone',
-                is_archived=False
-            ).exclude(id__in=[p.id for p in phone_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(phone_products)]
-            phone_products.extend(list(additional_phones))
-        
-        if len(computer_products) < 4:
-            additional_computers = Product.objects.filter(
-                Name__icontains='computer',
-                is_archived=False
-            ).exclude(id__in=[p.id for p in computer_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(computer_products)]
-            computer_products.extend(list(additional_computers))
-        
-        if len(bag_products) < 4:
-            additional_bags = Product.objects.filter(
-                Name__icontains='bag',
-                is_archived=False
-            ).exclude(id__in=[p.id for p in bag_products]).select_related('category', 'user', 'customer_pic_id')[:4-len(bag_products)]
-            bag_products.extend(list(additional_bags))
-        
-        # Store in cache
-        category_data = {
-            'phone_products': phone_products,
-            'computer_products': computer_products,
-            'bag_products': bag_products,
-        }
-        
-        # Cache for 1 hour
-        cache.set(category_cache_key, category_data, 3600)
-    
-    # NEW: CACHE 5: Image data for faster template rendering
-    image_cache_key = f'home_images_{current_day}'
-    cached_images = cache.get(image_cache_key)
-    
-    if cached_images is None:
-        cached_images = {
-            'popular_images': [],
-            'phone_images': [],
-            'computer_images': [],
-            'bag_images': [],
-            'nearby_images': []
-        }
-        
-        # Cache popular product images
-        for product in popular_products:
-            if hasattr(product, 'image') and product.image:
-                cached_images['popular_images'].append({
-                    'id': product.id,
-                    'url': product.image.url,
-                    'alt': product.Name,
-                    'name': product.Name
-                })
-        
-        # Cache category images
-        for product in category_data['phone_products']:
-            if hasattr(product, 'image') and product.image:
-                cached_images['phone_images'].append({
-                    'id': product.id,
-                    'url': product.image.url,
-                    'alt': product.Name,
-                    'name': product.Name
-                })
-        
-        for product in category_data['computer_products']:
-            if hasattr(product, 'image') and product.image:
-                cached_images['computer_images'].append({
-                    'id': product.id,
-                    'url': product.image.url,
-                    'alt': product.Name,
-                    'name': product.Name
-                })
-        
-        for product in category_data['bag_products']:
-            if hasattr(product, 'image') and product.image:
-                cached_images['bag_images'].append({
-                    'id': product.id,
-                    'url': product.image.url,
-                    'alt': product.Name,
-                    'name': product.Name
-                })
-        
-        # Cache nearby product images (first 10)
-        for product in nearby_products_filtered[:10]:
-            if hasattr(product, 'image') and product.image:
-                cached_images['nearby_images'].append({
-                    'id': product.id,
-                    'url': product.image.url,
-                    'alt': product.Name,
-                    'name': product.Name,
-                    'distance': getattr(product, 'distance_to', None)
-                })
-        
-        # Cache for 24 hours (images don't change often)
-        cache.set(image_cache_key, cached_images, 86400)
+    # Bags & Luggage
+    try:
+        bags_category = Category.objects.get(name__icontains='BagsAndLuggage')
+        bag_products = Product.objects.filter(
+            category=bags_category,
+            is_archived=False
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
+    except Category.DoesNotExist:
+        # Search by keyword if category doesn't exist
+        bag_products = Product.objects.filter(
+            Name__icontains='bag',
+            is_archived=False
+        ).select_related('category', 'user__customer').order_by('-create_at')[:4]
     
     context = {
-        'products': nearby_products_filtered, 
+        'products': nearby_products_filtered,
         'all_products': all_products, 
-        'popular_products': popular_products,
-        'phone_products': category_data['phone_products'],
-        'computer_products': category_data['computer_products'],
-        'bag_products': category_data['bag_products'],
-        'user_lat': user_lat,
-        'user_lng': user_lng,
+        'popular_products': popular_products, 
+        'phone_products': phone_products, 
+        'computer_products': computer_products, 
+        'bag_products': bag_products,  
         'paginator': paginator,  
-        'current_page': page,   
-        'product_count': product_count,
-        'cached_images': cached_images,
     }
     
     return render(request, 'home.html', context)
@@ -795,11 +654,9 @@ def search(request):
 
     
 def post_deal(request):
-
     if not request.user.is_authenticated:
         messages.error(request, "You must be logged in to post a deal.")
         return redirect('login')
-    
     
     jordan_cities = [
         'Amman', 'Zarqa', 'Irbid', 'Aqaba', 'Salt', 'Madaba', 'Jerash',
@@ -816,10 +673,9 @@ def post_deal(request):
         }
         return render(request, "post_deal.html", context)
     
-    
     action = request.POST.get('action', 'post')
     
-
+    # Get form data
     name = request.POST.get('deal-title', '')
     url = request.POST.get('deal-url', '')
     sale_price = request.POST.get('sale-price', '')
@@ -832,7 +688,7 @@ def post_deal(request):
     store_type = request.POST.get('store-type', 'online')
     pic = request.FILES.get('image')
     
-    
+    # Handle expiration date
     expiration_type = request.POST.get('expiration-type', 'default')
     
     if expiration_type == 'custom':
@@ -959,8 +815,7 @@ def post_deal(request):
             formatted_address=formatted_address,
             is_archived=(action == 'archive'),
         )
-        
-        cache.delete('total_product_count')
+
         
         # For non-archived deals, check wishlist matches
         if action == 'post':
