@@ -111,16 +111,7 @@ WSGI_APPLICATION = 'waffrliApp.wsgi.application'
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-#         'LOCATION': os.path.join(BASE_DIR, 'cache'),
-#         'TIMEOUT': 300,  # 5 minutes
-#         'OPTIONS': {
-#             'MAX_ENTRIES': 1000,
-#         }
-#     }
-# }
+
 
 
 # DATABASES = {
@@ -128,12 +119,10 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 #         'ENGINE': 'django.db.backends.sqlite3',
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
-# }
+#  }
 
 DATABASES = {
-#     'default'  : {
-#      'ENGINE': "django.db.backends.sqlite3"
-# }
+
      'default': dj_database_url.parse(
          "postgresql://postgres.oktylpzgktpunvmqfamf:3Nksory_2309@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
      )
