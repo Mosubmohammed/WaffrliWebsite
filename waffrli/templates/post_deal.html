@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<link href="{% static 'css/post_deal990.css' %}" rel="stylesheet" />
+<link href="{% static 'css/post_deal990M.css' %}" rel="stylesheet" />
 
 
 <div class="Post-container">
@@ -22,197 +22,296 @@
 
 
         <!-- Form action - update based on mode -->
-        <form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" 
-            {% if edit_mode %}action="{% url 'continue_archived_deal' deal.id %}"{% else %}action="{% url 'post_deal' %}"{% endif %}>
-            {% csrf_token %}
-            <input type="hidden" id="form-action" name="action" value="post">
-            
-            <!-- Input fields with values for edit mode -->
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="deal-url" class="required-field">Deal URL</label>
-                    <input type="url" id="deal-url" name="deal-url" required 
-                        value="{% if edit_mode %}{{ deal.Dealurl }}{% endif %}">
-                    <div class="error-message" id="url-error">Please enter a valid URL.</div>
-                </div>
-                <div class="form-group">
-                    <label for="deal-title" class="required-field">Deal Title</label>
-                    <input type="text" id="deal-title" name="deal-title" pattern="[A-Za-z0-9 ]+"
-                        title="Letters and numbers only" required
-                        value="{% if edit_mode %}{{ deal.Name }}{% endif %}">
-                    <div class="error-message" id="title-error">Please enter a valid title using only letters and numbers.</div>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="sale-price" class="required-field">Sale Price (JD)</label>
-                    <input type="number" id="sale-price" name="sale-price" min="0.01" step="0.01" required
-                        value="{% if edit_mode %}{{ deal.sale_price }}{% endif %}">
-                    <div class="error-message" id="sale-price-error">Please enter a valid sale price.</div>
-                </div>
-                <div class="form-group">
-                    <label for="list-price" class="required-field">List Price (JD)</label>
-                    <input type="number" id="list-price" name="list-price" min="0.01" step="0.01" required
-                        value="{% if edit_mode %}{{ deal.Price }}{% endif %}">
-                    <div class="error-message" id="list-price-error">Please enter a valid list price.</div>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="store" class="required-field">Store</label>
-                    <input type="text" id="store" name="store" pattern="[A-Za-z ]+" title="Letters only" required
-                        value="{% if edit_mode %}{{ deal.store }}{% endif %}">
-                    <div class="error-message" id="store-error">Please enter a valid store name using only letters.</div>
-                </div>
-                <div class="form-group">
-                    <label for="brand" class="required-field">Brand</label>
-                    <input type="text" id="brand" name="brand" pattern="[A-Za-z ]+" title="Letters only" required
-                        value="{% if edit_mode %}{{ deal.brand }}{% endif %}">
-                    <div class="error-message" id="brand-error">Please enter a valid brand name using only letters.</div>
-                </div>
-            </div>
-
+<form class="form-section" id="deal-form" method="POST" enctype="multipart/form-data" 
+      {% if edit_mode %}action="{% url 'continue_archived_deal' deal.id %}"{% else %}action="{% url 'post_deal' %}"{% endif %}>
+    {% csrf_token %}
+    
+    <!-- Hidden Fields -->
+    <input type="hidden" id="form-action" name="action" value="post">
+    <input type="hidden" id="action-input" name="action" value="">
+    
+    <!-- Basic Deal Information -->
+    <section class="deal-basic-info">
+        <div class="form-grid">
             <div class="form-group">
-                <label for="description" class="required-field">Deal Description</label>
-                <textarea id="description" name="description" required>{% if edit_mode %}{{ deal.Description }}{% endif %}</textarea>
-                <div class="error-message" id="description-error">Please provide a description for the deal.</div>
+                <label for="deal-url" class="required-field">Deal URL</label>
+                <input type="url" 
+                       id="deal-url" 
+                       name="deal-url" 
+                       class="form-control"
+                       placeholder="https://example.com/deal"
+                       required 
+                       value="{% if edit_mode %}{{ deal.Dealurl }}{% endif %}">
+                <div class="error-message" id="url-error">Please enter a valid URL.</div>
             </div>
+            
+            <div class="form-group">
+                <label for="deal-title" class="required-field">Deal Title</label>
+                <input type="text" 
+                       id="deal-title" 
+                       name="deal-title" 
+                       class="form-control"
+                       title="Letters, numbers, spaces, and common symbols are allowed" 
+                       required
+                       maxlength="100"
+                       placeholder="Enter your deal title here..."
+                       value="{% if edit_mode %}{{ deal.Name }}{% endif %}">
+                <div class="error-message" id="title-error">Please enter a valid title using letters, numbers, spaces, and common symbols.</div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="description" class="required-field">Deal Description</label>
+            <textarea id="description" 
+                      name="description" 
+                      class="form-control"
+                      placeholder="Describe your deal in detail..."
+                      required>{% if edit_mode %}{{ deal.Description }}{% endif %}</textarea>
+            <div class="error-message" id="description-error">Please provide a description for the deal.</div>
+        </div>
+    </section>
 
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="image">Upload Image</label>
-                    <div class="file-upload-wrapper">
-                        <label for="image" class="file-upload-label">
-                            <i class="fas fa-upload" style="color:white"></i> Choose File
-                        </label>
-                        <input type="file" id="image" name="image" accept="image/*" style="display: none;" {% if not edit_mode %}required{% endif %}>
-                        <div class="file-name" id="file-name">
-                            {% if edit_mode and deal.image %}
-                                Current image: {{ deal.image.name|slice:"12:" }}
-                            {% else %}
-                                No file chosen
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% if edit_mode and deal.image %}
-                        <div class="current-image">
-                            <img src="{{ deal.image.url }}" alt="Current image" style="max-width: 100px; max-height: 100px; margin-top: 10px;">
-                            <div class="image-note">Leave empty to keep current image</div>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="category" class="required-field">Category</label>
-                    <select id="category" name="category" required>
-                        <option value="" disabled {% if not edit_mode %}selected{% endif %}>Select category</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id }}" 
+    <!-- Pricing Information -->
+    <section class="deal-pricing">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="sale-price" class="required-field">Sale Price (JD)</label>
+                <input type="number" 
+                       id="sale-price" 
+                       name="sale-price" 
+                       class="form-control"
+                       min="0.01" 
+                       step="0.01" 
+                       placeholder="0.00"
+                       required
+                       value="{% if edit_mode %}{{ deal.sale_price }}{% endif %}">
+                <div class="error-message" id="sale-price-error">Please enter a valid sale price.</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="list-price" class="required-field">Original Price (JD)</label>
+                <input type="number" 
+                       id="list-price" 
+                       name="list-price" 
+                       class="form-control"
+                       min="0.01" 
+                       step="0.01" 
+                       placeholder="0.00"
+                       required
+                       value="{% if edit_mode %}{{ deal.Price }}{% endif %}">
+                <div class="error-message" id="list-price-error">Please enter a valid original price.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Store and Brand Information -->
+    <section class="deal-store-info">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="store" class="required-field">Store Name</label>
+                <input type="text" 
+                       id="store" 
+                       name="store" 
+                       class="form-control"
+                       placeholder="e.g., Amazon, Zara, etc."
+                       required
+                       value="{% if edit_mode %}{{ deal.store }}{% endif %}">
+                <div class="error-message" id="store-error">Please enter a valid store name.</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="brand" class="required-field">Brand Name</label>
+                <input type="text" 
+                       id="brand" 
+                       name="brand" 
+                       class="form-control"
+                       placeholder="e.g., Nike, Apple, etc."
+                       required
+                       value="{% if edit_mode %}{{ deal.brand }}{% endif %}">
+                <div class="error-message" id="brand-error">Please enter a valid brand name.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category and Image -->
+    <section class="deal-category-media">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="category" class="required-field">Category</label>
+                <select id="category" name="category" class="form-control" required>
+                    <option value="" disabled {% if not edit_mode %}selected{% endif %}>Select category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" 
                             {% if edit_mode and deal.category.id == category.id %}selected{% endif %}>
-                            {{ category.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <div class="error-message" id="category-error">Please select a category.</div>
-                </div>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="error-message" id="category-error">Please select a category.</div>
             </div>
-
-            <!-- Add this expiration date section after the category selection -->
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="expiration-type" class="required-field">Deal Expires After</label>
-                    <div class="expiration-options">
-                        <div>
-                            <input type="radio" id="default-expiration" name="expiration-type" value="default" 
-                                {% if not edit_mode or not deal.custom_expiration %}checked{% endif %}>
-                            <label for="default-expiration">Default (10 days)</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="custom-expiration" name="expiration-type" value="custom"
-                                {% if edit_mode and deal.custom_expiration %}checked{% endif %}>
-                            <label for="custom-expiration">Custom date</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group" id="custom-date-container" 
-                    {% if not edit_mode or not deal.custom_expiration %}style="display: none;"{% endif %}>
-                    <label for="expiration-date">Expiration Date</label>
-                    <input type="date" id="expiration-date" name="expiration-date" 
-                        value="{% if edit_mode and deal.custom_expiration %}{{ deal.expires_at|date:'Y-m-d' }}{% endif %}">
-                    <div class="error-message" id="date-error">Please select a valid future date.</div>
-                </div>
-            </div>
-
-            <!-- Store Type - preselect based on existing data -->
+            
             <div class="form-group">
-                <label for="store-type">Store Type</label>
-                <div class="store-type-options">
-                    <div>
-                        <input type="radio" id="online-store" name="store-type" value="online" 
-                            {% if not edit_mode or deal.store_type == 'online' %}checked{% endif %}>
-                        <label for="online-store">Online Store</label>
+                <label for="image">Deal Image</label>
+                <div class="file-upload-wrapper">
+                    <label for="image" class="file-upload-label">
+                        <i class="fas fa-upload"></i> Choose Image
+                    </label>
+                    <input type="file" 
+                           id="image" 
+                           name="image" 
+                           accept="image/*" 
+                           style="display: none;" 
+                           {% if not edit_mode %}required{% endif %}>
+                    <div class="file-name" id="file-name">
+                        {% if edit_mode and deal.image %}
+                            Current: {{ deal.image.name|slice:"12:" }}
+                        {% else %}
+                            No file chosen
+                        {% endif %}
                     </div>
-                    <div>
-                        <input type="radio" id="physical-store" name="store-type" value="physical"
-                            {% if edit_mode and deal.store_type == 'physical' %}checked{% endif %}>
-                        <label for="physical-store">Physical Store</label>
+                </div>
+                {% if edit_mode and deal.image %}
+                    <div class="current-image">
+                        <img src="{{ deal.image.url }}" 
+                             alt="Current image" 
+                             style="max-width: 100px; max-height: 100px; margin-top: 10px; border-radius: 8px;">
+                        <small class="image-note">Leave empty to keep current image</small>
                     </div>
-                </div>
+                {% endif %}
             </div>
+        </div>
+    </section>
 
-
-            <div class="form-grid" id="online-location-container" 
-                {% if edit_mode and deal.store_type == 'physical' %}style="display: none;"{% endif %}>
-                <div class="form-group">
-                    <label for="location" class="required-field">Deal Location</label>
-                    <select id="location" name="location" required>
-                        <option value="" disabled {% if not edit_mode or not deal.city %}selected{% endif %}>Select location</option>
-                        {% for city in jordan_cities %}
-                        <option value="{{ city }}" {% if edit_mode and deal.city == city %}selected{% endif %}>{{ city }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="error-message" id="location-error">Please select a location.</div>
-                </div>
-            </div>
-
-           
-            <div id="location-map-container" 
-                {% if not edit_mode or deal.store_type != 'physical' %}style="display: none;"{% endif %}>
-                <div class="form-group">
-                    <label for="address">Store Address</label>
-                    <input type="text" id="address" name="address" placeholder="Search for store address..."
-                        value="{% if edit_mode and deal.formatted_address %}{{ deal.formatted_address }}{% endif %}">
-                </div>
-
-                
-                <input type="hidden" name="latitude" id="latitude" 
-                    value="{% if edit_mode and deal.latitude %}{{ deal.latitude }}{% endif %}">
-                <input type="hidden" name="longitude" id="longitude"
-                    value="{% if edit_mode and deal.longitude %}{{ deal.longitude }}{% endif %}">
-                <input type="hidden" name="formatted_address" id="formatted_address"
-                    value="{% if edit_mode and deal.formatted_address %}{{ deal.formatted_address }}{% endif %}">
-
-                <div class="form-group">
-                    <div id="map-container">
-                        <div id="map" style="height: 300px; width: 100%; border-radius: 8px"></div>
+    <!-- Deal Expiration -->
+    <section class="deal-expiration">
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="required-field">Deal Expires After</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" 
+                               id="default-expiration" 
+                               name="expiration-type" 
+                               value="default" 
+                               {% if not edit_mode or not deal.custom_expiration %}checked{% endif %}>
+                        <label for="default-expiration">Default (10 days)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" 
+                               id="custom-expiration" 
+                               name="expiration-type" 
+                               value="custom"
+                               {% if edit_mode and deal.custom_expiration %}checked{% endif %}>
+                        <label for="custom-expiration">Custom date</label>
                     </div>
                 </div>
             </div>
             
-
-            <div class="form-actions">
-                <button class="Post-btns" type="button" id="archive-btn">
-                    <i class="fas fa-archive"></i> {% if edit_mode %}Save as Draft{% else %}Archive Deal{% endif %}
-                </button>
-                <button class="Post-btns"  type="submit" id="post-btn">
-                    <i class="fas fa-paper-plane"></i> {% if edit_mode %}Update & Publish{% else %}Post Deal{% endif %}
-                </button>
+            <div class="form-group" 
+                 id="custom-date-container" 
+                 {% if not edit_mode or not deal.custom_expiration %}style="display: none;"{% endif %}>
+                <label for="expiration-date">Custom Expiration Date</label>
+                <input type="date" 
+                       id="expiration-date" 
+                       name="expiration-date" 
+                       class="form-control"
+                       value="{% if edit_mode and deal.custom_expiration %}{{ deal.expires_at|date:'Y-m-d' }}{% endif %}">
+                <div class="error-message" id="date-error">Please select a valid future date.</div>
             </div>
+        </div>
+    </section>
+
+    <!-- Store Type and Location -->
+    <section class="deal-location">
+        <div class="form-group">
+            <label class="required-field">Store Type</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" 
+                           id="online-store" 
+                           name="store-type" 
+                           value="online" 
+                           {% if not edit_mode or deal.store_type == 'online' %}checked{% endif %}>
+                    <label for="online-store">
+                        <i class="fas fa-globe"></i> Online Store
+                    </label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" 
+                           id="physical-store" 
+                           name="store-type" 
+                           value="physical"
+                           {% if edit_mode and deal.store_type == 'physical' %}checked{% endif %}>
+                    <label for="physical-store">
+                        <i class="fas fa-store"></i> Physical Store
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Store Location -->
+        <div class="form-group" 
+             id="online-location-container" 
+             {% if edit_mode and deal.store_type == 'physical' %}style="display: none;"{% endif %}>
+            <label for="location" class="required-field">City/Region</label>
+            <select id="location" name="location" class="form-control" required>
+                <option value="" disabled {% if not edit_mode or not deal.city %}selected{% endif %}>
+                    Select your city
+                </option>
+                {% for city in jordan_cities %}
+                <option value="{{ city }}" {% if edit_mode and deal.city == city %}selected{% endif %}>
+                    {{ city }}
+                </option>
+                {% endfor %}
+            </select>
+            <div class="error-message" id="location-error">Please select a location.</div>
+        </div>
+
+        <!-- Physical Store Location -->
+        <div id="location-map-container" 
+             {% if not edit_mode or deal.store_type != 'physical' %}style="display: none;"{% endif %}>
+            <div class="form-group">
+                <label for="address">Store Address</label>
+                <input type="text" 
+                       id="address" 
+                       name="address" 
+                       class="form-control"
+                       placeholder="Search for store address..."
+                       value="{% if edit_mode and deal.formatted_address %}{{ deal.formatted_address }}{% endif %}">
+            </div>
+
+            <!-- Hidden location fields -->
+            <input type="hidden" name="latitude" id="latitude" 
+                   value="{% if edit_mode and deal.latitude %}{{ deal.latitude }}{% endif %}">
+            <input type="hidden" name="longitude" id="longitude"
+                   value="{% if edit_mode and deal.longitude %}{{ deal.longitude }}{% endif %}">
+            <input type="hidden" name="formatted_address" id="formatted_address"
+                   value="{% if edit_mode and deal.formatted_address %}{{ deal.formatted_address }}{% endif %}">
+
+            <div class="form-group">
+                <label>Map Location</label>
+                <div id="map-container">
+                    <div id="map" style="height: 300px; width: 100%; border-radius: 12px; border: 2px solid #e8ecf0;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Form Actions -->
+    <section class="form-actions">
+        <div class="button-group">
+            <button type="button" id="archive-btn" class="btn btn-secondary">
+                <i class="fas fa-archive"></i>
+                <span style="color:black">{% if edit_mode %}Save as Draft{% else %}Archive Deal{% endif %}</span>
+            </button>
             
-          
-            <input type="hidden" id="action-input" name="action" value="">
-        </form>
+            <button type="submit" id="post-btn" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                <span>{% if edit_mode %}Update & Publish{% else %}Post Deal{% endif %}</span>
+            </button>
+        </div>
+    </section>
+</form>
 </div>
 
 <script src="{% static 'js/PostDeal.js' %}"></script>

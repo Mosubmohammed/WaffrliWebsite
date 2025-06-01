@@ -88,7 +88,6 @@ class WaffrliViewTests(TestCase):
         
     # def test_search_view(self):
     #     response = self.client.get(reverse('search'), {'q': 'Test Product 1'})
-    #     print(f"Response content: {response.content.decode()}")
     #     self.assertEqual(response.status_code, 200)
     #     self.assertContains(response, 'Test Product 1')
     #     self.assertNotContains(response, 'Test Product 2')

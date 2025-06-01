@@ -247,15 +247,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Form input validation
-    if (form) {
-        form.addEventListener('input', (event) => {
-            const target = event.target;
+// Updated validation function for deal title
+const validateDealTitle = (titleInput) => {
+    const value = titleInput.value.trim();
+    
+    // Allow letters, numbers, spaces, and common symbols
+    const allowedPattern = /^[A-Za-z0-9\s\-_.,!@#$%&*()+=\[\]{}|\\:;"'<>?/~`]+$/;
+    
+    // Check if empty
+    if (value === '') {
+        return {
+            isValid: false,
+            message: 'Deal title is required.'
+        };
+    }
+    
+    // Check length (minimum 3 characters, maximum 100)
+    if (value.length < 3) {
+        return {
+            isValid: false,
+            message: 'Deal title must be at least 3 characters long.'
+        };
+    }
+    
+    if (value.length > 100) {
+        return {
+            isValid: false,
+            message: 'Deal title must be less than 100 characters.'
+        };
+    }
+    
+    // Check pattern
+    if (!allowedPattern.test(value)) {
+        return {
+            isValid: false,
+            message: 'Please use only letters, numbers, spaces, and common symbols.'
+        };
+    }
+    
+    // Check if it's not just symbols/spaces
+    const hasLetterOrNumber = /[A-Za-z0-9]/.test(value);
+    if (!hasLetterOrNumber) {
+        return {
+            isValid: false,
+            message: 'Deal title must contain at least one letter or number.'
+        };
+    }
+    
+    return {
+        isValid: true,
+        message: ''
+    };
+};
+
+// Add this to your existing form input validation event listener
+// Replace the existing deal-title validation with this:
+if (form) {
+    form.addEventListener('input', (event) => {
+        const target = event.target;
+        
+        // Special handling for deal title
+        if (target.id === 'deal-title') {
+            const validation = validateDealTitle(target);
+            const errorElement = document.getElementById('title-error');
+            
+            if (validation.isValid) {
+                target.classList.remove('invalid');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            } else {
+                target.classList.add('invalid');
+                if (errorElement) {
+                    errorElement.textContent = validation.message;
+                    errorElement.style.display = 'block';
+                }
+            }
+        } else {
+            // Existing validation for other fields
             target.classList.toggle('invalid', !target.checkValidity() && target.value.trim() !== '');
 
             const fieldErrorMap = {
                 'deal-url': 'url-error',
-                'deal-title': 'title-error',
                 'sale-price': 'sale-price-error',
                 'list-price': 'list-price-error',
                 'location': 'location-error',
@@ -269,10 +342,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fieldErrorMap[target.id]) {
                 showErrorMessage(target, fieldErrorMap[target.id]);
             }
+        }
 
-            updateProgressBar();
-        });
-    }
+        updateProgressBar();
+    });
+}
     
     // Archive button handler
     if (archiveButton) {

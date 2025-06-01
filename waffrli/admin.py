@@ -156,7 +156,7 @@ class ProductAdmin(admin.ModelAdmin):
                         clean_reason = strip_tags(recent_reports.first().admin_notes)
                         message += f"\n\nReason: {clean_reason}"
                 except Exception as e:
-                    print(f"Error retrieving reports for deletion notification: {str(e)}")
+                   pass
                 
                 try:
                     notification = Notification.objects.create(
@@ -169,7 +169,7 @@ class ProductAdmin(admin.ModelAdmin):
                         url='/my-deals/'
                     )
                 except Exception as e:
-                    print(f"Error creating deletion notification: {str(e)}")
+                    pass
         
         # Proceed with deletion
         super().delete_model(request, obj)
