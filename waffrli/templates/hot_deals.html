@@ -233,10 +233,11 @@
                         <div class="discount-badge">{{ product.get_discount_percentage }}% OFF</div>
                     {% endif %}
                     
-                    <!-- UPDATED: Changed from product.distance_to to product.distance -->
+ 
                     {% if user_has_location and product.distance <= 20 %}
                         <div class="nearby-badge"><i class="fas fa-map-marker-alt"></i> Near You</div>
                     {% endif %}
+                    
                     
                     {% if product.is_expired %}
                         <div class="expired-badge">Expired</div>
