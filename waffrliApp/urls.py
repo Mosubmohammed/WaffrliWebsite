@@ -18,12 +18,3 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-else:
-    urlpatterns += [
-        path('static/<path:path>', 
-             cache_control(max_age=3600*24*30)(serve),  # Cache for 30 days
-             {'document_root': settings.STATIC_ROOT}),
-        path('media/<path:path>', 
-             cache_control(max_age=3600*24*7)(serve),  # Cache for 7 days
-             {'document_root': settings.MEDIA_ROOT}),
-    ]
