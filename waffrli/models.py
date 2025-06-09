@@ -39,7 +39,7 @@ class Customer(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     formatted_address = models.CharField(max_length=255, null=True, blank=True)
     date_modified = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='uploads/product/CustomerPics', null=True, blank=True)
+    image = models.ImageField(upload_to='uploads/CustomersPics', null=True, blank=True)
     # image = models.ImageField(upload_to='static\img\CustomerPics', null=True, blank=True)
     likes = models.ManyToManyField(User, related_name="Customer_like", blank=True)
     saved_products = models.ManyToManyField('Product', related_name="saved_by_customers", blank=True)
