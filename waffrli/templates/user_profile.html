@@ -86,6 +86,8 @@
             </div>
         </div>
 
+
+
         <!-- Stats Grid -->
         <div class="customer-stats-grid">
             <div class="customer-stat-card">
@@ -160,11 +162,11 @@
                     </div>
                 </div>
                 <div class="customer-deal-engagement">
-                    <span>
+                    <span style="color:black">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         {{ best_deal.comment_count }} Comments
                     </span>
-                    <span>
+                    <span style="color:black">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         {{ best_deal.views }} Views
                     </span>
@@ -186,100 +188,10 @@
     </div>
 </div>
 
-<!-- Report Modal -->
-{% comment %} <div id="reportModal" class="customer-modal">
-    <div class="customer-modal-content">
-        <div class="customer-modal-header">
-            <h2>Report Profile</h2>
-            <button class="customer-close-btn">&times;</button>
-        </div>
-        <form id="reportForm">
-            <div class="customer-form-group">
-                <label>Choose your reason</label>
-                <div class="customer-radio-group">
-                    <label><input type="radio" name="reason" value="inappropriate"> Inappropriate content</label>
-                    <label><input type="radio" name="reason" value="spam"> Spam</label>
-                    <label><input type="radio" name="reason" value="fake"> Fake profile</label>
-                    <label><input type="radio" name="reason" value="harassment"> Harassment</label>
-                    <label><input type="radio" name="reason" value="other"> Other</label>
-                </div>
-            </div>
-            <div class="customer-form-group">
-                <label for="message">Additional details</label>
-                <textarea id="message" placeholder="Please provide any additional details..."></textarea>
-            </div>
-            <div class="customer-form-actions">
-                <button type="button" class="customer-btn customer-btn-secondary" id="cancelBtn">Cancel</button>
-                <button type="submit" class="customer-btn customer-btn-primary" disabled>Submit Report</button>
-            </div>
-        </form>
-    </div>
-</div> {% endcomment %}
+
 
 <script>
-    {% comment %} // Modal functionality
-    const modal = document.getElementById('reportModal');
-    const reportBtn = document.getElementById('reportBtn');
-    const closeBtn = document.querySelector('.customer-close-btn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const reportForm = document.getElementById('reportForm');
-    const submitBtn = reportForm.querySelector('button[type="submit"]');
-    const reasonInputs = reportForm.querySelectorAll('input[name="reason"]');
 
-    // Check if reportBtn exists (it might not be rendered on the page)
-    if (reportBtn) {
-        // Open modal
-        reportBtn.addEventListener('click', () => {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    }
-
-    // Close modal functions
-    const closeModal = () => {
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-        reportForm.reset();
-    };
-
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-
-    // Close modal with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-            closeModal();
-        }
-    });
-
-    // Enable/disable submit button based on reason selection
-    reasonInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            submitBtn.disabled = !reportForm.querySelector('input[name="reason"]:checked');
-        });
-    });
-
-    // Handle form submission
-    reportForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            reason: reportForm.querySelector('input[name="reason"]:checked').value,
-            message: reportForm.querySelector('#message').value
-        };
-        
-        console.log('Report submitted:', formData);
-        // Here you would typically send the data to your backend
-        
-        closeModal();
-    }); {% endcomment %}
 
     // Add hover animation to stat cards
     document.querySelectorAll('.customer-stat-card').forEach(card => {

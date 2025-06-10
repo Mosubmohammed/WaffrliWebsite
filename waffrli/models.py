@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 
 def get_default_user():
     User = get_user_model()
-    return User.objects.first()  # Or create a new default user if needed
+    return User.objects.first()
 
 
     

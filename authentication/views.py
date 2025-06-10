@@ -151,6 +151,9 @@ def register(request):
     return render(request, 'register.html')
 
 
+
+
+
 def login_view(request):
     # Pre-fill email if coming from password reset
     reset_email = request.session.get('reset_email', '')

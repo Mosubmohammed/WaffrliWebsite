@@ -69,11 +69,11 @@ def check_deal_against_wishlist(deal):
                         user=item.user,
                         title=f"Deal Match: {item.keyword}",
                         message=f"We found a deal matching your wishlist: {deal.Name} for ${deal.sale_price}",
-                        notification_type='deal',
+                        notification_type='wishlist_match',  # Make sure this is exactly 'wishlist_match'
                         wishlist_item=item,
                         related_object_id=deal.id,
                         related_object_type='deal',
-                        url=f"/product/{deal.id}",
+                        url=f"/product/{deal.id}/",
                     )
                     match_count += 1
             except (TypeError, ValueError, AttributeError):
