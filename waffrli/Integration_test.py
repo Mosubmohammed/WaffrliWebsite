@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
 from waffrli.models import (
-    Product, Comment, Follow, Message,
+    Product, Follow, Message,
     WishlistItem, Notification, Customer, Category, ReportedDeal
 )
 from authentication.models import SupabaseUser

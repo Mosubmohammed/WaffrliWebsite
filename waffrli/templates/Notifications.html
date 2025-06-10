@@ -26,20 +26,21 @@
           data-read="{{ notification.is_read|yesno:'true,false' }}"
           data-type="{{ notification.notification_type }}"
         >
-          <div
-            class="notification-content {% if notification.notification_type == 'wishlist_match' %}clickable{% endif %}"
-            {% if notification.notification_type == 'wishlist_match' %}onclick="openNotification({{ notification.id }}, '{{ notification.url }}')"{% endif %}
-          >
-            <div class="notification-header">
-              <h3>{{ notification.title }}</h3>
-              <span class="notification-time"
-                >{{ notification.created_at|timesince }} ago</span
-              >
-            </div>
-            <p>{{ notification.message }}</p>
-            {% if notification.notification_type == 'wishlist_match' and notification.url and notification.url != 'None' %}
-              <small class="clickable-hint">Click to view the matched product</small>
-            {% endif %}
+          <div class="notification-content {% if notification.notification_type == 'wishlist_match' or notification.notification_type == 'deal' %}clickable{% endif %}"
+              data-notification-id="{{ notification.id }}"
+              data-notification-url="{{ notification.url }}"
+              data-notification-type="{{ notification.notification_type }}"
+              onclick="openNotification('{{ notification.id }}', '{{ notification.url }}');">
+              <div class="notification-header">
+                  <h3>{{ notification.title }}</h3>
+                  <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+              </div>
+              <p>{{ notification.message }}</p>
+              {% if notification.notification_type == 'wishlist_match' or notification.notification_type == 'deal' %}
+                  {% if notification.url %}
+                      <small class="clickable-hint">Click to view the matched product</small>
+                  {% endif %}
+              {% endif %}
           </div>
           <div class="notification-actions">
             <button
@@ -124,25 +125,33 @@ function showTab(tab) {
   }
 }
 
-  // Open notification and mark as read
-  function openNotification(id, url) {
-    // Only process if the notification is a wishlist match
-    const notification = document.querySelector(
-      `.notification-item[data-id="${id}"]`
-    );
+// Open notification and mark as read
+function openNotification(id, url) {
+
+  
+  // Get the notification element
+  const notification = document.querySelector(
+    `.notification-item[data-id="${id}"]`
+  );
+  
+
+  
+  // Check if the notification is a wishlist match (make sure this matches your HTML data attribute)
+  const notificationType = notification.getAttribute("data-type");
+  
+  
+  
+  // Mark as read first
+  markAsRead(id);
+  
+  // Navigate to the URL if it exists and isn't "None"
+  if (url && url !== "None" && url.trim() !== "") {
+   
+    window.location.href = url;
+  } else {
     
-    if (notification.getAttribute("data-type") !== "wishlist_match") {
-      console.log("This notification type is not clickable");
-      return;
-    }
-    
-    markAsRead(id);
-    
-    // Navigate to the URL if it exists and isn't "None"
-    if (url && url !== "None") {
-      window.location.href = url;
-    }
   }
+}
 
   // Toggle read status
   function toggleReadStatus(id) {
@@ -237,7 +246,7 @@ function showTab(tab) {
     fetch("/mark_all_read/", {
       method: "POST",
       headers: {
-        "X-CSRFToken": csrfToken,
+        "X-CSrfToken": csrfToken,
         "Content-Type": "application/json",
       },
     })
@@ -314,6 +323,29 @@ function showTab(tab) {
   document.addEventListener("DOMContentLoaded", function () {
     // Show the 'all' tab initially
     showTab("all");
+  });
+
+  // Add click event listener for clickable notifications
+  document.addEventListener('click', function(event) {
+    // Check if the clicked element or its parent has the 'clickable' class
+    const clickableElement = event.target.closest('.clickable');
+    
+    if (clickableElement) {
+      // Make sure we're not clicking on action buttons
+      if (event.target.closest('.notification-actions')) {
+        return; // Don't handle click if it's on action buttons
+      }
+      
+      const id = clickableElement.getAttribute('data-notification-id');
+      const url = clickableElement.getAttribute('data-notification-url');
+      const type = clickableElement.getAttribute('data-notification-type');
+      
+      
+      
+      if (type === 'wishlist_match' && id && url) {
+        openNotification(id, url);
+      }
+    }
   });
 </script>
 

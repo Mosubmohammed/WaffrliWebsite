@@ -446,30 +446,6 @@
     </section>
 </div>
 
-<!-- Pagination -->
-{% if products.has_other_pages %}
-<div class="pagination-container">
-    <ul class="pagination">
-        {% if products.has_previous %}
-            <li><a href="?page=1">&laquo; First</a></li>
-            <li><a href="?page={{ products.previous_page_number }}">Previous</a></li>
-        {% endif %}
-        
-        {% for i in products.paginator.page_range %}
-            {% if products.number == i %}
-                <li class="active"><a href="#">{{ i }}</a></li>
-            {% elif i > products.number|add:'-3' and i < products.number|add:'3' %}
-                <li><a href="?page={{ i }}">{{ i }}</a></li>
-            {% endif %}
-        {% endfor %}
-        
-        {% if products.has_next %}
-            <li><a href="?page={{ products.next_page_number }}">Next</a></li>
-            <li><a href="?page={{ products.paginator.num_pages }}">Last &raquo;</a></li>
-        {% endif %}
-    </ul>
-</div>
-{% endif %}
 
 <script>
     // Daily Deals Countdown Timer
