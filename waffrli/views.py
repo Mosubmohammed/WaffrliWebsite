@@ -928,32 +928,12 @@ def user_profile(request, identifier):
             "total_views": total_views,
             "total_likes_received": total_likes_received,
             "reputation_points": reputation_points,
+            
             "best_deal": best_deal,
         },
     )
 
 
-
-
-
-def wishlist(request):
-    if not request.user.is_authenticated:
-        messages.error(request, "You must be logged in to view your wishlist.")
-        return redirect('login')
-
-    wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-created_at')
-
-    categories = Category.objects.all()
-    
-    unread_notification_count = Notification.objects.filter(user=request.user, is_read=False).count()
-    
-    context = {
-        'wishlist_items': wishlist_items,
-        'categories': categories,
-        'unread_notification_count': unread_notification_count,
-    }
-    
-    return render(request, 'wishlist.html', context)
 
 @login_required
 def add_wishlist_item(request):
@@ -988,6 +968,29 @@ def add_wishlist_item(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    
+    
+
+def wishlist(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to view your wishlist.")
+        return redirect('login')
+
+    wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-created_at')
+
+    categories = Category.objects.all()
+    
+    unread_notification_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    context = {
+        'wishlist_items': wishlist_items,
+        'categories': categories,
+        'unread_notification_count': unread_notification_count,
+    }
+    
+    return render(request, 'wishlist.html', context)
+
+
 
 @login_required
 def update_wishlist_item(request, item_id):
@@ -1028,8 +1031,7 @@ def delete_wishlist_item(request, item_id):
     try:
         wishlist_item = WishlistItem.objects.get(id=item_id, user=request.user)
         
-        keyword = wishlist_item.keyword
-        category_name = wishlist_item.category  # This is already a string
+
         
         # Delete the wishlist item
         wishlist_item.delete()
